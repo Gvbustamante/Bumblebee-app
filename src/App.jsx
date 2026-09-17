@@ -163,7 +163,8 @@ function SettingsTab() {
   const { session, profile, updateProfile, signOut } = useAuth()
   const [name, setName] = useState(profile?.name || '')
   const [showConfirm, setShowConfirm] = useState(false)
-  const [muted, setMuted] = useState(sounds.muted)
+  const [muteFx, setMuteFx] = useState(sounds.muteFx)
+  const [muteVoice, setMuteVoice] = useState(sounds.muteVoice)
 
   function handleNameChange(v) {
     setName(v)
@@ -178,25 +179,48 @@ function SettingsTab() {
       </div>
 
       <div className="px-4 space-y-4">
-        {/* Sound toggle */}
+        {/* Sound effects toggle */}
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('sound')}</label>
+          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('soundEffects')}</label>
           <div className="flex gap-2 mt-2">
             <button
-              onClick={() => { sounds.setMuted(false); setMuted(false) }}
+              onClick={() => { sounds.setMuteFx(false); setMuteFx(false) }}
               className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-1 ${
-                !muted ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
+                !muteFx ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
               }`}
             >
-              🔊 ON
+              🔔 ON
             </button>
             <button
-              onClick={() => { sounds.setMuted(true); setMuted(true) }}
+              onClick={() => { sounds.setMuteFx(true); setMuteFx(true) }}
               className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-1 ${
-                muted ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
+                muteFx ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
               }`}
             >
               🔇 OFF
+            </button>
+          </div>
+        </div>
+
+        {/* Voice toggle */}
+        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
+          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('voice')}</label>
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={() => { sounds.setMuteVoice(false); setMuteVoice(false) }}
+              className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-1 ${
+                !muteVoice ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
+              }`}
+            >
+              🗣️ ON
+            </button>
+            <button
+              onClick={() => { sounds.setMuteVoice(true); setMuteVoice(true) }}
+              className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-1 ${
+                muteVoice ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
+              }`}
+            >
+              🤐 OFF
             </button>
           </div>
         </div>

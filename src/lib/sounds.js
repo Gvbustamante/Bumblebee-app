@@ -4,7 +4,7 @@ const ctx = () => {
 }
 
 function tone(freq, dur, type = 'sine', vol = 0.3) {
-  if (sounds._muted) return
+  if (sounds._muteFx) return
   try {
     const c = ctx()
     const o = c.createOscillator()
@@ -21,12 +21,19 @@ function tone(freq, dur, type = 'sine', vol = 0.3) {
 
 const sounds = {
   _ctx: null,
-  _muted: (() => { try { return localStorage.getItem('sbk-mute') === '1' } catch { return false } })(),
+  _muteFx: (() => { try { return localStorage.getItem('sbk-mute-fx') === '1' } catch { return false } })(),
+  _muteVoice: (() => { try { return localStorage.getItem('sbk-mute-voice') === '1' } catch { return false } })(),
 
-  get muted() { return this._muted },
-  setMuted(v) {
-    this._muted = v
-    try { localStorage.setItem('sbk-mute', v ? '1' : '0') } catch {}
+  get muteFx() { return this._muteFx },
+  setMuteFx(v) {
+    this._muteFx = v
+    try { localStorage.setItem('sbk-mute-fx', v ? '1' : '0') } catch {}
+  },
+
+  get muteVoice() { return this._muteVoice },
+  setMuteVoice(v) {
+    this._muteVoice = v
+    try { localStorage.setItem('sbk-mute-voice', v ? '1' : '0') } catch {}
   },
 
   correct() {
@@ -62,7 +69,7 @@ const sounds = {
   },
 
   speak(text, lang = 'en') {
-    if (this._muted) return
+    if (this._muteVoice) return
     try {
       if (!window.speechSynthesis) return
       window.speechSynthesis.cancel()
@@ -75,7 +82,7 @@ const sounds = {
   },
 
   speakLetter(letter, lang = 'en') {
-    if (this._muted) return
+    if (this._muteVoice) return
     try {
       if (!window.speechSynthesis) return
       window.speechSynthesis.cancel()
