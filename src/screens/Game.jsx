@@ -6,7 +6,7 @@ import { useAuth } from '../data/AuthContext'
 import { recordAttempt, addFlower, addStars } from '../lib/db'
 import sounds from '../lib/sounds'
 
-export default function Game({ config, onExit }) {
+export default function Game({ config, onExit, onExitHome }) {
   const { mode, subMode: subModeId, block, blockIndex, isChallenge } = config
   const sub = getSubMode(mode, subModeId)
   const { t, lang } = useLang()
@@ -46,7 +46,7 @@ export default function Game({ config, onExit }) {
 
   useEffect(() => {
     if (phase !== 'spelling' || !letters[letterIdx]) return
-    const t = setTimeout(() => sounds.speakLetter(letters[letterIdx], lang), 200)
+    const t = setTimeout(() => sounds.speakLetter(letters[letterIdx], 'en'), 200)
     return () => clearTimeout(t)
   }, [letterIdx, phase])
 
@@ -202,11 +202,14 @@ export default function Game({ config, onExit }) {
         </div>
 
         <div className="flex gap-3 w-full max-w-sm mt-6">
-          <button onClick={onExit} className="flex-1 py-3.5 bg-white border-2 border-purple-200 text-purple-600 rounded-2xl font-extrabold active:scale-95 transition-transform">
-            {t('home')}
+          <button onClick={onExitHome} className="flex-1 py-3.5 bg-white border-2 border-gray-200 text-gray-500 rounded-2xl font-extrabold active:scale-95 transition-transform text-sm">
+            🏠 {t('home')}
           </button>
-          <button onClick={() => { setBlockDone(false); setQueue([...block]); setBlockResults([]); resetForNextWord() }} className="flex-1 py-3.5 bg-purple-600 text-white rounded-2xl font-extrabold shadow-btn active:scale-95 transition-transform">
-            {t('again')}
+          <button onClick={onExit} className="flex-1 py-3.5 bg-white border-2 border-purple-200 text-purple-600 rounded-2xl font-extrabold active:scale-95 transition-transform text-sm">
+            📚 {t('blocks')}
+          </button>
+          <button onClick={() => { setBlockDone(false); setQueue([...block]); setBlockResults([]); resetForNextWord() }} className="flex-1 py-3.5 bg-purple-600 text-white rounded-2xl font-extrabold shadow-btn active:scale-95 transition-transform text-sm">
+            🔄 {t('again')}
           </button>
         </div>
       </div>
@@ -308,15 +311,18 @@ export default function Game({ config, onExit }) {
                   <div className="h-8 flex items-center justify-center">
                     {i === letterIdx && <span className="text-xl animate-float">🐝</span>}
                   </div>
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-extrabold text-2xl transition-all duration-200 ${
-                    i < letterIdx
-                      ? 'bg-green-100 text-green-600 scale-95'
-                      : i === letterIdx
-                        ? 'bg-purple-600 text-white scale-110 shadow-btn'
-                        : 'bg-gray-100 text-gray-300'
-                  }`}>
+                  <button
+                    onClick={() => sounds.speakLetter(letter, 'en')}
+                    className={`w-14 h-14 rounded-2xl flex items-center justify-center font-extrabold text-2xl transition-all duration-200 active:scale-90 ${
+                      i < letterIdx
+                        ? 'bg-green-100 text-green-600 scale-95'
+                        : i === letterIdx
+                          ? 'bg-purple-600 text-white scale-110 shadow-btn'
+                          : 'bg-gray-100 text-gray-300'
+                    }`}
+                  >
                     {letter}
-                  </div>
+                  </button>
                 </div>
               ))}
             </div>

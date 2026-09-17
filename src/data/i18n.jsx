@@ -38,6 +38,7 @@ const S = {
     perfect: 'Perfect!',
     goodTry: 'Good try!',
     home: 'Home',
+    blocks: 'Blocks',
     again: 'Again',
     review: 'Review',
     remaining: 'remaining',
@@ -79,7 +80,6 @@ const S = {
     howChallenge: 'Challenge: Timer on, test your speed',
     howStars: 'Stars: 3 for perfect, 1 for correct',
     howQueue: 'Queue: Words repeat until learned',
-    // Auth
     welcomeBack: 'Welcome back!',
     createAccount: 'Create your account',
     email: 'Email',
@@ -93,10 +93,8 @@ const S = {
     resetProgress: 'Reset progress',
     resetConfirm: 'This will delete all stars, flowers and practice history. Continue?',
     resetDone: 'Progress reset!',
-    // Adventure
     pickOneAdventure: 'Each adventure has its own progress and stars',
     changeAdventure: 'Change adventure',
-    // Admin
     admin: 'Admin',
     manageWords: 'Manage words and images',
     addWord: 'Add word',
@@ -157,6 +155,7 @@ const S = {
     perfect: '¡Perfecto!',
     goodTry: '¡Buen intento!',
     home: 'Inicio',
+    blocks: 'Bloques',
     again: 'Otra vez',
     review: 'Repaso',
     remaining: 'restantes',
@@ -198,7 +197,6 @@ const S = {
     howChallenge: 'Desafío: Con temporizador, pon a prueba tu velocidad',
     howStars: 'Estrellas: 3 por perfecto, 1 por correcto',
     howQueue: 'Cola: Las palabras se repiten hasta aprenderlas',
-    // Auth
     welcomeBack: '¡Bienvenido de vuelta!',
     createAccount: 'Crea tu cuenta',
     email: 'Correo electrónico',
@@ -212,10 +210,8 @@ const S = {
     resetProgress: 'Borrar progreso',
     resetConfirm: 'Se borrarán todas las estrellas, flores e historial de práctica. ¿Continuar?',
     resetDone: '¡Progreso borrado!',
-    // Adventure
     pickOneAdventure: 'Cada aventura tiene su propio progreso y estrellas',
     changeAdventure: 'Cambiar aventura',
-    // Admin
     admin: 'Admin',
     manageWords: 'Gestionar palabras e imágenes',
     addWord: 'Agregar palabra',

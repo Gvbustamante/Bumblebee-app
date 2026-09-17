@@ -223,14 +223,14 @@ export default function Admin() {
             <input ref={addFileRef} type="file" accept="image/*" onChange={handleNewImage} className="hidden" />
             <button
               onClick={() => addFileRef.current?.click()}
-              className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold"
+              className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold flex items-center gap-1"
             >
-              Imagen
+              📷 Imagen
             </button>
             {newImagePreview && (
               <div className="flex items-center gap-2">
                 <img src={newImagePreview} alt="preview" className="w-10 h-10 rounded-lg object-cover border-2 border-blue-200" />
-                <button onClick={clearNewImage} className="text-red-400 text-xs font-bold">x</button>
+                <button onClick={clearNewImage} className="text-red-400 text-xs font-bold">✕</button>
               </div>
             )}
             {!newImagePreview && <span className="text-[10px] text-gray-300">Emoji, imagen, o ambos</span>}

@@ -31,6 +31,7 @@ export default function App() {
 function MainApp() {
   const [tab, setTab] = useState('home')
   const [gameConfig, setGameConfig] = useState(null)
+  const [selectedSubMode, setSelectedSubMode] = useState(null)
   const { t } = useLang()
   const { isAdmin } = useAuth()
 
@@ -46,7 +47,7 @@ function MainApp() {
   if (gameConfig) {
     return (
       <div className="app-shell">
-        <Game config={gameConfig} onExit={() => setGameConfig(null)} />
+        <Game config={gameConfig} onExit={() => setGameConfig(null)} onExitHome={() => { setGameConfig(null); setSelectedSubMode(null) }} />
       </div>
     )
   }
@@ -54,7 +55,7 @@ function MainApp() {
   return (
     <div className="app-shell flex flex-col min-h-screen bg-white">
       <div className="flex-1 overflow-y-auto pb-20">
-        {tab === 'home' && <Home onStartGame={setGameConfig} />}
+        {tab === 'home' && <Home onStartGame={setGameConfig} selectedSubMode={selectedSubMode} setSelectedSubMode={setSelectedSubMode} />}
         {tab === 'progress' && <Progress />}
         {tab === 'rewards' && <RewardsTab />}
         {tab === 'help' && <HelpTab />}
@@ -162,7 +163,6 @@ function SettingsTab() {
   const { t, lang, setLang } = useLang()
   const { session, profile, updateProfile, signOut } = useAuth()
   const [name, setName] = useState(profile?.name || '')
-  const [showConfirm, setShowConfirm] = useState(false)
   const muteFx = !!profile?.mute_fx
   const muteVoice = !!profile?.mute_voice
 
@@ -179,7 +179,6 @@ function SettingsTab() {
       </div>
 
       <div className="px-4 space-y-4">
-        {/* Sound effects toggle */}
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('soundEffects')}</label>
           <div className="flex gap-2 mt-2">
@@ -202,7 +201,6 @@ function SettingsTab() {
           </div>
         </div>
 
-        {/* Voice toggle */}
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('voice')}</label>
           <div className="flex gap-2 mt-2">
@@ -225,7 +223,6 @@ function SettingsTab() {
           </div>
         </div>
 
-        {/* Language toggle */}
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('language')}</label>
           <div className="flex gap-2 mt-2">
@@ -243,7 +240,6 @@ function SettingsTab() {
           </div>
         </div>
 
-        {/* Student name */}
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('studentName')}</label>
           <input
@@ -255,7 +251,6 @@ function SettingsTab() {
           />
         </div>
 
-        {/* Block size */}
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('wordsPerBlock')}</label>
           <div className="flex gap-2 mt-2">
@@ -273,7 +268,6 @@ function SettingsTab() {
           </div>
         </div>
 
-        {/* Image size */}
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('imageSize')}</label>
           <div className="flex gap-2 mt-2">
@@ -291,7 +285,6 @@ function SettingsTab() {
           </div>
         </div>
 
-        {/* Change adventure */}
         <button
           onClick={() => updateProfile({ adventure: null })}
           className="w-full bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 text-left"
@@ -302,7 +295,6 @@ function SettingsTab() {
           </div>
         </button>
 
-        {/* How it works */}
         <div className="bg-purple-50 rounded-2xl border border-purple-200 p-4">
           <h3 className="font-extrabold text-purple-700 text-sm mb-2">{t('howItWorks')}</h3>
           <ul className="text-xs text-purple-600 space-y-1.5 font-semibold">
@@ -315,7 +307,6 @@ function SettingsTab() {
           </ul>
         </div>
 
-        {/* Reset progress */}
         <button
           onClick={async () => {
             if (!confirm(t('resetConfirm'))) return
@@ -327,7 +318,6 @@ function SettingsTab() {
           <span className="text-orange-500 font-bold text-sm">{t('resetProgress')}</span>
         </button>
 
-        {/* Logout */}
         <button
           onClick={signOut}
           className="w-full bg-red-50 border-2 border-red-200 rounded-2xl p-4 text-center"

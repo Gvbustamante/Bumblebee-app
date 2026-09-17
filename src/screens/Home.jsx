@@ -5,8 +5,7 @@ import { useLang } from '../data/i18n'
 import { useAuth } from '../data/AuthContext'
 import { fetchWords, getStars, getAdventureStats, getMastery, getWeakWords } from '../lib/db'
 
-export default function Home({ onStartGame }) {
-  const [selectedSubMode, setSelectedSubMode] = useState(null)
+export default function Home({ onStartGame, selectedSubMode, setSelectedSubMode }) {
   const { t, lang } = useLang()
   const { session, profile } = useAuth()
   const adventure = profile?.adventure
@@ -67,23 +66,16 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
   const { t, lang } = useLang()
   const { profile, updateProfile } = useAuth()
   const masteredPct = words.length ? Math.round((stats.mastered / words.length) * 100) : 0
-  const [showModePicker, setShowModePicker] = useState(false)
+  const playerName = profile?.name
 
   return (
     <div className="animate-fade-up">
       <div className="flex items-center justify-between px-5 pt-5 pb-2">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowModePicker(v => !v)}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-purple-50 border-2 border-purple-200 active:scale-90 transition-transform text-xl"
-            title={t('changeAdventure')}
-          >
-            {modeDef.emoji}
-          </button>
-          <div>
-            <h1 className="text-xl font-extrabold text-gray-800">{t('greeting')}</h1>
-            <p className="text-sm text-gray-400 font-semibold">{profile?.name || ''}</p>
-          </div>
+        <div>
+          <h1 className="text-xl font-extrabold text-gray-800">
+            {playerName ? `${lang === 'es' ? '¡Hola' : 'Hi'}, ${playerName}!` : t('greeting')}
+          </h1>
+          <p className="text-sm text-gray-400 font-semibold">{t('whatToDo')}</p>
         </div>
         <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1.5 rounded-full border border-yellow-200">
           <span className="text-lg">⭐</span>
@@ -91,24 +83,26 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
         </div>
       </div>
 
-      {showModePicker && (
-        <div className="mx-4 mb-3 bg-white rounded-2xl shadow-card border border-gray-200 p-2 flex gap-2 animate-fade-up">
-          {Object.values(MODES).map(m => (
+      <div className="mx-4 mt-2 flex gap-1.5">
+        {Object.values(MODES).map(m => {
+          const active = m.id === adventure
+          const mc = MODE_PILL[m.color]
+          return (
             <button
               key={m.id}
-              onClick={() => { updateProfile({ adventure: m.id }); setShowModePicker(false) }}
+              onClick={() => { if (!active) updateProfile({ adventure: m.id }) }}
               className={`flex-1 flex flex-col items-center py-2 rounded-xl transition-all active:scale-90 ${
-                m.id === adventure ? 'bg-purple-100 border-2 border-purple-300' : 'bg-gray-50 border-2 border-transparent'
+                active ? `${mc.activeBg} border-2 ${mc.activeBorder}` : 'bg-gray-50 border-2 border-transparent'
               }`}
             >
-              <span className="text-2xl">{m.emoji}</span>
-              <span className="text-[10px] font-bold text-gray-600 mt-1 leading-tight">{m.label}</span>
+              <span className={active ? 'text-2xl' : 'text-xl opacity-60'}>{m.emoji}</span>
+              <span className={`text-[9px] font-bold mt-0.5 leading-tight ${active ? mc.activeText : 'text-gray-400'}`}>{m.label}</span>
             </button>
-          ))}
-        </div>
-      )}
+          )
+        })}
+      </div>
 
-      <div className={`mx-4 mt-3 ${HERO_GRADIENT[modeDef.color] || 'bg-gradient-to-br from-purple-600 to-purple-500'} rounded-3xl p-5 text-white relative overflow-hidden`}>
+      <div className={`mx-4 mt-3 ${HERO_GRADIENT[modeDef.color]} rounded-3xl p-5 text-white relative overflow-hidden`}>
         <div className="absolute -right-6 -bottom-6 text-[100px] opacity-10 select-none">{modeDef.emoji}</div>
         <p className="text-white/70 text-sm font-semibold">{modeDef.emoji} {modeDef.label}</p>
         <p className="font-extrabold text-lg mt-0.5">{t('doingAmazing')}</p>
@@ -169,6 +163,14 @@ const HERO_GRADIENT = {
   blue: 'bg-gradient-to-br from-blue-600 to-cyan-500',
   amber: 'bg-gradient-to-br from-amber-500 to-yellow-400',
   indigo: 'bg-gradient-to-br from-indigo-600 to-violet-500',
+}
+
+const MODE_PILL = {
+  purple: { activeBg: 'bg-purple-100', activeBorder: 'border-purple-300', activeText: 'text-purple-700' },
+  pink: { activeBg: 'bg-pink-100', activeBorder: 'border-pink-300', activeText: 'text-pink-700' },
+  blue: { activeBg: 'bg-blue-100', activeBorder: 'border-blue-300', activeText: 'text-blue-700' },
+  amber: { activeBg: 'bg-amber-100', activeBorder: 'border-amber-300', activeText: 'text-amber-700' },
+  indigo: { activeBg: 'bg-indigo-100', activeBorder: 'border-indigo-300', activeText: 'text-indigo-700' },
 }
 
 const SUB_COLORS = {
