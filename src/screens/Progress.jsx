@@ -61,7 +61,8 @@ function SubModeProgress({ adventure, sub, words }) {
   const { session } = useAuth()
   const [wordData, setWordData] = useState([])
   const [weakWords, setWeakWords] = useState([])
-  const c = SECTION_COLORS[MODES[adventure]?.color === 'pink' ? 'orange' : 'purple']
+  const modeColor = MODES[adventure]?.color || 'purple'
+  const c = SECTION_COLORS[modeColor] || SECTION_COLORS.purple
 
   useEffect(() => {
     if (!session) return
@@ -127,12 +128,11 @@ function SubModeProgress({ adventure, sub, words }) {
 }
 
 const SECTION_COLORS = {
-  purple: {
-    bar: 'bg-purple-500', barBg: 'bg-purple-100', sub: 'bg-purple-100 text-purple-600',
-  },
-  orange: {
-    bar: 'bg-orange-500', barBg: 'bg-orange-100', sub: 'bg-orange-100 text-orange-600',
-  },
+  purple: { bar: 'bg-purple-500', barBg: 'bg-purple-100', sub: 'bg-purple-100 text-purple-600' },
+  pink: { bar: 'bg-pink-500', barBg: 'bg-pink-100', sub: 'bg-pink-100 text-pink-600' },
+  blue: { bar: 'bg-blue-500', barBg: 'bg-blue-100', sub: 'bg-blue-100 text-blue-600' },
+  amber: { bar: 'bg-amber-500', barBg: 'bg-amber-100', sub: 'bg-amber-100 text-amber-600' },
+  indigo: { bar: 'bg-indigo-500', barBg: 'bg-indigo-100', sub: 'bg-indigo-100 text-indigo-600' },
 }
 
 function StatBox({ value, label, bg, text }) {

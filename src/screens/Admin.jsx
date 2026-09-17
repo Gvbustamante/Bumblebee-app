@@ -7,23 +7,17 @@ import { supabase } from '../lib/supabase'
 const SECTIONS = [
   { adventure: 'spellingBee', category: 'words', label: '🐝 Spelling Bee', color: 'purple' },
   { adventure: 'bumblebee', category: 'words', label: '🌸 Bumblebee', color: 'pink' },
-  { adventure: 'spellingBee', category: 'alphabet', label: '🔤 ABC - Spelling Bee', color: 'blue' },
-  { adventure: 'bumblebee', category: 'alphabet', label: '🔤 ABC - Bumblebee', color: 'cyan' },
-  { adventure: 'spellingBee', category: 'colors', label: '🎨 Colores - Spelling Bee', color: 'amber' },
-  { adventure: 'bumblebee', category: 'colors', label: '🎨 Colores - Bumblebee', color: 'orange' },
-  { adventure: 'spellingBee', category: 'shapes', label: '🔷 Formas - Spelling Bee', color: 'indigo' },
-  { adventure: 'bumblebee', category: 'shapes', label: '🔷 Formas - Bumblebee', color: 'violet' },
+  { adventure: 'alphabet', category: 'words', label: '🔤 ABC', color: 'blue' },
+  { adventure: 'colors', category: 'words', label: '🎨 Colores', color: 'amber' },
+  { adventure: 'shapes', category: 'words', label: '🔷 Formas', color: 'indigo' },
 ]
 
 const SEC_COLORS = {
   purple: { bg: 'bg-purple-50', border: 'border-purple-200', head: 'bg-purple-100 text-purple-700', badge: 'bg-purple-200 text-purple-700' },
   pink: { bg: 'bg-pink-50', border: 'border-pink-200', head: 'bg-pink-100 text-pink-700', badge: 'bg-pink-200 text-pink-700' },
   blue: { bg: 'bg-blue-50', border: 'border-blue-200', head: 'bg-blue-100 text-blue-700', badge: 'bg-blue-200 text-blue-700' },
-  cyan: { bg: 'bg-cyan-50', border: 'border-cyan-200', head: 'bg-cyan-100 text-cyan-700', badge: 'bg-cyan-200 text-cyan-700' },
   amber: { bg: 'bg-amber-50', border: 'border-amber-200', head: 'bg-amber-100 text-amber-700', badge: 'bg-amber-200 text-amber-700' },
-  orange: { bg: 'bg-orange-50', border: 'border-orange-200', head: 'bg-orange-100 text-orange-700', badge: 'bg-orange-200 text-orange-700' },
   indigo: { bg: 'bg-indigo-50', border: 'border-indigo-200', head: 'bg-indigo-100 text-indigo-700', badge: 'bg-indigo-200 text-indigo-700' },
-  violet: { bg: 'bg-violet-50', border: 'border-violet-200', head: 'bg-violet-100 text-violet-700', badge: 'bg-violet-200 text-violet-700' },
 }
 
 export default function Admin() {

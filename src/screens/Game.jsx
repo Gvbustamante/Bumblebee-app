@@ -286,6 +286,14 @@ export default function Game({ config, onExit }) {
           </div>
         )}
 
+        {isSpellingPhase && sub.showWord && (
+          <div className="mt-4 mb-1">
+            <div className="bg-white/80 rounded-xl px-6 py-2 border border-purple-100 inline-block">
+              <p className="text-2xl font-extrabold text-purple-400 tracking-wider">{word.word}</p>
+            </div>
+          </div>
+        )}
+
         {isSpellingPhase && sub.showLetters && (
           <div className="mt-6 mb-2">
             <div className="flex gap-3 justify-center">

@@ -5,6 +5,7 @@ import Progress from './screens/Progress'
 import Login from './screens/Login'
 import AdventureSelect from './screens/AdventureSelect'
 import Admin from './screens/Admin'
+import { MODES } from './data/modes'
 import { useLang } from './data/i18n'
 import { useAuth } from './data/AuthContext'
 import { getStars, getGarden } from './lib/db'
@@ -230,7 +231,7 @@ function SettingsTab() {
         >
           <div className="font-extrabold text-purple-600 text-sm">{t('changeAdventure')}</div>
           <div className="text-xs text-purple-400 font-semibold mt-0.5">
-            {profile?.adventure === 'spellingBee' ? '🐝 Spelling Bee' : '🌸 Bumblebee'}
+            {MODES[profile?.adventure]?.emoji} {MODES[profile?.adventure]?.label}
           </div>
         </button>
 

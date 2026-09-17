@@ -81,12 +81,12 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
         </div>
       </div>
 
-      <div className="mx-4 mt-3 bg-gradient-to-br from-purple-600 to-purple-500 rounded-3xl p-5 text-white relative overflow-hidden">
+      <div className={`mx-4 mt-3 ${HERO_GRADIENT[modeDef.color] || 'bg-gradient-to-br from-purple-600 to-purple-500'} rounded-3xl p-5 text-white relative overflow-hidden`}>
         <div className="absolute -right-6 -bottom-6 text-[100px] opacity-10 select-none">{modeDef.emoji}</div>
-        <p className="text-purple-200 text-sm font-semibold">{modeDef.emoji} {modeDef.label}</p>
+        <p className="text-white/70 text-sm font-semibold">{modeDef.emoji} {modeDef.label}</p>
         <p className="font-extrabold text-lg mt-0.5">{t('doingAmazing')}</p>
         <div className="flex items-center gap-3 mt-3">
-          <div className="flex-1 h-2.5 bg-purple-400/50 rounded-full overflow-hidden">
+          <div className="flex-1 h-2.5 bg-white/20 rounded-full overflow-hidden">
             <div className="h-full bg-yellow-400 rounded-full transition-all duration-700" style={{ width: `${masteredPct}%` }} />
           </div>
           <span className="text-sm font-bold whitespace-nowrap">{stats.practiced}/{words.length}</span>
@@ -136,9 +136,20 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
   )
 }
 
+const HERO_GRADIENT = {
+  purple: 'bg-gradient-to-br from-purple-600 to-purple-500',
+  pink: 'bg-gradient-to-br from-pink-500 to-orange-400',
+  blue: 'bg-gradient-to-br from-blue-600 to-cyan-500',
+  amber: 'bg-gradient-to-br from-amber-500 to-yellow-400',
+  indigo: 'bg-gradient-to-br from-indigo-600 to-violet-500',
+}
+
 const SUB_COLORS = {
   purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700' },
   pink: { bg: 'bg-pink-50', border: 'border-pink-200', text: 'text-orange-600' },
+  blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
+  amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700' },
+  indigo: { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700' },
 }
 
 function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
