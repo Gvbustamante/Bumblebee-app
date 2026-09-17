@@ -24,7 +24,11 @@ export default function Admin() {
   const { t, lang } = useLang()
   const { profile } = useAuth()
   const [wordsBySection, setWordsBySection] = useState({})
-  const [collapsed, setCollapsed] = useState({})
+  const [collapsed, setCollapsed] = useState(() => {
+    const init = {}
+    for (const sec of SECTIONS) init[`${sec.adventure}|${sec.category}`] = true
+    return init
+  })
   const [addSection, setAddSection] = useState('spellingBee|words')
   const [newWord, setNewWord] = useState('')
   const [newEmoji, setNewEmoji] = useState('')
