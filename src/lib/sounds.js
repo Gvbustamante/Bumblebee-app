@@ -4,6 +4,7 @@ const ctx = () => {
 }
 
 function tone(freq, dur, type = 'sine', vol = 0.3) {
+  if (sounds._muted) return
   try {
     const c = ctx()
     const o = c.createOscillator()
@@ -20,6 +21,13 @@ function tone(freq, dur, type = 'sine', vol = 0.3) {
 
 const sounds = {
   _ctx: null,
+  _muted: (() => { try { return localStorage.getItem('sbk-mute') === '1' } catch { return false } })(),
+
+  get muted() { return this._muted },
+  setMuted(v) {
+    this._muted = v
+    try { localStorage.setItem('sbk-mute', v ? '1' : '0') } catch {}
+  },
 
   correct() {
     tone(523, 0.12)
@@ -54,6 +62,7 @@ const sounds = {
   },
 
   speak(text, lang = 'en') {
+    if (this._muted) return
     try {
       if (!window.speechSynthesis) return
       window.speechSynthesis.cancel()
@@ -66,6 +75,7 @@ const sounds = {
   },
 
   speakLetter(letter, lang = 'en') {
+    if (this._muted) return
     try {
       if (!window.speechSynthesis) return
       window.speechSynthesis.cancel()

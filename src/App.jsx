@@ -9,6 +9,7 @@ import { MODES } from './data/modes'
 import { useLang } from './data/i18n'
 import { useAuth } from './data/AuthContext'
 import { getStars, getGarden, resetProgress } from './lib/db'
+import sounds from './lib/sounds'
 
 export default function App() {
   const { session, profile, loading, isAdmin } = useAuth()
@@ -159,9 +160,10 @@ function RewardsTab() {
 
 function SettingsTab() {
   const { t, lang, setLang } = useLang()
-  const { profile, updateProfile, signOut } = useAuth()
+  const { session, profile, updateProfile, signOut } = useAuth()
   const [name, setName] = useState(profile?.name || '')
   const [showConfirm, setShowConfirm] = useState(false)
+  const [muted, setMuted] = useState(sounds.muted)
 
   function handleNameChange(v) {
     setName(v)
@@ -176,6 +178,29 @@ function SettingsTab() {
       </div>
 
       <div className="px-4 space-y-4">
+        {/* Sound toggle */}
+        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
+          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('sound')}</label>
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={() => { sounds.setMuted(false); setMuted(false) }}
+              className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-1 ${
+                !muted ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
+              }`}
+            >
+              🔊 ON
+            </button>
+            <button
+              onClick={() => { sounds.setMuted(true); setMuted(true) }}
+              className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-1 ${
+                muted ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
+              }`}
+            >
+              🔇 OFF
+            </button>
+          </div>
+        </div>
+
         {/* Language toggle */}
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('language')}</label>
