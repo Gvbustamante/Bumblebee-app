@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLang } from '../data/i18n'
 import { useAuth } from '../data/AuthContext'
-import { fetchWords, adminAddWord, adminDeleteWord, adminUploadImage, adminToggleWord, adminCloneWord } from '../lib/db'
+import { fetchWords, adminAddWord, adminDeleteWord, adminUploadImage, adminToggleWord, adminCloneWord, adminUpdateWord, adminBulkToggle } from '../lib/db'
 import { supabase } from '../lib/supabase'
 
 const SECTIONS = [
@@ -36,6 +36,11 @@ export default function Admin() {
   const [newImagePreview, setNewImagePreview] = useState(null)
   const [uploading, setUploading] = useState(null)
   const [users, setUsers] = useState([])
+  const [editing, setEditing] = useState(null)
+  const [editWord, setEditWord] = useState('')
+  const [editEmoji, setEditEmoji] = useState('')
+  const [selected, setSelected] = useState({})
+  const [selectMode, setSelectMode] = useState(null)
   const fileRef = useRef()
   const addFileRef = useRef()
 
@@ -115,6 +120,53 @@ export default function Admin() {
     loadAllWords()
   }
 
+  function startEdit(adventure, w) {
+    setEditing(`${adventure}|${w.word}`)
+    setEditWord(w.word)
+    setEditEmoji(w.emoji)
+  }
+
+  async function saveEdit(adventure, oldWord) {
+    const updates = {}
+    const nw = editWord.trim().toUpperCase()
+    if (nw && nw !== oldWord) updates.word = nw
+    if (editEmoji !== undefined) updates.emoji = editEmoji
+    if (Object.keys(updates).length) {
+      await adminUpdateWord(adventure, oldWord, updates)
+      loadAllWords()
+    }
+    setEditing(null)
+  }
+
+  function toggleSelect(key) {
+    setSelected(p => ({ ...p, [key]: !p[key] }))
+  }
+
+  function enterSelectMode(sectionKey) {
+    setSelectMode(sectionKey)
+    setSelected({})
+  }
+
+  function exitSelectMode() {
+    setSelectMode(null)
+    setSelected({})
+  }
+
+  async function bulkToggle(adventure, active) {
+    const words = Object.keys(selected).filter(k => selected[k])
+    if (!words.length) return
+    await adminBulkToggle(adventure, words, active)
+    exitSelectMode()
+    loadAllWords()
+  }
+
+  function selectAll(sectionKey) {
+    const words = wordsBySection[sectionKey] || []
+    const all = {}
+    words.forEach(w => { all[w.word] = true })
+    setSelected(all)
+  }
+
   async function toggleAdmin(userId, currentRole) {
     const newRole = currentRole === 'admin' ? 'user' : 'admin'
     await supabase.from('bumblebee_profiles').update({ role: newRole }).eq('id', userId)
@@ -132,8 +184,6 @@ export default function Admin() {
       <div className="px-4 mb-4">
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
           <div className="text-xs font-bold text-gray-500 mb-2">{t('addWord')}</div>
-
-          {/* Section selector */}
           <div className="flex flex-wrap gap-1.5 mb-3">
             {SECTIONS.map(sec => {
               const key = `${sec.adventure}|${sec.category}`
@@ -152,7 +202,6 @@ export default function Admin() {
               )
             })}
           </div>
-
           <div className="flex gap-2 items-center">
             <input
               value={newEmoji}
@@ -174,7 +223,7 @@ export default function Admin() {
             <input ref={addFileRef} type="file" accept="image/*" onChange={handleNewImage} className="hidden" />
             <button
               onClick={() => addFileRef.current?.click()}
-              className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold flex items-center gap-1"
+              className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold"
             >
               Imagen
             </button>
@@ -189,7 +238,6 @@ export default function Admin() {
         </div>
       </div>
 
-      {/* Hidden file input for word image upload */}
       <input ref={fileRef} type="file" accept="image/*" className="hidden" />
 
       {/* Collapsible sections */}
@@ -200,11 +248,13 @@ export default function Admin() {
           const isOpen = !collapsed[key]
           const c = SEC_COLORS[sec.color]
           const activeCount = words.filter(w => w.active).length
+          const inSelectMode = selectMode === key
+          const selectedCount = Object.values(selected).filter(Boolean).length
 
           return (
             <div key={key} className={`rounded-2xl border overflow-hidden ${c.border}`}>
               <button
-                onClick={() => toggleCollapse(key)}
+                onClick={() => { if (!inSelectMode) toggleCollapse(key) }}
                 className={`w-full flex items-center justify-between px-4 py-3 ${c.head} font-extrabold text-sm`}
               >
                 <span>{sec.label}</span>
@@ -212,57 +262,143 @@ export default function Admin() {
                   <span className={`text-[10px] px-2 py-0.5 rounded-full ${c.badge}`}>
                     {activeCount}/{words.length}
                   </span>
-                  <span className="text-lg">{isOpen ? '−' : '+'}</span>
+                  {!inSelectMode && <span className="text-lg">{isOpen ? '−' : '+'}</span>}
                 </div>
               </button>
 
               {isOpen && (
-                <div className={`${c.bg} p-2 space-y-1.5`}>
-                  {words.length === 0 && (
-                    <p className="text-center text-xs text-gray-400 py-3">{lang === 'es' ? 'Sin palabras' : 'No words'}</p>
-                  )}
-                  {words.map(w => (
-                    <div key={w.word} className={`rounded-xl border p-2.5 flex items-center gap-2 ${
-                      w.active ? 'bg-white border-gray-100' : 'bg-gray-50 border-gray-200 opacity-60'
-                    }`}>
-                      {w.image_url ? (
-                        <img src={w.image_url} alt={w.word} className="w-10 h-10 rounded-lg object-cover" />
+                <div className={`${c.bg} p-2`}>
+                  {/* Select mode toolbar */}
+                  {words.length > 0 && (
+                    <div className="flex items-center gap-2 mb-2">
+                      {!inSelectMode ? (
+                        <button
+                          onClick={() => enterSelectMode(key)}
+                          className="text-[10px] font-bold text-gray-400 px-2 py-1 bg-white rounded-lg border border-gray-200"
+                        >
+                          Seleccionar
+                        </button>
                       ) : (
-                        <span className="text-xl w-10 text-center">{w.emoji}</span>
+                        <>
+                          <button onClick={() => selectAll(key)} className="text-[10px] font-bold text-blue-600 px-2 py-1 bg-blue-50 rounded-lg">
+                            Todos
+                          </button>
+                          <button onClick={() => setSelected({})} className="text-[10px] font-bold text-gray-500 px-2 py-1 bg-gray-100 rounded-lg">
+                            Ninguno
+                          </button>
+                          <span className="text-[10px] text-gray-400 font-bold">{selectedCount}</span>
+                          <div className="flex-1" />
+                          <button
+                            onClick={() => bulkToggle(sec.adventure, true)}
+                            className="text-[10px] font-bold text-green-600 px-2 py-1 bg-green-50 rounded-lg"
+                          >
+                            ON
+                          </button>
+                          <button
+                            onClick={() => bulkToggle(sec.adventure, false)}
+                            className="text-[10px] font-bold text-yellow-600 px-2 py-1 bg-yellow-50 rounded-lg"
+                          >
+                            OFF
+                          </button>
+                          <button onClick={exitSelectMode} className="text-[10px] font-bold text-red-500 px-2 py-1 bg-red-50 rounded-lg">
+                            x
+                          </button>
+                        </>
                       )}
-                      <span className={`font-extrabold text-sm flex-1 ${w.active ? 'text-gray-700' : 'text-gray-400 line-through'}`}>
-                        {w.word}
-                      </span>
-                      <button
-                        onClick={() => handleToggle(sec.adventure, w.word, w.active)}
-                        className={`px-1.5 py-1 rounded-lg text-[10px] font-bold ${
-                          w.active ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'
-                        }`}
-                      >
-                        {w.active ? 'ON' : 'OFF'}
-                      </button>
-                      <button
-                        onClick={() => handleClone(sec.adventure, w.word)}
-                        className="px-1.5 py-1 bg-purple-50 text-purple-600 rounded-lg text-[10px] font-bold"
-                        title={`Clonar a ${sec.adventure === 'spellingBee' ? 'Bumblebee' : 'Spelling Bee'}`}
-                      >
-                        Copy
-                      </button>
-                      <button
-                        onClick={() => { fileRef.current.onchange = () => handleUpload(w.word); fileRef.current.click() }}
-                        className="px-1.5 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold"
-                        disabled={uploading === w.word}
-                      >
-                        {uploading === w.word ? '...' : 'Img'}
-                      </button>
-                      <button
-                        onClick={() => handleDelete(sec.adventure, w.word)}
-                        className="px-1.5 py-1 bg-red-50 text-red-500 rounded-lg text-[10px] font-bold"
-                      >
-                        Del
-                      </button>
                     </div>
-                  ))}
+                  )}
+
+                  <div className="space-y-1.5">
+                    {words.length === 0 && (
+                      <p className="text-center text-xs text-gray-400 py-3">{lang === 'es' ? 'Sin palabras' : 'No words'}</p>
+                    )}
+                    {words.map(w => {
+                      const isEditing = editing === `${sec.adventure}|${w.word}`
+
+                      if (isEditing) {
+                        return (
+                          <div key={w.word} className="rounded-xl border bg-white border-purple-300 p-2.5 flex items-center gap-2">
+                            <input
+                              value={editEmoji}
+                              onChange={e => setEditEmoji(e.target.value)}
+                              className="w-10 px-1 py-1 rounded-lg border border-purple-200 text-center text-lg"
+                            />
+                            <input
+                              value={editWord}
+                              onChange={e => setEditWord(e.target.value.toUpperCase())}
+                              className="flex-1 px-2 py-1 rounded-lg border border-purple-200 font-bold text-sm"
+                            />
+                            <button
+                              onClick={() => saveEdit(sec.adventure, w.word)}
+                              className="px-2 py-1 bg-green-500 text-white rounded-lg text-[10px] font-bold"
+                            >
+                              OK
+                            </button>
+                            <button
+                              onClick={() => setEditing(null)}
+                              className="px-2 py-1 bg-gray-100 text-gray-500 rounded-lg text-[10px] font-bold"
+                            >
+                              x
+                            </button>
+                          </div>
+                        )
+                      }
+
+                      return (
+                        <div key={w.word} className={`rounded-xl border p-2.5 flex items-center gap-2 ${
+                          w.active ? 'bg-white border-gray-100' : 'bg-gray-50 border-gray-200 opacity-60'
+                        }`}>
+                          {inSelectMode && (
+                            <input
+                              type="checkbox"
+                              checked={!!selected[w.word]}
+                              onChange={() => toggleSelect(w.word)}
+                              className="w-4 h-4 accent-purple-600"
+                            />
+                          )}
+                          {w.image_url ? (
+                            <img src={w.image_url} alt={w.word} className="w-10 h-10 rounded-lg object-cover" />
+                          ) : (
+                            <span className="text-xl w-10 text-center">{w.emoji}</span>
+                          )}
+                          <span className={`font-extrabold text-sm flex-1 ${w.active ? 'text-gray-700' : 'text-gray-400 line-through'}`}>
+                            {w.word}
+                          </span>
+                          {!inSelectMode && (
+                            <>
+                              <button
+                                onClick={() => startEdit(sec.adventure, w)}
+                                className="px-1.5 py-1 bg-gray-100 text-gray-500 rounded-lg text-[10px] font-bold"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleToggle(sec.adventure, w.word, w.active)}
+                                className={`px-1.5 py-1 rounded-lg text-[10px] font-bold ${
+                                  w.active ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'
+                                }`}
+                              >
+                                {w.active ? 'ON' : 'OFF'}
+                              </button>
+                              <button
+                                onClick={() => { fileRef.current.onchange = () => handleUpload(w.word); fileRef.current.click() }}
+                                className="px-1.5 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold"
+                                disabled={uploading === w.word}
+                              >
+                                {uploading === w.word ? '...' : 'Img'}
+                              </button>
+                              <button
+                                onClick={() => handleDelete(sec.adventure, w.word)}
+                                className="px-1.5 py-1 bg-red-50 text-red-500 rounded-lg text-[10px] font-bold"
+                              >
+                                Del
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -270,7 +406,7 @@ export default function Admin() {
         })}
       </div>
 
-      {/* Users management */}
+      {/* Users */}
       <div className="px-5 pt-6 pb-3">
         <h2 className="text-lg font-extrabold text-gray-800">{t('users')}</h2>
       </div>

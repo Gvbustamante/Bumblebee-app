@@ -115,17 +115,17 @@ export default function Game({ config, onExit }) {
     setShowResult(true)
   }
 
-  async function handleLearned() {
+  function handleLearned() {
     sounds.learned()
     const earned = currentResult.allPerfect ? 3 : 1
-    if (uid) await addStars(uid, mode, earned)
+    if (uid) addStars(uid, mode, earned)
     setBlockResults(p => [...p, {
       word: word.word, emoji: word.emoji,
       perfect: currentResult.allPerfect, starsEarned: earned, time: currentResult.time,
     }])
     const next = queue.slice(1)
     if (next.length === 0) {
-      if (uid) await addFlower(uid, mode, subModeId)
+      if (uid) addFlower(uid, mode, subModeId)
       sounds.blockComplete()
       setBlockDone(true)
     } else {
@@ -140,17 +140,17 @@ export default function Game({ config, onExit }) {
     resetForNextWord()
   }
 
-  async function handleFamiliarizeLearned() {
+  function handleFamiliarizeLearned() {
     sounds.learned()
     const time = Date.now() - startTime
     if (uid) {
-      await addStars(uid, mode, 1)
+      addStars(uid, mode, 1)
       recordAttempt(uid, mode, subModeId, word.word, { wordCorrect: true })
     }
     setBlockResults(p => [...p, { word: word.word, emoji: word.emoji, perfect: true, starsEarned: 1, time }])
     const next = queue.slice(1)
     if (next.length === 0) {
-      if (uid) await addFlower(uid, mode, subModeId)
+      if (uid) addFlower(uid, mode, subModeId)
       sounds.blockComplete()
       setBlockDone(true)
     } else {
@@ -169,7 +169,7 @@ export default function Game({ config, onExit }) {
 
   function Img({ w, className = '' }) {
     const url = w.image_url || getWordImageUrl(w.word)
-    if (url) return <img src={url} alt={w.word} className={`object-contain ${className}`} />
+    if (url) return <img src={url} alt={w.word} className={`object-contain max-h-[30vh] max-w-[70vw] ${className}`} />
     return <span className={className}>{w.emoji}</span>
   }
 

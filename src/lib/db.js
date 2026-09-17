@@ -203,6 +203,14 @@ export async function adminToggleWord(adventure, word, active) {
   return supabase.from('bumblebee_words').update({ active }).eq('adventure', adventure).eq('word', word)
 }
 
+export async function adminUpdateWord(adventure, oldWord, updates) {
+  return supabase.from('bumblebee_words').update(updates).eq('adventure', adventure).eq('word', oldWord)
+}
+
+export async function adminBulkToggle(adventure, words, active) {
+  return supabase.from('bumblebee_words').update({ active }).eq('adventure', adventure).in('word', words)
+}
+
 export async function adminCloneWord(fromAdventure, word) {
   const toAdventure = fromAdventure === 'spellingBee' ? 'bumblebee' : 'spellingBee'
   const { data: src } = await supabase
