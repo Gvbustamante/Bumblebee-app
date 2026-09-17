@@ -1,12 +1,14 @@
 import { supabase } from './supabase'
 
-export async function fetchWords(adventure) {
-  const { data } = await supabase
+export async function fetchWords(adventure, includeInactive = false) {
+  let q = supabase
     .from('bumblebee_words')
     .select('*')
     .eq('adventure', adventure)
     .order('sort_order')
-  return (data || []).map(w => ({ word: w.word, emoji: w.emoji, image_url: w.image_url }))
+  if (!includeInactive) q = q.eq('active', true)
+  const { data } = await q
+  return (data || []).map(w => ({ word: w.word, emoji: w.emoji, image_url: w.image_url, active: w.active }))
 }
 
 export async function getStars(userId, adventure) {
@@ -182,6 +184,10 @@ export async function adminAddWord(adventure, word, emoji) {
 
 export async function adminDeleteWord(adventure, word) {
   return supabase.from('bumblebee_words').delete().eq('adventure', adventure).eq('word', word)
+}
+
+export async function adminToggleWord(adventure, word, active) {
+  return supabase.from('bumblebee_words').update({ active }).eq('adventure', adventure).eq('word', word)
 }
 
 export async function adminUploadImage(file, word) {

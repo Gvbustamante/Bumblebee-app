@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLang } from '../data/i18n'
 import { useAuth } from '../data/AuthContext'
-import { fetchWords, adminAddWord, adminDeleteWord, adminUploadImage } from '../lib/db'
+import { fetchWords, adminAddWord, adminDeleteWord, adminUploadImage, adminToggleWord } from '../lib/db'
 import { supabase } from '../lib/supabase'
 
 export default function Admin() {
@@ -11,15 +11,18 @@ export default function Admin() {
   const [words, setWords] = useState([])
   const [newWord, setNewWord] = useState('')
   const [newEmoji, setNewEmoji] = useState('')
+  const [newImage, setNewImage] = useState(null)
+  const [newImagePreview, setNewImagePreview] = useState(null)
   const [uploading, setUploading] = useState(null)
   const [users, setUsers] = useState([])
   const fileRef = useRef()
+  const addFileRef = useRef()
 
   useEffect(() => { loadWords() }, [adventure])
   useEffect(() => { loadUsers() }, [])
 
   async function loadWords() {
-    const w = await fetchWords(adventure)
+    const w = await fetchWords(adventure, true)
     setWords(w)
   }
 
@@ -28,16 +31,39 @@ export default function Admin() {
     setUsers(data || [])
   }
 
+  function handleNewImage(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setNewImage(file)
+    setNewImagePreview(URL.createObjectURL(file))
+  }
+
+  function clearNewImage() {
+    setNewImage(null)
+    setNewImagePreview(null)
+    if (addFileRef.current) addFileRef.current.value = ''
+  }
+
   async function handleAdd() {
     if (!newWord.trim()) return
-    await adminAddWord(adventure, newWord.trim(), newEmoji || '📝')
+    const word = newWord.trim()
+    await adminAddWord(adventure, word, newEmoji || '📝')
+    if (newImage) {
+      await adminUploadImage(newImage, word)
+    }
     setNewWord('')
     setNewEmoji('')
+    clearNewImage()
     loadWords()
   }
 
   async function handleDelete(word) {
     await adminDeleteWord(adventure, word)
+    loadWords()
+  }
+
+  async function handleToggle(word, currentActive) {
+    await adminToggleWord(adventure, word, !currentActive)
     loadWords()
   }
 
@@ -85,7 +111,7 @@ export default function Admin() {
       <div className="px-4 mb-4">
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
           <div className="text-xs font-bold text-gray-500 mb-2">{t('addWord')}</div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <input
               value={newEmoji}
               onChange={e => setNewEmoji(e.target.value)}
@@ -102,6 +128,22 @@ export default function Admin() {
               +
             </button>
           </div>
+          <div className="flex items-center gap-2 mt-2">
+            <input ref={addFileRef} type="file" accept="image/*" onChange={handleNewImage} className="hidden" />
+            <button
+              onClick={() => addFileRef.current?.click()}
+              className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold flex items-center gap-1"
+            >
+              📷 Imagen
+            </button>
+            {newImagePreview && (
+              <div className="flex items-center gap-2">
+                <img src={newImagePreview} alt="preview" className="w-10 h-10 rounded-lg object-cover border-2 border-blue-200" />
+                <button onClick={clearNewImage} className="text-red-400 text-xs font-bold">✕</button>
+              </div>
+            )}
+            {!newImagePreview && <span className="text-[10px] text-gray-300">Emoji, imagen, o ambos</span>}
+          </div>
         </div>
       </div>
 
@@ -111,13 +153,19 @@ export default function Admin() {
       {/* Words list */}
       <div className="px-4 space-y-2">
         {words.map(w => (
-          <div key={w.word} className="bg-white rounded-xl shadow-card border border-gray-100 p-3 flex items-center gap-3">
+          <div key={w.word} className={`rounded-xl shadow-card border p-3 flex items-center gap-3 ${w.active ? 'bg-white border-gray-100' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
             {w.image_url ? (
               <img src={w.image_url} alt={w.word} className="w-12 h-12 rounded-lg object-cover" />
             ) : (
               <span className="text-2xl w-12 text-center">{w.emoji}</span>
             )}
-            <span className="font-extrabold text-gray-700 flex-1">{w.word}</span>
+            <span className={`font-extrabold flex-1 ${w.active ? 'text-gray-700' : 'text-gray-400 line-through'}`}>{w.word}</span>
+            <button
+              onClick={() => handleToggle(w.word, w.active)}
+              className={`px-2 py-1 rounded-lg text-xs font-bold ${w.active ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'}`}
+            >
+              {w.active ? '✅' : '⏸️'}
+            </button>
             <button
               onClick={() => { fileRef.current.onchange = () => handleUpload(w.word); fileRef.current.click() }}
               className="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold"
