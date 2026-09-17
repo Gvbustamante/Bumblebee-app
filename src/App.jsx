@@ -33,11 +33,12 @@ function MainApp() {
   const { isAdmin } = useAuth()
 
   const TABS = [
-    { id: 'home', label: t('navHome'), icon: '🏠', iconActive: '🏡' },
-    { id: 'progress', label: t('navProgress'), icon: '📊', iconActive: '📈' },
-    { id: 'rewards', label: t('navRewards'), icon: '🏆', iconActive: '🏆' },
-    { id: 'settings', label: t('navParents'), icon: '⚙️', iconActive: '⚙️' },
-    ...(isAdmin ? [{ id: 'admin', label: t('navAdmin'), icon: '🔧', iconActive: '🔧' }] : []),
+    { id: 'home', label: t('navHome'), icon: 'home' },
+    { id: 'progress', label: t('navProgress'), icon: 'progress' },
+    { id: 'rewards', label: t('navRewards'), icon: 'rewards' },
+    { id: 'help', label: t('navHelp'), icon: 'help' },
+    { id: 'settings', label: t('navParents'), icon: 'settings' },
+    ...(isAdmin ? [{ id: 'admin', label: t('navAdmin'), icon: 'admin' }] : []),
   ]
 
   if (gameConfig) {
@@ -54,6 +55,7 @@ function MainApp() {
         {tab === 'home' && <Home onStartGame={setGameConfig} />}
         {tab === 'progress' && <Progress />}
         {tab === 'rewards' && <RewardsTab />}
+        {tab === 'help' && <HelpTab />}
         {tab === 'settings' && <SettingsTab />}
         {tab === 'admin' && isAdmin && <Admin />}
       </div>
@@ -67,12 +69,10 @@ function MainApp() {
                 key={tb.id}
                 onClick={() => setTab(tb.id)}
                 className={`flex-1 flex flex-col items-center pt-2.5 pb-1 transition-all ${
-                  active ? 'text-purple-600' : 'text-gray-400'
+                  active ? 'text-purple-600' : 'text-gray-300'
                 }`}
               >
-                <span className={`text-xl transition-transform ${active ? 'scale-110' : ''}`}>
-                  {active ? tb.iconActive : tb.icon}
-                </span>
+                <NavIcon name={tb.icon} active={active} />
                 <span className={`text-[10px] mt-0.5 ${active ? 'font-extrabold' : 'font-semibold'}`}>
                   {tb.label}
                 </span>
@@ -254,6 +254,60 @@ function SettingsTab() {
         >
           <span className="text-red-500 font-bold text-sm">{t('logout')}</span>
         </button>
+      </div>
+    </div>
+  )
+}
+
+const SVG_ICONS = {
+  home: <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" />,
+  progress: <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />,
+  rewards: <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />,
+  help: <><path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01" /><circle cx="12" cy="12" r="10" /></>,
+  settings: <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z" />,
+  admin: <path d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />,
+}
+
+function NavIcon({ name, active }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+      strokeWidth={active ? 2 : 1.5} stroke="currentColor"
+      className={`w-6 h-6 transition-transform ${active ? 'scale-110' : ''}`}
+    >
+      {SVG_ICONS[name]}
+    </svg>
+  )
+}
+
+function HelpTab() {
+  const { t } = useLang()
+  const steps = [
+    { icon: '🗺️', title: t('helpStep1Title'), desc: t('helpStep1') },
+    { icon: '🎯', title: t('helpStep2Title'), desc: t('helpStep2') },
+    { icon: '🔤', title: t('helpStep3Title'), desc: t('helpStep3') },
+    { icon: '⭐', title: t('helpStep4Title'), desc: t('helpStep4') },
+    { icon: '🌻', title: t('helpStep5Title'), desc: t('helpStep5') },
+    { icon: '📊', title: t('helpStep6Title'), desc: t('helpStep6') },
+  ]
+  return (
+    <div className="animate-fade-up pb-4">
+      <div className="px-5 pt-5 pb-3">
+        <h1 className="text-xl font-extrabold text-gray-800">{t('helpTitle')}</h1>
+      </div>
+      <div className="px-4 space-y-3">
+        {steps.map((s, i) => (
+          <div key={i} className="bg-white rounded-2xl shadow-card border border-gray-100 p-4 flex gap-4 items-start">
+            <div className="text-3xl mt-0.5">{s.icon}</div>
+            <div className="flex-1">
+              <div className="font-extrabold text-sm text-purple-700">{i + 1}. {s.title}</div>
+              <div className="text-xs text-gray-500 font-semibold mt-1 leading-relaxed">{s.desc}</div>
+            </div>
+          </div>
+        ))}
+        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-4 text-center">
+          <div className="text-2xl mb-1">🐝</div>
+          <div className="text-xs font-bold text-yellow-600">{t('helpTip')}</div>
+        </div>
       </div>
     </div>
   )
