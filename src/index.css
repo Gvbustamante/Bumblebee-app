@@ -3,87 +3,57 @@
 @tailwind utilities;
 
 @layer base {
-  html, body, #root {
-    height: 100%;
-  }
+  html, body, #root { height: 100%; }
   body {
-    @apply font-sans bg-surface text-ink antialiased;
+    @apply font-sans antialiased;
     -webkit-tap-highlight-color: transparent;
-  }
-  h1, h2, h3, h4 {
-    @apply font-semibold tracking-tight text-ink;
+    overscroll-behavior: none;
   }
 }
 
-@layer components {
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium
-           transition-colors duration-150 ease-out select-none disabled:opacity-50 disabled:pointer-events-none
-           focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand;
+/* Phone-shell on desktop */
+@media (min-width: 480px) {
+  body {
+    background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 50%, #ddd6fe 100%);
+    display: flex;
+    justify-content: center;
   }
-  .btn-primary {
-    @apply btn bg-brand text-white hover:bg-brand-600 shadow-sm;
-  }
-  .btn-secondary {
-    @apply btn bg-white text-ink border border-slate-200 hover:bg-slate-50;
-  }
-  .btn-ghost {
-    @apply btn text-ink-soft hover:bg-slate-100;
-  }
-  .btn-danger {
-    @apply btn bg-danger-500 text-white hover:bg-danger-600;
-  }
-  .card {
-    @apply bg-surface-raised rounded-lg shadow-card border border-slate-200/70 p-5;
-  }
-  .card-link {
-    @apply card transition-shadow duration-150 ease-out hover:shadow-popover cursor-pointer;
-  }
-  .input {
-    @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-ink
-           transition-colors duration-150 placeholder:text-ink-faint
-           focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-50;
-  }
-  .label {
-    @apply block text-xs font-semibold text-ink-soft mb-1.5 uppercase tracking-wide;
-  }
-  .badge {
-    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
-  }
-  .table-base {
-    @apply w-full text-sm text-left;
-  }
-  .table-base th {
-    @apply px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-ink-soft border-b border-slate-200 bg-slate-50;
-  }
-  .table-base td {
-    @apply px-4 py-3 border-b border-slate-100 align-middle;
+  .app-shell {
+    box-shadow: 0 0 60px rgba(0,0,0,0.18);
   }
 }
 
-@layer utilities {
-  @keyframes fade-in {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .animate-fade-in {
-    animation: fade-in 0.18s ease-out both;
-  }
+/* Animations */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pop {
+  0%   { transform: scale(0.85); opacity: 0; }
+  70%  { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+@keyframes sparkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.6; transform: scale(1.3); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-6px); }
+  40%      { transform: translateX(6px); }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(4px); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .animate-fade-in {
-    animation: none !important;
-  }
-}
+.animate-fade-up   { animation: fadeSlideUp 0.3s ease-out both; }
+.animate-pop       { animation: pop 0.35s ease-out both; }
+.animate-float     { animation: float 2s ease-in-out infinite; }
+.animate-sparkle   { animation: sparkle 0.6s ease-in-out; }
+.animate-shake     { animation: shake 0.4s ease-in-out; }
 
-@media print {
-  aside,
-  header,
-  nav {
-    display: none !important;
-  }
-  main {
-    padding: 0 !important;
-  }
-}
+/* Safe area for bottom nav on notch phones */
+.pb-safe { padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px); }

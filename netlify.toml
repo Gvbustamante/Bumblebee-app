@@ -1,9 +1,0 @@
-[build]
-  command = "npm run build"
-  publish = "dist"
-
-[build.environment]
-  NODE_VERSION = "20"
-
-# La app usa HashRouter (rutas #/...), así que todas las rutas siempre resuelven contra
-# index.html en la raíz — no se necesitan reglas de redirect para SPA.
