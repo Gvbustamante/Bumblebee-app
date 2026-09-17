@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLang } from '../data/i18n'
 import { useAuth } from '../data/AuthContext'
-import { fetchWords, adminAddWord, adminDeleteWord, adminUploadImage, adminToggleWord } from '../lib/db'
+import { fetchWords, adminAddWord, adminDeleteWord, adminUploadImage, adminToggleWord, adminCloneWord } from '../lib/db'
 import { supabase } from '../lib/supabase'
 
 export default function Admin() {
@@ -65,6 +65,13 @@ export default function Admin() {
   async function handleToggle(word, currentActive) {
     await adminToggleWord(adventure, word, !currentActive)
     loadWords()
+  }
+
+  async function handleClone(word) {
+    const dest = adventure === 'spellingBee' ? 'Bumblebee' : 'Spelling Bee'
+    const res = await adminCloneWord(adventure, word)
+    if (res.error === 'already exists') alert(`"${word}" ya existe en ${dest}`)
+    else loadWords()
   }
 
   async function handleUpload(word) {
@@ -163,8 +170,16 @@ export default function Admin() {
             <button
               onClick={() => handleToggle(w.word, w.active)}
               className={`px-2 py-1 rounded-lg text-xs font-bold ${w.active ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'}`}
+              title={w.active ? 'Desactivar' : 'Activar'}
             >
               {w.active ? '✅' : '⏸️'}
+            </button>
+            <button
+              onClick={() => handleClone(w.word)}
+              className="px-2 py-1 bg-purple-50 text-purple-600 rounded-lg text-xs font-bold"
+              title={`Clonar a ${adventure === 'spellingBee' ? 'Bumblebee' : 'Spelling Bee'}`}
+            >
+              📋
             </button>
             <button
               onClick={() => { fileRef.current.onchange = () => handleUpload(w.word); fileRef.current.click() }}

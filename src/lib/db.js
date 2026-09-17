@@ -190,6 +190,37 @@ export async function adminToggleWord(adventure, word, active) {
   return supabase.from('bumblebee_words').update({ active }).eq('adventure', adventure).eq('word', word)
 }
 
+export async function adminCloneWord(fromAdventure, word) {
+  const toAdventure = fromAdventure === 'spellingBee' ? 'bumblebee' : 'spellingBee'
+  const { data: src } = await supabase
+    .from('bumblebee_words')
+    .select('*')
+    .eq('adventure', fromAdventure)
+    .eq('word', word)
+    .single()
+  if (!src) return { error: 'not found' }
+  const { data: exists } = await supabase
+    .from('bumblebee_words')
+    .select('word')
+    .eq('adventure', toAdventure)
+    .eq('word', word)
+    .single()
+  if (exists) return { error: 'already exists' }
+  const { data: max } = await supabase
+    .from('bumblebee_words')
+    .select('sort_order')
+    .eq('adventure', toAdventure)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .single()
+  const order = (max?.sort_order || 0) + 1
+  await supabase.from('bumblebee_words').insert({
+    adventure: toAdventure, word: src.word, emoji: src.emoji,
+    image_url: src.image_url, sort_order: order, active: true,
+  })
+  return { ok: true, to: toAdventure }
+}
+
 export async function adminUploadImage(file, word) {
   const ext = file.name.split('.').pop()
   const path = `words/${word.toLowerCase()}.${ext}`
