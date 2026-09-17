@@ -21,20 +21,14 @@ function tone(freq, dur, type = 'sine', vol = 0.3) {
 
 const sounds = {
   _ctx: null,
-  _muteFx: (() => { try { return localStorage.getItem('sbk-mute-fx') === '1' } catch { return false } })(),
-  _muteVoice: (() => { try { return localStorage.getItem('sbk-mute-voice') === '1' } catch { return false } })(),
+  _muteFx: false,
+  _muteVoice: false,
 
   get muteFx() { return this._muteFx },
-  setMuteFx(v) {
-    this._muteFx = v
-    try { localStorage.setItem('sbk-mute-fx', v ? '1' : '0') } catch {}
-  },
+  set muteFx(v) { this._muteFx = v },
 
   get muteVoice() { return this._muteVoice },
-  setMuteVoice(v) {
-    this._muteVoice = v
-    try { localStorage.setItem('sbk-mute-voice', v ? '1' : '0') } catch {}
-  },
+  set muteVoice(v) { this._muteVoice = v },
 
   correct() {
     tone(523, 0.12)

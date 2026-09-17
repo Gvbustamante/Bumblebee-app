@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import sounds from '../lib/sounds'
 
 const AuthCtx = createContext()
 
@@ -31,6 +32,10 @@ export function AuthProvider({ children }) {
       .eq('id', uid)
       .single()
     setProfile(data)
+    if (data) {
+      sounds.muteFx = !!data.mute_fx
+      sounds.muteVoice = !!data.mute_voice
+    }
     setLoading(false)
   }
 

@@ -163,8 +163,8 @@ function SettingsTab() {
   const { session, profile, updateProfile, signOut } = useAuth()
   const [name, setName] = useState(profile?.name || '')
   const [showConfirm, setShowConfirm] = useState(false)
-  const [muteFx, setMuteFx] = useState(sounds.muteFx)
-  const [muteVoice, setMuteVoice] = useState(sounds.muteVoice)
+  const muteFx = !!profile?.mute_fx
+  const muteVoice = !!profile?.mute_voice
 
   function handleNameChange(v) {
     setName(v)
@@ -184,7 +184,7 @@ function SettingsTab() {
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('soundEffects')}</label>
           <div className="flex gap-2 mt-2">
             <button
-              onClick={() => { sounds.setMuteFx(false); setMuteFx(false) }}
+              onClick={() => { sounds.muteFx = false; updateProfile({ mute_fx: false }) }}
               className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-1 ${
                 !muteFx ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
               }`}
@@ -192,7 +192,7 @@ function SettingsTab() {
               🔔 ON
             </button>
             <button
-              onClick={() => { sounds.setMuteFx(true); setMuteFx(true) }}
+              onClick={() => { sounds.muteFx = true; updateProfile({ mute_fx: true }) }}
               className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-1 ${
                 muteFx ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
               }`}
@@ -207,7 +207,7 @@ function SettingsTab() {
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('voice')}</label>
           <div className="flex gap-2 mt-2">
             <button
-              onClick={() => { sounds.setMuteVoice(false); setMuteVoice(false) }}
+              onClick={() => { sounds.muteVoice = false; updateProfile({ mute_voice: false }) }}
               className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-1 ${
                 !muteVoice ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
               }`}
@@ -215,7 +215,7 @@ function SettingsTab() {
               🗣️ ON
             </button>
             <button
-              onClick={() => { sounds.setMuteVoice(true); setMuteVoice(true) }}
+              onClick={() => { sounds.muteVoice = true; updateProfile({ mute_voice: true }) }}
               className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-1 ${
                 muteVoice ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
               }`}

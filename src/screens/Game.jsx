@@ -416,21 +416,20 @@ export default function Game({ config, onExit }) {
 }
 
 function MuteBtn() {
-  const [mFx, setMFx] = useState(sounds.muteFx)
-  const [mVoice, setMVoice] = useState(sounds.muteVoice)
+  const { profile, updateProfile } = useAuth()
+  const mFx = !!profile?.mute_fx
+  const mVoice = !!profile?.mute_voice
   return (
     <div className="flex gap-1">
       <button
-        onClick={() => { const v = !mFx; sounds.setMuteFx(v); setMFx(v) }}
+        onClick={() => { const v = !mFx; sounds.muteFx = v; updateProfile({ mute_fx: v }) }}
         className={`w-8 h-8 flex items-center justify-center rounded-lg active:scale-90 transition-transform text-sm ${mFx ? 'bg-red-100 text-red-400' : 'bg-gray-100 text-gray-500'}`}
-        title="Sound effects"
       >
         {mFx ? '🔇' : '🔔'}
       </button>
       <button
-        onClick={() => { const v = !mVoice; sounds.setMuteVoice(v); setMVoice(v) }}
+        onClick={() => { const v = !mVoice; sounds.muteVoice = v; updateProfile({ mute_voice: v }) }}
         className={`w-8 h-8 flex items-center justify-center rounded-lg active:scale-90 transition-transform text-sm ${mVoice ? 'bg-red-100 text-red-400' : 'bg-gray-100 text-gray-500'}`}
-        title="Voice"
       >
         {mVoice ? '🤐' : '🗣️'}
       </button>
