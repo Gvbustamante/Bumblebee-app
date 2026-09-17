@@ -1,8 +1,10 @@
 import { SPELLING_BEE_WORDS, BUMBLEBEE_WORDS } from '../data/words'
 import { MODES } from '../data/modes'
+import { useLang } from '../data/i18n'
 import { getMastery, getLetterMastery, getWordStats, getWeakWords, getStars, getGarden, getModeStats } from '../storage'
 
 export default function Progress() {
+  const { t } = useLang()
   const stars = getStars()
   const sbGarden = getGarden('spellingBee')
   const bbGarden = getGarden('bumblebee')
@@ -12,19 +14,19 @@ export default function Progress() {
   return (
     <div className="animate-fade-up pb-4">
       <div className="px-5 pt-5 pb-3">
-        <h1 className="text-xl font-extrabold text-gray-800">Progress</h1>
-        <p className="text-sm text-gray-400 font-semibold">Track your learning journey</p>
+        <h1 className="text-xl font-extrabold text-gray-800">{t('progress')}</h1>
+        <p className="text-sm text-gray-400 font-semibold">{t('trackJourney')}</p>
       </div>
 
       <div className="mx-4 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-2xl p-4 mb-4">
         <div className="flex items-center justify-between">
           <div>
             <div className="text-3xl font-extrabold text-yellow-600">⭐ {stars}</div>
-            <div className="text-xs text-yellow-500 font-bold">Total Stars</div>
+            <div className="text-xs text-yellow-500 font-bold">{t('totalStars')}</div>
           </div>
           <div className="text-right">
             <div className="text-2xl">{'🌻'.repeat(Math.min(totalFlowers, 6))} {'🐝'.repeat(Math.min(totalBees, 3))}</div>
-            <div className="text-xs text-yellow-500 font-bold">{totalFlowers} flowers · {totalBees} bees</div>
+            <div className="text-xs text-yellow-500 font-bold">{totalFlowers} {t('flowers')} · {totalBees} {t('bees')}</div>
           </div>
         </div>
       </div>
@@ -36,6 +38,7 @@ export default function Progress() {
 }
 
 function ModeSection({ modeId, words, color }) {
+  const { t, lang } = useLang()
   const modeDef = MODES[modeId]
   const modeStats = getModeStats(modeId)
   const c = SECTION_COLORS[color]
@@ -45,9 +48,9 @@ function ModeSection({ modeId, words, color }) {
       <h2 className={`text-lg font-extrabold ${c.title} mb-1`}>{modeDef.emoji} {modeDef.label}</h2>
 
       <div className="grid grid-cols-3 gap-2 mb-4">
-        <StatBox value={modeStats.practiced} label="Practiced" bg="bg-white" text="text-gray-700" />
-        <StatBox value={modeStats.mastered} label="Mastered" bg="bg-green-100" text="text-green-600" />
-        <StatBox value={modeStats.weak} label="Weak" bg="bg-red-50" text="text-red-500" />
+        <StatBox value={modeStats.practiced} label={t('practiced')} bg="bg-white" text="text-gray-700" />
+        <StatBox value={modeStats.mastered} label={t('mastered')} bg="bg-green-100" text="text-green-600" />
+        <StatBox value={modeStats.weak} label={t('weak')} bg="bg-red-50" text="text-red-500" />
       </div>
 
       {modeDef.subModes.map(sub => {
@@ -67,7 +70,7 @@ function ModeSection({ modeId, words, color }) {
       {modeStats.practiced === 0 && (
         <div className="text-center text-gray-400 text-sm py-4">
           <span className="text-2xl block mb-2">📝</span>
-          No words practiced yet
+          {t('noPracticed')}
         </div>
       )}
     </div>
@@ -75,12 +78,13 @@ function ModeSection({ modeId, words, color }) {
 }
 
 function SubModeProgress({ modeId, sub, words, c }) {
+  const { t, lang } = useLang()
   const weak = getWeakWords(modeId, sub.id, words)
 
   return (
     <div className="mb-3">
       <div className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${c.sub} mb-2`}>
-        {sub.emoji} {sub.label}
+        {sub.emoji} {lang === 'es' ? sub.labelEs : sub.label}
       </div>
       <div className="space-y-2">
         {words.map(w => {
@@ -117,7 +121,7 @@ function SubModeProgress({ modeId, sub, words, c }) {
 
       {weak.length > 0 && (
         <div className="mt-2 bg-red-50 rounded-xl p-3 border border-red-200">
-          <div className="text-xs font-bold text-red-600 mb-1">Needs practice</div>
+          <div className="text-xs font-bold text-red-600 mb-1">{t('needsPracticeLabel')}</div>
           <div className="text-xs text-red-500 font-semibold">{weak.map(w => w.word).join(' · ')}</div>
         </div>
       )}

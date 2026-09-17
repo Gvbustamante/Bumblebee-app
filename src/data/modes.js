@@ -1,20 +1,19 @@
-/**
- * Definición de modos y sub-modos de juego.
- * Los flags booleanos controlan qué muestra y qué evalúa el Game screen.
- */
-
 export const MODES = {
   spellingBee: {
     id: 'spellingBee',
     label: 'Spelling Bee',
     emoji: '🐝',
     color: 'purple',
+    subtitle: 'Spell + Read',
+    subtitleEs: 'Deletrea + Lee',
     wordsKey: 'SPELLING_BEE_WORDS',
     subModes: [
       {
         id: 'imageWord',
         label: 'Image + Word',
+        labelEs: 'Imagen + Palabra',
         description: 'See the picture and the word',
+        descriptionEs: 'Ve la imagen y la palabra',
         emoji: '👀',
         preview: { showImg: true, showTxt: true, showLetters: false },
         showImage: true,
@@ -26,7 +25,9 @@ export const MODES = {
       {
         id: 'imageSpelling',
         label: 'Image + Spelling',
+        labelEs: 'Imagen + Deletreo',
         description: 'See the picture, spell each letter, then read',
+        descriptionEs: 'Ve la imagen, deletrea cada letra y lee',
         emoji: '✏️',
         preview: { showImg: true, showTxt: false, showLetters: true },
         showImage: true,
@@ -38,7 +39,9 @@ export const MODES = {
       {
         id: 'imageOnly',
         label: 'Image Only',
+        labelEs: 'Solo Imagen',
         description: 'See the picture, say the word',
+        descriptionEs: 'Ve la imagen, di la palabra',
         emoji: '🖼️',
         preview: { showImg: true, showTxt: false, showLetters: false },
         showImage: true,
@@ -54,12 +57,16 @@ export const MODES = {
     label: 'Bumblebee',
     emoji: '🌸',
     color: 'pink',
+    subtitle: 'Read the word',
+    subtitleEs: 'Lee la palabra',
     wordsKey: 'BUMBLEBEE_WORDS',
     subModes: [
       {
         id: 'imageWord',
         label: 'Image + Word',
+        labelEs: 'Imagen + Palabra',
         description: 'See the picture and read the word',
+        descriptionEs: 'Ve la imagen y lee la palabra',
         emoji: '📖',
         preview: { showImg: true, showTxt: true, showLetters: false },
         showImage: true,
@@ -71,7 +78,9 @@ export const MODES = {
       {
         id: 'imageOnly',
         label: 'Image Only',
+        labelEs: 'Solo Imagen',
         description: 'See the picture, say what it is',
+        descriptionEs: 'Ve la imagen, di qué es',
         emoji: '🖼️',
         preview: { showImg: true, showTxt: false, showLetters: false },
         showImage: true,

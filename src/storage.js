@@ -166,4 +166,11 @@ export function getGarden(mode, subMode) {
   return { flowers, bees }
 }
 
+export function getBlockSize() {
+  try { return parseInt(localStorage.getItem('sbk-blocksize')) || 5 } catch { return 5 }
+}
+export function setBlockSize(n) {
+  try { localStorage.setItem('sbk-blocksize', String(n)) } catch {}
+}
+
 export function resetProgress() { localStorage.removeItem(KEY) }

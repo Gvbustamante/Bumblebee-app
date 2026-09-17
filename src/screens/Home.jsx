@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { SPELLING_BEE_WORDS, BUMBLEBEE_WORDS, getBlocks } from '../data/words'
 import { MODES } from '../data/modes'
-import { getMastery, getWeakWords, getStars, getModeStats } from '../storage'
+import { useLang } from '../data/i18n'
+import { getMastery, getWeakWords, getStars, getModeStats, getBlockSize, setBlockSize } from '../storage'
 
 export default function Home({ onStartGame }) {
   const [selectedMode, setSelectedMode] = useState(null)
   const [selectedSubMode, setSelectedSubMode] = useState(null)
+  const { t, lang } = useLang()
   const stars = getStars()
 
   if (selectedMode && selectedSubMode) {
@@ -44,8 +46,8 @@ export default function Home({ onStartGame }) {
     <div className="animate-fade-up">
       <div className="flex items-center justify-between px-5 pt-5 pb-2">
         <div>
-          <h1 className="text-xl font-extrabold text-gray-800">Hi, Little Learner!</h1>
-          <p className="text-sm text-gray-400 font-semibold">What do you want to do today?</p>
+          <h1 className="text-xl font-extrabold text-gray-800">{t('greeting')}</h1>
+          <p className="text-sm text-gray-400 font-semibold">{t('whatToDo')}</p>
         </div>
         <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1.5 rounded-full border border-yellow-200">
           <span className="text-lg">⭐</span>
@@ -55,8 +57,8 @@ export default function Home({ onStartGame }) {
 
       <div className="mx-4 mt-3 bg-gradient-to-br from-purple-600 to-purple-500 rounded-3xl p-5 text-white relative overflow-hidden">
         <div className="absolute -right-6 -bottom-6 text-[100px] opacity-10 select-none">🐝</div>
-        <p className="text-purple-200 text-sm font-semibold">Keep going!</p>
-        <p className="font-extrabold text-lg mt-0.5">You're doing amazing!</p>
+        <p className="text-purple-200 text-sm font-semibold">{t('keepGoing')}</p>
+        <p className="font-extrabold text-lg mt-0.5">{t('doingAmazing')}</p>
         <div className="flex items-center gap-3 mt-3">
           <div className="flex-1 h-2.5 bg-purple-400/50 rounded-full overflow-hidden">
             <div
@@ -69,7 +71,7 @@ export default function Home({ onStartGame }) {
       </div>
 
       <div className="px-4 mt-6">
-        <h2 className="text-lg font-extrabold text-gray-700 mb-3 px-1">Choose your adventure</h2>
+        <h2 className="text-lg font-extrabold text-gray-700 mb-3 px-1">{t('chooseAdventure')}</h2>
         <div className="space-y-3">
           {Object.values(MODES).map(mode => {
             const stats = getModeStats(mode.id)
@@ -84,10 +86,10 @@ export default function Home({ onStartGame }) {
               >
                 <div className="flex items-center gap-4">
                   <span className="text-5xl">{mode.emoji}</span>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className={`font-extrabold text-lg ${c.text}`}>{mode.label}</div>
                     <div className="text-xs text-gray-400 font-semibold mt-0.5">
-                      {mode.subModes.length} activities · {words.length} words
+                      {lang === 'es' ? mode.subtitleEs : mode.subtitle} · {words.length} {t('words')}
                     </div>
                     {stats.practiced > 0 && (
                       <div className="flex items-center gap-2 mt-2">
@@ -122,6 +124,7 @@ const SUB_COLORS = {
 function SubModeSelect({ mode, onBack, onSelect }) {
   const modeDef = MODES[mode]
   const c = SUB_COLORS[modeDef.color]
+  const { t, lang } = useLang()
 
   return (
     <div className="animate-fade-up">
@@ -131,7 +134,7 @@ function SubModeSelect({ mode, onBack, onSelect }) {
         </button>
         <div>
           <h2 className="text-lg font-extrabold text-gray-800">{modeDef.emoji} {modeDef.label}</h2>
-          <p className="text-xs text-gray-400 font-semibold">How do you want to learn?</p>
+          <p className="text-xs text-gray-400 font-semibold">{t('howToLearn')}</p>
         </div>
       </div>
 
@@ -144,9 +147,13 @@ function SubModeSelect({ mode, onBack, onSelect }) {
           >
             <div className="flex items-center gap-3">
               <span className="text-3xl">{sub.emoji}</span>
-              <div className="flex-1">
-                <div className={`font-extrabold text-sm ${c.text}`}>{sub.label}</div>
-                <div className="text-xs text-gray-400 font-semibold mt-0.5">{sub.description}</div>
+              <div className="flex-1 min-w-0">
+                <div className={`font-extrabold text-sm ${c.text}`}>
+                  {lang === 'es' ? sub.labelEs : sub.label}
+                </div>
+                <div className="text-xs text-gray-400 font-semibold mt-0.5">
+                  {lang === 'es' ? sub.descriptionEs : sub.description}
+                </div>
               </div>
               <span className="text-gray-300 text-lg font-bold">→</span>
             </div>
@@ -161,7 +168,7 @@ function SubModeSelect({ mode, onBack, onSelect }) {
                 </div>
               )}
               {!sub.preview.showTxt && !sub.preview.showLetters && (
-                <span className="text-xs text-gray-400 font-bold">Say the word!</span>
+                <span className="text-xs text-gray-400 font-bold">{t('sayTheWord')}</span>
               )}
             </div>
           </button>
@@ -171,10 +178,19 @@ function SubModeSelect({ mode, onBack, onSelect }) {
   )
 }
 
+const BLOCK_SIZES = [3, 5, 7, 10]
+
 function BlockSelect({ mode, subMode, onBack, onStart }) {
+  const { t, lang } = useLang()
+  const [bSize, setBSize] = useState(getBlockSize)
   const words = mode === 'spellingBee' ? SPELLING_BEE_WORDS : BUMBLEBEE_WORDS
-  const blocks = getBlocks(words)
+  const blocks = getBlocks(words, bSize)
   const weak = getWeakWords(mode, subMode, words)
+
+  function handleSizeChange(s) {
+    setBSize(s)
+    setBlockSize(s)
+  }
 
   return (
     <div className="animate-fade-up">
@@ -183,8 +199,30 @@ function BlockSelect({ mode, subMode, onBack, onStart }) {
           ←
         </button>
         <div>
-          <h2 className="text-lg font-extrabold text-gray-800">Choose a block</h2>
-          <p className="text-xs text-gray-400 font-semibold">Pick words to practice</p>
+          <h2 className="text-lg font-extrabold text-gray-800">{t('chooseBlock')}</h2>
+          <p className="text-xs text-gray-400 font-semibold">{t('pickWords')}</p>
+        </div>
+      </div>
+
+      {/* Block size picker */}
+      <div className="px-4 mb-4">
+        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-3">
+          <div className="text-xs font-bold text-gray-500 mb-2">{t('wordsPerBlock')}</div>
+          <div className="flex gap-2">
+            {BLOCK_SIZES.map(s => (
+              <button
+                key={s}
+                onClick={() => handleSizeChange(s)}
+                className={`flex-1 py-2 rounded-xl font-extrabold text-sm transition-all ${
+                  s === bSize
+                    ? 'bg-purple-600 text-white shadow-btn'
+                    : 'bg-purple-50 text-purple-400'
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -200,7 +238,7 @@ function BlockSelect({ mode, subMode, onBack, onStart }) {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">{allMastered ? '🌟' : anyPracticed ? '📖' : '🔒'}</span>
-                    <span className="font-extrabold text-gray-700">Block {i + 1}</span>
+                    <span className="font-extrabold text-gray-700">{t('block')} {i + 1}</span>
                   </div>
                   {anyPracticed && (
                     <span className="text-xs font-bold text-green-500 bg-green-50 px-2 py-0.5 rounded-full">
@@ -228,14 +266,14 @@ function BlockSelect({ mode, subMode, onBack, onStart }) {
                   onClick={() => onStart(block, i, false)}
                   className="flex-1 py-3 text-center text-sm font-bold text-purple-600 active:bg-purple-50 transition-colors"
                 >
-                  🧸 Practice
+                  🧸 {t('practice')}
                 </button>
                 <div className="w-px bg-gray-100" />
                 <button
                   onClick={() => onStart(block, i, true)}
                   className="flex-1 py-3 text-center text-sm font-bold text-orange-500 active:bg-orange-50 transition-colors"
                 >
-                  🏆 Challenge
+                  🏆 {t('challenge')}
                 </button>
               </div>
             </div>
@@ -244,14 +282,14 @@ function BlockSelect({ mode, subMode, onBack, onStart }) {
 
         {weak.length > 0 && (
           <button
-            onClick={() => onStart(weak.slice(0, 5), -1, false)}
+            onClick={() => onStart(weak.slice(0, bSize), -1, false)}
             className="w-full bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
           >
             <div className="flex items-center gap-2">
               <span className="text-2xl">💪</span>
               <div>
-                <div className="font-extrabold text-red-600 text-sm">Review Weak Words</div>
-                <div className="text-xs text-red-400 font-semibold">{weak.length} words need practice</div>
+                <div className="font-extrabold text-red-600 text-sm">{t('reviewWeak')}</div>
+                <div className="text-xs text-red-400 font-semibold">{weak.length} {t('needsPractice')}</div>
               </div>
             </div>
           </button>
