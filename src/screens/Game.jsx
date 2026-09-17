@@ -10,8 +10,9 @@ export default function Game({ config, onExit }) {
   const { mode, subMode: subModeId, block, blockIndex, isChallenge } = config
   const sub = getSubMode(mode, subModeId)
   const { t, lang } = useLang()
-  const { session } = useAuth()
+  const { session, profile } = useAuth()
   const uid = session?.user?.id
+  const imgSize = profile?.image_size || 'medium'
 
   const [queue, setQueue] = useState([...block])
   const [phase, setPhase] = useState(() => getInitialPhase(sub))
@@ -167,9 +168,11 @@ export default function Game({ config, onExit }) {
 
   const fmt = ms => `${Math.floor(ms / 1000)}.${Math.floor((ms % 1000) / 100)}s`
 
+  const IMG_SIZES = { small: 'max-h-[18vh] max-w-[50vw]', medium: 'max-h-[28vh] max-w-[65vw]', large: 'max-h-[40vh] max-w-[80vw]' }
+
   function Img({ w, className = '' }) {
     const url = w.image_url || getWordImageUrl(w.word)
-    if (url) return <img src={url} alt={w.word} className={`object-contain max-h-[30vh] max-w-[70vw] ${className}`} />
+    if (url) return <img src={url} alt={w.word} className={`object-contain ${IMG_SIZES[imgSize]} ${className}`} />
     return <span className={className}>{w.emoji}</span>
   }
 

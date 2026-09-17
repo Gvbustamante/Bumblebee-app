@@ -224,6 +224,24 @@ function SettingsTab() {
           </div>
         </div>
 
+        {/* Image size */}
+        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
+          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('imageSize')}</label>
+          <div className="flex gap-2 mt-2">
+            {[{ id: 'small', label: t('imgSmall') }, { id: 'medium', label: t('imgMedium') }, { id: 'large', label: t('imgLarge') }].map(s => (
+              <button
+                key={s.id}
+                onClick={() => updateProfile({ image_size: s.id })}
+                className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all ${
+                  s.id === (profile?.image_size || 'medium') ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Change adventure */}
         <button
           onClick={() => updateProfile({ adventure: null })}
