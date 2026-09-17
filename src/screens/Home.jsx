@@ -1,23 +1,38 @@
-import { useState } from 'react'
-import { SPELLING_BEE_WORDS, BUMBLEBEE_WORDS, getBlocks } from '../data/words'
+import { useState, useEffect } from 'react'
+import { getBlocks } from '../data/words'
 import { MODES } from '../data/modes'
 import { useLang } from '../data/i18n'
-import { getMastery, getWeakWords, getStars, getModeStats, getBlockSize, setBlockSize } from '../storage'
+import { useAuth } from '../data/AuthContext'
+import { fetchWords, getStars, getAdventureStats, getMastery, getWeakWords } from '../lib/db'
 
 export default function Home({ onStartGame }) {
-  const [selectedMode, setSelectedMode] = useState(null)
   const [selectedSubMode, setSelectedSubMode] = useState(null)
   const { t, lang } = useLang()
-  const stars = getStars()
+  const { session, profile } = useAuth()
+  const adventure = profile?.adventure
+  const modeDef = MODES[adventure]
+  const [words, setWords] = useState([])
+  const [stars, setStarsVal] = useState(0)
+  const [stats, setStats] = useState({ practiced: 0, mastered: 0 })
 
-  if (selectedMode && selectedSubMode) {
+  useEffect(() => {
+    if (!session || !adventure) return
+    fetchWords(adventure).then(setWords)
+    getStars(session.user.id, adventure).then(setStarsVal)
+    getAdventureStats(session.user.id, adventure).then(setStats)
+  }, [session, adventure])
+
+  if (!modeDef) return null
+
+  if (selectedSubMode) {
     return (
       <BlockSelect
-        mode={selectedMode}
+        adventure={adventure}
         subMode={selectedSubMode}
+        words={words}
         onBack={() => setSelectedSubMode(null)}
         onStart={(block, idx, challenge) => onStartGame({
-          mode: selectedMode,
+          mode: adventure,
           subMode: selectedSubMode,
           block,
           blockIndex: idx,
@@ -27,27 +42,30 @@ export default function Home({ onStartGame }) {
     )
   }
 
-  if (selectedMode) {
-    return (
-      <SubModeSelect
-        mode={selectedMode}
-        onBack={() => setSelectedMode(null)}
-        onSelect={setSelectedSubMode}
-      />
-    )
-  }
+  return (
+    <SubModeSelect
+      adventure={adventure}
+      stars={stars}
+      stats={stats}
+      words={words}
+      onSelect={setSelectedSubMode}
+    />
+  )
+}
 
-  const sbStats = getModeStats('spellingBee')
-  const bbStats = getModeStats('bumblebee')
-  const totalPracticed = sbStats.practiced + bbStats.practiced
-  const totalWords = SPELLING_BEE_WORDS.length + BUMBLEBEE_WORDS.length
+function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
+  const modeDef = MODES[adventure]
+  const c = SUB_COLORS[modeDef.color]
+  const { t, lang } = useLang()
+  const { profile } = useAuth()
+  const masteredPct = words.length ? Math.round((stats.mastered / words.length) * 100) : 0
 
   return (
     <div className="animate-fade-up">
       <div className="flex items-center justify-between px-5 pt-5 pb-2">
         <div>
           <h1 className="text-xl font-extrabold text-gray-800">{t('greeting')}</h1>
-          <p className="text-sm text-gray-400 font-semibold">{t('whatToDo')}</p>
+          <p className="text-sm text-gray-400 font-semibold">{profile?.name || ''}</p>
         </div>
         <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1.5 rounded-full border border-yellow-200">
           <span className="text-lg">⭐</span>
@@ -56,64 +74,58 @@ export default function Home({ onStartGame }) {
       </div>
 
       <div className="mx-4 mt-3 bg-gradient-to-br from-purple-600 to-purple-500 rounded-3xl p-5 text-white relative overflow-hidden">
-        <div className="absolute -right-6 -bottom-6 text-[100px] opacity-10 select-none">🐝</div>
-        <p className="text-purple-200 text-sm font-semibold">{t('keepGoing')}</p>
+        <div className="absolute -right-6 -bottom-6 text-[100px] opacity-10 select-none">{modeDef.emoji}</div>
+        <p className="text-purple-200 text-sm font-semibold">{modeDef.emoji} {modeDef.label}</p>
         <p className="font-extrabold text-lg mt-0.5">{t('doingAmazing')}</p>
         <div className="flex items-center gap-3 mt-3">
           <div className="flex-1 h-2.5 bg-purple-400/50 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-yellow-400 rounded-full transition-all duration-700"
-              style={{ width: `${totalWords ? (totalPracticed / totalWords) * 100 : 0}%` }}
-            />
+            <div className="h-full bg-yellow-400 rounded-full transition-all duration-700" style={{ width: `${masteredPct}%` }} />
           </div>
-          <span className="text-sm font-bold whitespace-nowrap">⭐ {totalPracticed}/{totalWords}</span>
+          <span className="text-sm font-bold whitespace-nowrap">{stats.practiced}/{words.length}</span>
         </div>
       </div>
 
       <div className="px-4 mt-6">
-        <h2 className="text-lg font-extrabold text-gray-700 mb-3 px-1">{t('chooseAdventure')}</h2>
+        <h2 className="text-lg font-extrabold text-gray-700 mb-3 px-1">{t('howToLearn')}</h2>
         <div className="space-y-3">
-          {Object.values(MODES).map(mode => {
-            const stats = getModeStats(mode.id)
-            const words = mode.id === 'spellingBee' ? SPELLING_BEE_WORDS : BUMBLEBEE_WORDS
-            const masteredPct = words.length ? Math.round((stats.mastered / words.length) * 100) : 0
-            const c = MODE_COLORS[mode.color]
-            return (
-              <button
-                key={mode.id}
-                onClick={() => setSelectedMode(mode.id)}
-                className={`w-full bg-gradient-to-br ${c.gradient} ${c.border} border-2 rounded-3xl p-5 text-left active:scale-[0.98] transition-transform`}
-              >
-                <div className="flex items-center gap-4">
-                  <span className="text-5xl">{mode.emoji}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className={`font-extrabold text-lg ${c.text}`}>{mode.label}</div>
-                    <div className="text-xs text-gray-400 font-semibold mt-0.5">
-                      {lang === 'es' ? mode.subtitleEs : mode.subtitle} · {words.length} {t('words')}
-                    </div>
-                    {stats.practiced > 0 && (
-                      <div className="flex items-center gap-2 mt-2">
-                        <div className="flex-1 h-1.5 bg-white/70 rounded-full overflow-hidden">
-                          <div className={`h-full ${c.bar} rounded-full`} style={{ width: `${masteredPct}%` }} />
-                        </div>
-                        <span className="text-[10px] font-bold text-gray-400">{masteredPct}%</span>
-                      </div>
-                    )}
+          {modeDef.subModes.map(sub => (
+            <button
+              key={sub.id}
+              onClick={() => onSelect(sub.id)}
+              className={`w-full ${c.bg} ${c.border} border-2 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">{sub.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <div className={`font-extrabold text-sm ${c.text}`}>
+                    {lang === 'es' ? sub.labelEs : sub.label}
                   </div>
-                  <span className="text-gray-300 text-xl font-bold">→</span>
+                  <div className="text-xs text-gray-400 font-semibold mt-0.5">
+                    {lang === 'es' ? sub.descriptionEs : sub.description}
+                  </div>
                 </div>
-              </button>
-            )
-          })}
+                <span className="text-gray-300 text-lg font-bold">→</span>
+              </div>
+              <div className="mt-3 bg-white/60 rounded-xl p-3 flex items-center justify-center gap-3">
+                {sub.preview.showImg && <span className="text-2xl">🐱</span>}
+                {sub.preview.showTxt && <span className="font-extrabold text-purple-700 text-lg">CAT</span>}
+                {sub.preview.showLetters && (
+                  <div className="flex gap-1">
+                    {['C', 'A', 'T'].map((l, i) => (
+                      <span key={i} className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center text-purple-700 font-extrabold text-xs">{l}</span>
+                    ))}
+                  </div>
+                )}
+                {!sub.preview.showTxt && !sub.preview.showLetters && (
+                  <span className="text-xs text-gray-400 font-bold">{t('sayTheWord')}</span>
+                )}
+              </div>
+            </button>
+          ))}
         </div>
       </div>
     </div>
   )
-}
-
-const MODE_COLORS = {
-  purple: { gradient: 'from-purple-50 to-purple-100', border: 'border-purple-200', text: 'text-purple-700', bar: 'bg-purple-400' },
-  pink: { gradient: 'from-pink-50 to-orange-50', border: 'border-orange-200', text: 'text-orange-600', bar: 'bg-orange-400' },
 }
 
 const SUB_COLORS = {
@@ -121,76 +133,28 @@ const SUB_COLORS = {
   pink: { bg: 'bg-pink-50', border: 'border-pink-200', text: 'text-orange-600' },
 }
 
-function SubModeSelect({ mode, onBack, onSelect }) {
-  const modeDef = MODES[mode]
-  const c = SUB_COLORS[modeDef.color]
-  const { t, lang } = useLang()
-
-  return (
-    <div className="animate-fade-up">
-      <div className="flex items-center gap-3 px-4 pt-5 pb-3">
-        <button onClick={onBack} className="w-10 h-10 flex items-center justify-center rounded-xl bg-purple-50 text-purple-600 font-bold active:scale-90 transition-transform">
-          ←
-        </button>
-        <div>
-          <h2 className="text-lg font-extrabold text-gray-800">{modeDef.emoji} {modeDef.label}</h2>
-          <p className="text-xs text-gray-400 font-semibold">{t('howToLearn')}</p>
-        </div>
-      </div>
-
-      <div className="px-4 space-y-3">
-        {modeDef.subModes.map(sub => (
-          <button
-            key={sub.id}
-            onClick={() => onSelect(sub.id)}
-            className={`w-full ${c.bg} ${c.border} border-2 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform`}
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">{sub.emoji}</span>
-              <div className="flex-1 min-w-0">
-                <div className={`font-extrabold text-sm ${c.text}`}>
-                  {lang === 'es' ? sub.labelEs : sub.label}
-                </div>
-                <div className="text-xs text-gray-400 font-semibold mt-0.5">
-                  {lang === 'es' ? sub.descriptionEs : sub.description}
-                </div>
-              </div>
-              <span className="text-gray-300 text-lg font-bold">→</span>
-            </div>
-            <div className="mt-3 bg-white/60 rounded-xl p-3 flex items-center justify-center gap-3">
-              {sub.preview.showImg && <span className="text-2xl">🐱</span>}
-              {sub.preview.showTxt && <span className="font-extrabold text-purple-700 text-lg">CAT</span>}
-              {sub.preview.showLetters && (
-                <div className="flex gap-1">
-                  {['C', 'A', 'T'].map((l, i) => (
-                    <span key={i} className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center text-purple-700 font-extrabold text-xs">{l}</span>
-                  ))}
-                </div>
-              )}
-              {!sub.preview.showTxt && !sub.preview.showLetters && (
-                <span className="text-xs text-gray-400 font-bold">{t('sayTheWord')}</span>
-              )}
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-const BLOCK_SIZES = [3, 5, 7, 10]
-
-function BlockSelect({ mode, subMode, onBack, onStart }) {
-  const { t, lang } = useLang()
-  const [bSize, setBSize] = useState(getBlockSize)
-  const words = mode === 'spellingBee' ? SPELLING_BEE_WORDS : BUMBLEBEE_WORDS
+function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
+  const { t } = useLang()
+  const { session, profile } = useAuth()
+  const bSize = profile?.block_size || 5
   const blocks = getBlocks(words, bSize)
-  const weak = getWeakWords(mode, subMode, words)
+  const [masteryMap, setMasteryMap] = useState({})
+  const [weakWords, setWeakWords] = useState([])
 
-  function handleSizeChange(s) {
-    setBSize(s)
-    setBlockSize(s)
-  }
+  useEffect(() => {
+    if (!session) return
+    const uid = session.user.id
+    async function load() {
+      const map = {}
+      for (const w of words) {
+        map[w.word] = await getMastery(uid, adventure, subMode, w.word)
+      }
+      setMasteryMap(map)
+      const weak = await getWeakWords(uid, adventure, subMode, words)
+      setWeakWords(weak)
+    }
+    load()
+  }, [session, adventure, subMode, words])
 
   return (
     <div className="animate-fade-up">
@@ -204,33 +168,11 @@ function BlockSelect({ mode, subMode, onBack, onStart }) {
         </div>
       </div>
 
-      {/* Block size picker */}
-      <div className="px-4 mb-4">
-        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-3">
-          <div className="text-xs font-bold text-gray-500 mb-2">{t('wordsPerBlock')}</div>
-          <div className="flex gap-2">
-            {BLOCK_SIZES.map(s => (
-              <button
-                key={s}
-                onClick={() => handleSizeChange(s)}
-                className={`flex-1 py-2 rounded-xl font-extrabold text-sm transition-all ${
-                  s === bSize
-                    ? 'bg-purple-600 text-white shadow-btn'
-                    : 'bg-purple-50 text-purple-400'
-                }`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
       <div className="px-4 space-y-3">
         {blocks.map((block, i) => {
-          const allMastered = block.every(w => getMastery(mode, subMode, w.word) >= 80)
-          const anyPracticed = block.some(w => getMastery(mode, subMode, w.word) >= 0)
-          const masteredCount = block.filter(w => getMastery(mode, subMode, w.word) >= 80).length
+          const allMastered = block.every(w => (masteryMap[w.word] ?? -1) >= 80)
+          const anyPracticed = block.some(w => (masteryMap[w.word] ?? -1) >= 0)
+          const masteredCount = block.filter(w => (masteryMap[w.word] ?? -1) >= 80).length
 
           return (
             <div key={i} className={`bg-white rounded-2xl shadow-card overflow-hidden border ${allMastered ? 'border-green-200' : 'border-gray-100'}`}>
@@ -248,7 +190,7 @@ function BlockSelect({ mode, subMode, onBack, onStart }) {
                 </div>
                 <div className="flex gap-1.5 mb-3 flex-wrap">
                   {block.map(w => {
-                    const m = getMastery(mode, subMode, w.word)
+                    const m = masteryMap[w.word] ?? -1
                     return (
                       <span key={w.word} className={`text-xs font-bold px-2 py-0.5 rounded-lg ${
                         m >= 80 ? 'bg-green-100 text-green-600' :
@@ -280,16 +222,16 @@ function BlockSelect({ mode, subMode, onBack, onStart }) {
           )
         })}
 
-        {weak.length > 0 && (
+        {weakWords.length > 0 && (
           <button
-            onClick={() => onStart(weak.slice(0, bSize), -1, false)}
+            onClick={() => onStart(weakWords.slice(0, bSize), -1, false)}
             className="w-full bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
           >
             <div className="flex items-center gap-2">
               <span className="text-2xl">💪</span>
               <div>
                 <div className="font-extrabold text-red-600 text-sm">{t('reviewWeak')}</div>
-                <div className="text-xs text-red-400 font-semibold">{weak.length} {t('needsPractice')}</div>
+                <div className="text-xs text-red-400 font-semibold">{weakWords.length} {t('needsPractice')}</div>
               </div>
             </div>
           </button>

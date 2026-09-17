@@ -1,20 +1,43 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Home from './screens/Home'
 import Game from './screens/Game'
 import Progress from './screens/Progress'
+import Login from './screens/Login'
+import AdventureSelect from './screens/AdventureSelect'
+import Admin from './screens/Admin'
 import { useLang } from './data/i18n'
-import { getStudentName, setStudentName, resetProgress, getGarden, getBlockSize, setBlockSize } from './storage'
+import { useAuth } from './data/AuthContext'
+import { getStars, getGarden } from './lib/db'
 
 export default function App() {
+  const { session, profile, loading, isAdmin } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="app-shell flex items-center justify-center min-h-screen bg-purple-50">
+        <div className="text-4xl animate-float">🐝</div>
+      </div>
+    )
+  }
+
+  if (!session) return <Login />
+  if (!profile?.adventure) return <AdventureSelect />
+
+  return <MainApp />
+}
+
+function MainApp() {
   const [tab, setTab] = useState('home')
   const [gameConfig, setGameConfig] = useState(null)
   const { t } = useLang()
+  const { isAdmin } = useAuth()
 
   const TABS = [
     { id: 'home', label: t('navHome'), icon: '🏠', iconActive: '🏡' },
     { id: 'progress', label: t('navProgress'), icon: '📊', iconActive: '📈' },
     { id: 'rewards', label: t('navRewards'), icon: '🏆', iconActive: '🏆' },
     { id: 'settings', label: t('navParents'), icon: '⚙️', iconActive: '⚙️' },
+    ...(isAdmin ? [{ id: 'admin', label: t('navAdmin'), icon: '🔧', iconActive: '🔧' }] : []),
   ]
 
   if (gameConfig) {
@@ -32,6 +55,7 @@ export default function App() {
         {tab === 'progress' && <Progress />}
         {tab === 'rewards' && <RewardsTab />}
         {tab === 'settings' && <SettingsTab />}
+        {tab === 'admin' && isAdmin && <Admin />}
       </div>
 
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white/95 backdrop-blur-md border-t border-purple-100 shadow-nav z-50">
@@ -64,14 +88,19 @@ export default function App() {
 
 function RewardsTab() {
   const { t } = useLang()
-  const sbGarden = getGarden('spellingBee')
-  const bbGarden = getGarden('bumblebee')
-  const flowers = sbGarden.flowers + bbGarden.flowers
-  const bees = sbGarden.bees + bbGarden.bees
+  const { session, profile } = useAuth()
+  const [garden, setGarden] = useState({ flowers: 0, bees: 0 })
+  const [stars, setStarsVal] = useState(0)
+
+  useEffect(() => {
+    if (!session || !profile?.adventure) return
+    getStars(session.user.id, profile.adventure).then(setStarsVal)
+    getGarden(session.user.id, profile.adventure).then(setGarden)
+  }, [session, profile?.adventure])
 
   const gardenRows = []
   const flowerEmojis = ['🌻', '🌷', '🌼', '🌸', '🌺', '💐']
-  for (let i = 0; i < Math.min(flowers, 30); i++) {
+  for (let i = 0; i < Math.min(garden.flowers, 30); i++) {
     gardenRows.push(flowerEmojis[i % flowerEmojis.length])
   }
 
@@ -84,12 +113,12 @@ function RewardsTab() {
 
       <div className="mx-4 bg-gradient-to-b from-green-50 to-emerald-50 border-2 border-green-200 rounded-3xl p-6 min-h-[300px] relative overflow-hidden">
         <div className="text-center mb-4">
-          {bees > 0
-            ? <div className="text-4xl animate-float">{'🐝 '.repeat(Math.min(bees, 5))}</div>
+          {garden.bees > 0
+            ? <div className="text-4xl animate-float">{'🐝 '.repeat(Math.min(garden.bees, 5))}</div>
             : <div className="text-4xl">☁️</div>}
         </div>
 
-        {flowers > 0 ? (
+        {garden.flowers > 0 ? (
           <div className="flex flex-wrap gap-2 justify-center">
             {gardenRows.map((f, i) => (
               <span key={i} className="text-3xl" style={{ animationDelay: `${i * 0.1}s` }}>{f}</span>
@@ -106,15 +135,20 @@ function RewardsTab() {
         <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-green-200/50 to-transparent" />
       </div>
 
-      <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
+      <div className="mx-4 mt-4 grid grid-cols-3 gap-3">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 text-center">
+          <div className="text-2xl mb-1">⭐</div>
+          <div className="text-2xl font-extrabold text-yellow-600">{stars}</div>
+          <div className="text-xs text-yellow-500 font-bold">{t('totalStars')}</div>
+        </div>
         <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 text-center">
           <div className="text-2xl mb-1">🌻</div>
-          <div className="text-2xl font-extrabold text-yellow-600">{flowers}</div>
+          <div className="text-2xl font-extrabold text-yellow-600">{garden.flowers}</div>
           <div className="text-xs text-yellow-500 font-bold">{t('flowers')}</div>
         </div>
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
           <div className="text-2xl mb-1">🐝</div>
-          <div className="text-2xl font-extrabold text-amber-600">{bees}</div>
+          <div className="text-2xl font-extrabold text-amber-600">{garden.bees}</div>
           <div className="text-xs text-amber-500 font-bold">{t('bees')}</div>
         </div>
       </div>
@@ -122,22 +156,15 @@ function RewardsTab() {
   )
 }
 
-const BLOCK_SIZES = [3, 5, 7, 10]
-
 function SettingsTab() {
   const { t, lang, setLang } = useLang()
-  const [name, setName] = useState(getStudentName())
-  const [bSize, setBSize] = useState(getBlockSize)
+  const { profile, updateProfile, signOut } = useAuth()
+  const [name, setName] = useState(profile?.name || '')
   const [showConfirm, setShowConfirm] = useState(false)
 
   function handleNameChange(v) {
     setName(v)
-    setStudentName(v)
-  }
-
-  function handleSizeChange(s) {
-    setBSize(s)
-    setBlockSize(s)
+    updateProfile({ name: v })
   }
 
   return (
@@ -152,22 +179,17 @@ function SettingsTab() {
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('language')}</label>
           <div className="flex gap-2 mt-2">
-            <button
-              onClick={() => setLang('es')}
-              className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all ${
-                lang === 'es' ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
-              }`}
-            >
-              ES
-            </button>
-            <button
-              onClick={() => setLang('en')}
-              className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all ${
-                lang === 'en' ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
-              }`}
-            >
-              EN
-            </button>
+            {['es', 'en'].map(l => (
+              <button
+                key={l}
+                onClick={() => { setLang(l); updateProfile({ lang: l }) }}
+                className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all ${
+                  lang === l ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
+                }`}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -187,12 +209,12 @@ function SettingsTab() {
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('wordsPerBlock')}</label>
           <div className="flex gap-2 mt-2">
-            {BLOCK_SIZES.map(s => (
+            {[3, 5, 7, 10].map(s => (
               <button
                 key={s}
-                onClick={() => handleSizeChange(s)}
+                onClick={() => updateProfile({ block_size: s })}
                 className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all ${
-                  s === bSize ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
+                  s === (profile?.block_size || 5) ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
                 }`}
               >
                 {s}
@@ -201,7 +223,18 @@ function SettingsTab() {
           </div>
         </div>
 
-        {/* About */}
+        {/* Change adventure */}
+        <button
+          onClick={() => updateProfile({ adventure: null })}
+          className="w-full bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 text-left"
+        >
+          <div className="font-extrabold text-purple-600 text-sm">{t('changeAdventure')}</div>
+          <div className="text-xs text-purple-400 font-semibold mt-0.5">
+            {profile?.adventure === 'spellingBee' ? '🐝 Spelling Bee' : '🌸 Bumblebee'}
+          </div>
+        </button>
+
+        {/* How it works */}
         <div className="bg-purple-50 rounded-2xl border border-purple-200 p-4">
           <h3 className="font-extrabold text-purple-700 text-sm mb-2">{t('howItWorks')}</h3>
           <ul className="text-xs text-purple-600 space-y-1.5 font-semibold">
@@ -214,26 +247,13 @@ function SettingsTab() {
           </ul>
         </div>
 
-        {/* Reset */}
-        <div className="bg-red-50 rounded-2xl border border-red-200 p-4">
-          {!showConfirm ? (
-            <button onClick={() => setShowConfirm(true)} className="text-red-500 font-bold text-sm w-full text-left">
-              🗑️ {t('resetAll')}
-            </button>
-          ) : (
-            <div>
-              <p className="text-red-600 font-bold text-sm mb-3">{t('confirmReset')}</p>
-              <div className="flex gap-2">
-                <button onClick={() => setShowConfirm(false)} className="flex-1 py-2 bg-white border border-gray-200 rounded-xl text-gray-600 font-bold text-sm">
-                  {t('cancel')}
-                </button>
-                <button onClick={() => { resetProgress(); window.location.reload() }} className="flex-1 py-2 bg-red-500 text-white rounded-xl font-bold text-sm">
-                  {t('reset')}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Logout */}
+        <button
+          onClick={signOut}
+          className="w-full bg-red-50 border-2 border-red-200 rounded-2xl p-4 text-center"
+        >
+          <span className="text-red-500 font-bold text-sm">{t('logout')}</span>
+        </button>
       </div>
     </div>
   )

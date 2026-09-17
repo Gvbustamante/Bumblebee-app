@@ -73,6 +73,28 @@ const S = {
     howChallenge: 'Challenge: Timer on, test your speed',
     howStars: 'Stars: 3 for perfect, 1 for correct',
     howQueue: 'Queue: Words repeat until learned',
+    // Auth
+    welcomeBack: 'Welcome back!',
+    createAccount: 'Create your account',
+    email: 'Email',
+    password: 'Password',
+    login: 'Log in',
+    register: 'Sign up',
+    hasAccount: 'Already have an account? Log in',
+    noAccount: "Don't have an account? Sign up",
+    checkEmail: 'Check your email to confirm!',
+    logout: 'Log out',
+    // Adventure
+    pickOneAdventure: 'Each adventure has its own progress and stars',
+    changeAdventure: 'Change adventure',
+    // Admin
+    admin: 'Admin',
+    manageWords: 'Manage words and images',
+    addWord: 'Add word',
+    users: 'Users',
+    makeAdmin: 'Make admin',
+    removeAdmin: 'Remove admin',
+    navAdmin: 'Admin',
   },
   es: {
     greeting: '¡Hola, Pequeño Aprendiz!',
@@ -146,6 +168,28 @@ const S = {
     howChallenge: 'Desafío: Con temporizador, pon a prueba tu velocidad',
     howStars: 'Estrellas: 3 por perfecto, 1 por correcto',
     howQueue: 'Cola: Las palabras se repiten hasta aprenderlas',
+    // Auth
+    welcomeBack: '¡Bienvenido de vuelta!',
+    createAccount: 'Crea tu cuenta',
+    email: 'Correo electrónico',
+    password: 'Contraseña',
+    login: 'Iniciar sesión',
+    register: 'Registrarse',
+    hasAccount: '¿Ya tienes cuenta? Inicia sesión',
+    noAccount: '¿No tienes cuenta? Regístrate',
+    checkEmail: '¡Revisa tu correo para confirmar!',
+    logout: 'Cerrar sesión',
+    // Adventure
+    pickOneAdventure: 'Cada aventura tiene su propio progreso y estrellas',
+    changeAdventure: 'Cambiar aventura',
+    // Admin
+    admin: 'Admin',
+    manageWords: 'Gestionar palabras e imágenes',
+    addWord: 'Agregar palabra',
+    users: 'Usuarios',
+    makeAdmin: 'Hacer admin',
+    removeAdmin: 'Quitar admin',
+    navAdmin: 'Admin',
   },
 }
 

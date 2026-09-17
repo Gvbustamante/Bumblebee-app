@@ -1,15 +1,27 @@
-import { SPELLING_BEE_WORDS, BUMBLEBEE_WORDS } from '../data/words'
+import { useState, useEffect } from 'react'
 import { MODES } from '../data/modes'
 import { useLang } from '../data/i18n'
-import { getMastery, getLetterMastery, getWordStats, getWeakWords, getStars, getGarden, getModeStats } from '../storage'
+import { useAuth } from '../data/AuthContext'
+import { fetchWords, getStars, getAdventureStats, getWordStats, getMastery, getLetterMastery, getWeakWords } from '../lib/db'
 
 export default function Progress() {
   const { t } = useLang()
-  const stars = getStars()
-  const sbGarden = getGarden('spellingBee')
-  const bbGarden = getGarden('bumblebee')
-  const totalFlowers = sbGarden.flowers + bbGarden.flowers
-  const totalBees = sbGarden.bees + bbGarden.bees
+  const { session, profile } = useAuth()
+  const adventure = profile?.adventure
+  const [stars, setStarsVal] = useState(0)
+  const [words, setWords] = useState([])
+  const [stats, setStats] = useState({ practiced: 0, mastered: 0, weak: 0 })
+
+  useEffect(() => {
+    if (!session || !adventure) return
+    const uid = session.user.id
+    getStars(uid, adventure).then(setStarsVal)
+    fetchWords(adventure).then(setWords)
+    getAdventureStats(uid, adventure).then(setStats)
+  }, [session, adventure])
+
+  const modeDef = MODES[adventure]
+  if (!modeDef) return null
 
   return (
     <div className="animate-fade-up pb-4">
@@ -25,104 +37,89 @@ export default function Progress() {
             <div className="text-xs text-yellow-500 font-bold">{t('totalStars')}</div>
           </div>
           <div className="text-right">
-            <div className="text-2xl">{'🌻'.repeat(Math.min(totalFlowers, 6))} {'🐝'.repeat(Math.min(totalBees, 3))}</div>
-            <div className="text-xs text-yellow-500 font-bold">{totalFlowers} {t('flowers')} · {totalBees} {t('bees')}</div>
+            <div className="text-sm font-bold text-gray-500">{modeDef.emoji} {modeDef.label}</div>
+            <div className="text-xs text-yellow-500 font-bold">{stats.practiced} {t('practiced').toLowerCase()}</div>
           </div>
         </div>
       </div>
 
-      <ModeSection modeId="spellingBee" words={SPELLING_BEE_WORDS} color="purple" />
-      <ModeSection modeId="bumblebee" words={BUMBLEBEE_WORDS} color="orange" />
-    </div>
-  )
-}
-
-function ModeSection({ modeId, words, color }) {
-  const { t, lang } = useLang()
-  const modeDef = MODES[modeId]
-  const modeStats = getModeStats(modeId)
-  const c = SECTION_COLORS[color]
-
-  return (
-    <div className={`mx-4 mb-4 ${c.bg} ${c.border} border-2 rounded-2xl p-4`}>
-      <h2 className={`text-lg font-extrabold ${c.title} mb-1`}>{modeDef.emoji} {modeDef.label}</h2>
-
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        <StatBox value={modeStats.practiced} label={t('practiced')} bg="bg-white" text="text-gray-700" />
-        <StatBox value={modeStats.mastered} label={t('mastered')} bg="bg-green-100" text="text-green-600" />
-        <StatBox value={modeStats.weak} label={t('weak')} bg="bg-red-50" text="text-red-500" />
+      <div className="mx-4 grid grid-cols-3 gap-2 mb-4">
+        <StatBox value={stats.practiced} label={t('practiced')} bg="bg-white" text="text-gray-700" />
+        <StatBox value={stats.mastered} label={t('mastered')} bg="bg-green-100" text="text-green-600" />
+        <StatBox value={stats.weak} label={t('weak')} bg="bg-red-50" text="text-red-500" />
       </div>
 
-      {modeDef.subModes.map(sub => {
-        const stats = getWordStats(modeId, sub.id)
-        if (stats.practiced === 0) return null
-        return (
-          <SubModeProgress
-            key={sub.id}
-            modeId={modeId}
-            sub={sub}
-            words={words}
-            c={c}
-          />
-        )
-      })}
-
-      {modeStats.practiced === 0 && (
-        <div className="text-center text-gray-400 text-sm py-4">
-          <span className="text-2xl block mb-2">📝</span>
-          {t('noPracticed')}
-        </div>
-      )}
+      {modeDef.subModes.map(sub => (
+        <SubModeProgress key={sub.id} adventure={adventure} sub={sub} words={words} />
+      ))}
     </div>
   )
 }
 
-function SubModeProgress({ modeId, sub, words, c }) {
+function SubModeProgress({ adventure, sub, words }) {
   const { t, lang } = useLang()
-  const weak = getWeakWords(modeId, sub.id, words)
+  const { session } = useAuth()
+  const [wordData, setWordData] = useState([])
+  const [weakWords, setWeakWords] = useState([])
+  const c = SECTION_COLORS[MODES[adventure]?.color === 'pink' ? 'orange' : 'purple']
+
+  useEffect(() => {
+    if (!session) return
+    const uid = session.user.id
+    async function load() {
+      const data = []
+      for (const w of words) {
+        const m = await getMastery(uid, adventure, sub.id, w.word)
+        if (m < 0) continue
+        const lm = sub.requireSpelling ? await getLetterMastery(uid, adventure, sub.id, w.word) : null
+        data.push({ ...w, mastery: m, letterMastery: lm })
+      }
+      setWordData(data)
+      const weak = await getWeakWords(uid, adventure, sub.id, words)
+      setWeakWords(weak)
+    }
+    load()
+  }, [session, adventure, sub.id, words])
+
+  if (!wordData.length) return null
 
   return (
-    <div className="mb-3">
+    <div className="mx-4 mb-4">
       <div className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${c.sub} mb-2`}>
         {sub.emoji} {lang === 'es' ? sub.labelEs : sub.label}
       </div>
       <div className="space-y-2">
-        {words.map(w => {
-          const m = getMastery(modeId, sub.id, w.word)
-          if (m < 0) return null
-          const lm = sub.requireSpelling ? getLetterMastery(modeId, sub.id, w.word) : null
-          return (
-            <div key={w.word} className="bg-white rounded-xl p-2.5 flex items-center gap-2">
-              <span className="text-lg w-7 text-center">{w.emoji}</span>
-              <span className="font-bold text-sm w-12 text-gray-700">{w.word}</span>
-              <div className="flex-1">
-                <div className={`h-2 ${c.barBg} rounded-full overflow-hidden`}>
-                  <div className={`h-full ${c.bar} rounded-full transition-all`} style={{ width: `${Math.max(m, 0)}%` }} />
-                </div>
-                {lm && (
-                  <div className="flex gap-0.5 mt-1">
-                    {w.word.split('').map((l, i) => (
-                      <span key={i} className={`text-[9px] font-bold ${
-                        lm[i] < 0 ? 'text-gray-300' : lm[i] >= 80 ? 'text-green-500' : lm[i] >= 50 ? 'text-yellow-500' : 'text-red-400'
-                      }`}>
-                        {l}
-                      </span>
-                    ))}
-                  </div>
-                )}
+        {wordData.map(w => (
+          <div key={w.word} className="bg-white rounded-xl p-2.5 flex items-center gap-2 shadow-card border border-gray-100">
+            <span className="text-lg w-7 text-center">{w.emoji}</span>
+            <span className="font-bold text-sm w-12 text-gray-700">{w.word}</span>
+            <div className="flex-1">
+              <div className={`h-2 ${c.barBg} rounded-full overflow-hidden`}>
+                <div className={`h-full ${c.bar} rounded-full transition-all`} style={{ width: `${Math.max(w.mastery, 0)}%` }} />
               </div>
-              <span className="text-[11px] font-bold text-gray-400 w-8 text-right">
-                {m < 0 ? '—' : `${m}%`}
-              </span>
+              {w.letterMastery && (
+                <div className="flex gap-0.5 mt-1">
+                  {w.word.split('').map((l, i) => (
+                    <span key={i} className={`text-[9px] font-bold ${
+                      w.letterMastery[i] < 0 ? 'text-gray-300' : w.letterMastery[i] >= 80 ? 'text-green-500' : w.letterMastery[i] >= 50 ? 'text-yellow-500' : 'text-red-400'
+                    }`}>
+                      {l}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
-          )
-        })}
+            <span className="text-[11px] font-bold text-gray-400 w-8 text-right">
+              {w.mastery < 0 ? '—' : `${w.mastery}%`}
+            </span>
+          </div>
+        ))}
       </div>
 
-      {weak.length > 0 && (
+      {weakWords.length > 0 && (
         <div className="mt-2 bg-red-50 rounded-xl p-3 border border-red-200">
           <div className="text-xs font-bold text-red-600 mb-1">{t('needsPracticeLabel')}</div>
-          <div className="text-xs text-red-500 font-semibold">{weak.map(w => w.word).join(' · ')}</div>
+          <div className="text-xs text-red-500 font-semibold">{weakWords.map(w => w.word).join(' · ')}</div>
         </div>
       )}
     </div>
@@ -131,18 +128,16 @@ function SubModeProgress({ modeId, sub, words, c }) {
 
 const SECTION_COLORS = {
   purple: {
-    bg: 'bg-purple-50', border: 'border-purple-200', title: 'text-purple-700',
     bar: 'bg-purple-500', barBg: 'bg-purple-100', sub: 'bg-purple-100 text-purple-600',
   },
   orange: {
-    bg: 'bg-orange-50', border: 'border-orange-200', title: 'text-orange-600',
     bar: 'bg-orange-500', barBg: 'bg-orange-100', sub: 'bg-orange-100 text-orange-600',
   },
 }
 
 function StatBox({ value, label, bg, text }) {
   return (
-    <div className={`${bg} rounded-xl p-2 text-center`}>
+    <div className={`${bg} rounded-xl p-2 text-center shadow-card border border-gray-100`}>
       <div className={`text-xl font-extrabold ${text}`}>{value}</div>
       <div className="text-[10px] text-gray-400 font-bold">{label}</div>
     </div>
