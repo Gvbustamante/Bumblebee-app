@@ -180,6 +180,12 @@ export async function adminAddWord(adventure, word, emoji) {
   return supabase.from('bumblebee_words').insert({ adventure, word: word.toUpperCase(), emoji, sort_order: order })
 }
 
+export async function resetProgress(userId) {
+  await supabase.from('bumblebee_attempts').delete().eq('user_id', userId)
+  await supabase.from('bumblebee_stars').delete().eq('user_id', userId)
+  await supabase.from('bumblebee_garden').delete().eq('user_id', userId)
+}
+
 export async function adminDeleteWord(adventure, word) {
   return supabase.from('bumblebee_words').delete().eq('adventure', adventure).eq('word', word)
 }

@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react'
 import { getBlocks } from '../data/words'
-import { MODES } from '../data/modes'
+import { MODES, getSubMode } from '../data/modes'
 import { useLang } from '../data/i18n'
 import { useAuth } from '../data/AuthContext'
 import { fetchWords, getStars, getAdventureStats, getMastery, getWeakWords } from '../lib/db'
 
-export default function Home({ onStartGame }) {
-  const [selectedSubMode, setSelectedSubMode] = useState(null)
+export default function Home({ onStartGame, selectedSubMode, setSelectedSubMode }) {
   const { t, lang } = useLang()
   const { session, profile } = useAuth()
   const adventure = profile?.adventure
   const modeDef = MODES[adventure]
   const [words, setWords] = useState([])
+  const [subWords, setSubWords] = useState([])
   const [stars, setStarsVal] = useState(0)
   const [stats, setStats] = useState({ practiced: 0, mastered: 0 })
 
@@ -22,6 +22,13 @@ export default function Home({ onStartGame }) {
     getAdventureStats(session.user.id, adventure).then(setStats)
   }, [session, adventure])
 
+  useEffect(() => {
+    if (!session || !adventure || !selectedSubMode) return
+    const sub = getSubMode(adventure, selectedSubMode)
+    const cat = sub?.category || 'words'
+    fetchWords(adventure, false, cat).then(setSubWords)
+  }, [session, adventure, selectedSubMode])
+
   if (!modeDef) return null
 
   if (selectedSubMode) {
@@ -29,7 +36,7 @@ export default function Home({ onStartGame }) {
       <BlockSelect
         adventure={adventure}
         subMode={selectedSubMode}
-        words={words}
+        words={subWords}
         onBack={() => setSelectedSubMode(null)}
         onStart={(block, idx, challenge) => onStartGame({
           mode: adventure,
@@ -57,15 +64,18 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
   const modeDef = MODES[adventure]
   const c = SUB_COLORS[modeDef.color]
   const { t, lang } = useLang()
-  const { profile } = useAuth()
+  const { profile, updateProfile } = useAuth()
   const masteredPct = words.length ? Math.round((stats.mastered / words.length) * 100) : 0
+  const playerName = profile?.name
 
   return (
     <div className="animate-fade-up">
       <div className="flex items-center justify-between px-5 pt-5 pb-2">
         <div>
-          <h1 className="text-xl font-extrabold text-gray-800">{t('greeting')}</h1>
-          <p className="text-sm text-gray-400 font-semibold">{profile?.name || ''}</p>
+          <h1 className="text-xl font-extrabold text-gray-800">
+            {playerName ? `${lang === 'es' ? '¡Hola' : 'Hi'}, ${playerName}!` : t('greeting')}
+          </h1>
+          <p className="text-sm text-gray-400 font-semibold">{t('whatToDo')}</p>
         </div>
         <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1.5 rounded-full border border-yellow-200">
           <span className="text-lg">⭐</span>
@@ -73,12 +83,31 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
         </div>
       </div>
 
-      <div className="mx-4 mt-3 bg-gradient-to-br from-purple-600 to-purple-500 rounded-3xl p-5 text-white relative overflow-hidden">
+      <div className="mx-4 mt-2 flex gap-1.5">
+        {Object.values(MODES).map(m => {
+          const active = m.id === adventure
+          const mc = MODE_PILL[m.color]
+          return (
+            <button
+              key={m.id}
+              onClick={() => { if (!active) updateProfile({ adventure: m.id }) }}
+              className={`flex-1 flex flex-col items-center py-2 rounded-xl transition-all active:scale-90 ${
+                active ? `${mc.activeBg} border-2 ${mc.activeBorder}` : 'bg-gray-50 border-2 border-transparent'
+              }`}
+            >
+              <span className={active ? 'text-2xl' : 'text-xl opacity-60'}>{m.emoji}</span>
+              <span className={`text-[9px] font-bold mt-0.5 leading-tight ${active ? mc.activeText : 'text-gray-400'}`}>{m.label}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      <div className={`mx-4 mt-3 ${HERO_GRADIENT[modeDef.color]} rounded-3xl p-5 text-white relative overflow-hidden`}>
         <div className="absolute -right-6 -bottom-6 text-[100px] opacity-10 select-none">{modeDef.emoji}</div>
-        <p className="text-purple-200 text-sm font-semibold">{modeDef.emoji} {modeDef.label}</p>
+        <p className="text-white/70 text-sm font-semibold">{modeDef.emoji} {modeDef.label}</p>
         <p className="font-extrabold text-lg mt-0.5">{t('doingAmazing')}</p>
         <div className="flex items-center gap-3 mt-3">
-          <div className="flex-1 h-2.5 bg-purple-400/50 rounded-full overflow-hidden">
+          <div className="flex-1 h-2.5 bg-white/20 rounded-full overflow-hidden">
             <div className="h-full bg-yellow-400 rounded-full transition-all duration-700" style={{ width: `${masteredPct}%` }} />
           </div>
           <span className="text-sm font-bold whitespace-nowrap">{stats.practiced}/{words.length}</span>
@@ -128,9 +157,28 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
   )
 }
 
+const HERO_GRADIENT = {
+  purple: 'bg-gradient-to-br from-purple-600 to-purple-500',
+  pink: 'bg-gradient-to-br from-pink-500 to-orange-400',
+  blue: 'bg-gradient-to-br from-blue-600 to-cyan-500',
+  amber: 'bg-gradient-to-br from-amber-500 to-yellow-400',
+  indigo: 'bg-gradient-to-br from-indigo-600 to-violet-500',
+}
+
+const MODE_PILL = {
+  purple: { activeBg: 'bg-purple-100', activeBorder: 'border-purple-300', activeText: 'text-purple-700' },
+  pink: { activeBg: 'bg-pink-100', activeBorder: 'border-pink-300', activeText: 'text-pink-700' },
+  blue: { activeBg: 'bg-blue-100', activeBorder: 'border-blue-300', activeText: 'text-blue-700' },
+  amber: { activeBg: 'bg-amber-100', activeBorder: 'border-amber-300', activeText: 'text-amber-700' },
+  indigo: { activeBg: 'bg-indigo-100', activeBorder: 'border-indigo-300', activeText: 'text-indigo-700' },
+}
+
 const SUB_COLORS = {
   purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700' },
   pink: { bg: 'bg-pink-50', border: 'border-pink-200', text: 'text-orange-600' },
+  blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
+  amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700' },
+  indigo: { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700' },
 }
 
 function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
