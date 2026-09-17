@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
+import { MODES, getSubMode, getInitialPhase, getNextPhase } from '../data/modes'
+import { getWordImageUrl } from '../data/assets'
 import { recordAttempt, addFlower, addStars } from '../storage'
 
 export default function Game({ config, onExit }) {
-  const { mode, block, blockIndex, isChallenge } = config
-  const isSpelling = mode === 'spellingBee'
+  const { mode, subMode: subModeId, block, blockIndex, isChallenge } = config
+  const sub = getSubMode(mode, subModeId)
 
   const [wordIdx, setWordIdx] = useState(0)
-  const [phase, setPhase] = useState(isSpelling ? 'spelling' : 'reading')
+  const [phase, setPhase] = useState(() => getInitialPhase(sub))
   const [letterIdx, setLetterIdx] = useState(0)
   const [letterErrors, setLetterErrors] = useState({})
   const [wordReadErrors, setWordReadErrors] = useState(0)
@@ -28,7 +30,7 @@ export default function Game({ config, onExit }) {
   }, [startTime, blockDone, phase])
 
   useEffect(() => {
-    setPhase(isSpelling ? 'spelling' : 'reading')
+    setPhase(getInitialPhase(sub))
     setLetterIdx(0)
     setLetterErrors({})
     setWordReadErrors(0)
@@ -36,7 +38,7 @@ export default function Game({ config, onExit }) {
     setStartTime(Date.now())
     setElapsed(0)
     clearTimeout(fbRef.current)
-  }, [wordIdx, isSpelling])
+  }, [wordIdx])
 
   function fb(type, ms, cb) {
     setFeedback(type)
@@ -48,8 +50,13 @@ export default function Game({ config, onExit }) {
     if (feedback) return
     if (phase === 'spelling') {
       fb('correct', 400, () => {
-        if (letterIdx >= letters.length - 1) setPhase('reading')
-        else setLetterIdx(i => i + 1)
+        if (letterIdx >= letters.length - 1) {
+          const next = getNextPhase('spelling', sub)
+          if (next && next !== 'result') setPhase(next)
+          else finishWord(true)
+        } else {
+          setLetterIdx(i => i + 1)
+        }
       })
     } else if (phase === 'reading') {
       finishWord(true)
@@ -67,34 +74,57 @@ export default function Game({ config, onExit }) {
     }
   }
 
-  function finishWord(wordOk) {
+  function handleFamiliarizeNext() {
+    finishWord(true, true)
+  }
+
+  function finishWord(wordOk, isFamiliarize = false) {
     clearInterval(timerRef.current)
     const time = Date.now() - startTime
-    const lr = isSpelling ? letters.map((_, i) => !(letterErrors[i] || 0)) : undefined
-    const allPerfect = wordOk && (!lr || lr.every(Boolean)) && !wordReadErrors
-    const earned = allPerfect ? 3 : wordOk ? 1 : 0
+    const lr = sub.requireSpelling ? letters.map((_, i) => !(letterErrors[i] || 0)) : undefined
+    const allPerfect = isFamiliarize || (wordOk && (!lr || lr.every(Boolean)) && !wordReadErrors)
+    const earned = isFamiliarize ? 1 : allPerfect ? 3 : wordOk ? 1 : 0
     if (earned) addStars(earned)
 
-    const attempt = { letterResults: lr, wordCorrect: wordOk, time, mode: isChallenge ? 'challenge' : 'training' }
-    recordAttempt(mode, word.word, attempt)
+    const attempt = {
+      letterResults: lr,
+      wordCorrect: wordOk,
+      time,
+      mode: isChallenge ? 'challenge' : 'training',
+      familiarize: isFamiliarize || undefined,
+    }
+    recordAttempt(mode, subModeId, word.word, attempt)
     setBlockResults(p => [...p, {
-      ...attempt, word: word.word, emoji: word.emoji, imageUrl: word.imageUrl,
+      ...attempt, word: word.word, emoji: word.emoji,
       perfect: allPerfect, starsEarned: earned,
     }])
-    setPhase('result')
+
+    if (isFamiliarize) {
+      if (wordIdx < block.length - 1) setWordIdx(i => i + 1)
+      else { addFlower(mode, subModeId); setBlockDone(true) }
+    } else {
+      setPhase('result')
+    }
   }
 
   function nextWord() {
     if (wordIdx < block.length - 1) setWordIdx(i => i + 1)
-    else { addFlower(mode); setBlockDone(true) }
+    else { addFlower(mode, subModeId); setBlockDone(true) }
   }
 
   const fmt = ms => `${Math.floor(ms / 1000)}.${Math.floor((ms % 1000) / 100)}s`
 
   function Img({ w, className = '' }) {
-    if (w.imageUrl) return <img src={w.imageUrl} alt={w.word} className={`object-contain ${className}`} />
+    const url = w.imageUrl || getWordImageUrl(w.word)
+    if (url) return <img src={url} alt={w.word} className={`object-contain ${className}`} />
     return <span className={className}>{w.emoji}</span>
   }
+
+  if (!sub) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <button onClick={onExit} className="text-purple-600 font-bold">← Back Home</button>
+    </div>
+  )
 
   // ─── BLOCK COMPLETE ───
   if (blockDone) {
@@ -133,11 +163,11 @@ export default function Game({ config, onExit }) {
 
   // ─── WORD RESULT ───
   if (phase === 'result') {
-    const lr = isSpelling ? letters.map((_, i) => !(letterErrors[i] || 0)) : null
+    const lr = sub.requireSpelling ? letters.map((_, i) => !(letterErrors[i] || 0)) : null
     const allPerfect = (!lr || lr.every(Boolean)) && !wordReadErrors
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex flex-col items-center justify-center p-5 animate-pop">
-        <Img w={word} className="text-[80px]" />
+        {sub.showImage && <Img w={word} className="text-[80px]" />}
         <h2 className="text-3xl font-extrabold text-gray-800 mt-4">{word.word}</h2>
 
         {lr && (
@@ -166,6 +196,9 @@ export default function Game({ config, onExit }) {
   }
 
   // ─── GAME PLAY ───
+  const isFamiliarize = phase === 'familiarize'
+  const isSpellingPhase = phase === 'spelling'
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 via-white to-purple-50 flex flex-col">
       {/* Top bar */}
@@ -188,21 +221,26 @@ export default function Game({ config, onExit }) {
       {/* Phase label */}
       <div className="text-center mt-2">
         <span className={`inline-block text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${
-          phase === 'spelling' ? 'bg-purple-100 text-purple-600' : 'bg-orange-100 text-orange-600'
+          isFamiliarize ? 'bg-blue-100 text-blue-600' :
+          isSpellingPhase ? 'bg-purple-100 text-purple-600' :
+          'bg-orange-100 text-orange-600'
         }`}>
-          {phase === 'spelling' ? '🐝 Spell the letters' : '📖 Read the word'}
+          {isFamiliarize ? '👀 Look and learn' :
+           isSpellingPhase ? '🐝 Spell the letters' :
+           '📖 Read the word'}
         </span>
       </div>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 -mt-4">
-        {/* Image */}
-        <div className="animate-float">
-          <Img w={word} className="text-[100px]" />
-        </div>
+        {sub.showImage && (
+          <div className="animate-float">
+            <Img w={word} className="text-[100px]" />
+          </div>
+        )}
 
-        {/* Letter / Word display */}
-        {isSpelling && phase === 'spelling' ? (
+        {/* Spelling phase - letter tiles */}
+        {isSpellingPhase && sub.showLetters && (
           <div className="mt-6 mb-2">
             <div className="flex gap-3 justify-center">
               {letters.map((letter, i) => (
@@ -226,7 +264,20 @@ export default function Game({ config, onExit }) {
               Say the letter: <span className="text-purple-600 font-extrabold text-xl">{letters[letterIdx]}</span>
             </p>
           </div>
-        ) : (
+        )}
+
+        {/* Familiarize - show word */}
+        {isFamiliarize && (
+          <div className="mt-6 mb-2">
+            <div className="bg-white rounded-2xl shadow-card px-8 py-5 border border-purple-100">
+              <p className="text-4xl font-extrabold text-purple-700 text-center tracking-wider">{word.word}</p>
+            </div>
+            <p className="text-center mt-3 text-gray-400 font-semibold text-sm">Look at the word and picture</p>
+          </div>
+        )}
+
+        {/* Reading phase with word visible */}
+        {phase === 'reading' && sub.showWord && (
           <div className="mt-6 mb-2">
             <div className="bg-white rounded-2xl shadow-card px-8 py-5 border border-purple-100">
               <p className="text-4xl font-extrabold text-purple-700 text-center tracking-wider">{word.word}</p>
@@ -235,42 +286,61 @@ export default function Game({ config, onExit }) {
           </div>
         )}
 
+        {/* Reading phase without word (image only) */}
+        {phase === 'reading' && !sub.showWord && (
+          <div className="mt-8 mb-2">
+            <p className="text-center text-gray-500 font-bold text-lg">What do you see?</p>
+            <p className="text-center text-gray-400 font-semibold text-sm mt-1">Say the word!</p>
+          </div>
+        )}
+
         {/* Feedback */}
-        <div className="h-16 flex items-center justify-center">
-          {feedback === 'correct' && (
-            <div className="animate-pop text-green-500 font-extrabold text-2xl flex items-center gap-2">
-              <span className="text-3xl">⭐</span> Great!
-            </div>
-          )}
-          {feedback === 'wrong' && (
-            <div className="animate-shake text-orange-500 font-extrabold text-2xl flex items-center gap-2">
-              <span className="text-3xl">🔄</span> Try again!
-            </div>
-          )}
-        </div>
+        {!isFamiliarize && (
+          <div className="h-16 flex items-center justify-center">
+            {feedback === 'correct' && (
+              <div className="animate-pop text-green-500 font-extrabold text-2xl flex items-center gap-2">
+                <span className="text-3xl">⭐</span> Great!
+              </div>
+            )}
+            {feedback === 'wrong' && (
+              <div className="animate-shake text-orange-500 font-extrabold text-2xl flex items-center gap-2">
+                <span className="text-3xl">🔄</span> Try again!
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Action buttons */}
-        <div className="flex gap-6 mt-2">
+        {isFamiliarize ? (
           <button
-            onClick={handleIncorrect}
-            disabled={!!feedback}
-            className="w-20 h-20 rounded-full bg-gradient-to-br from-red-100 to-red-50 border-[3px] border-red-300 text-4xl flex items-center justify-center shadow-lg active:scale-90 transition-transform disabled:opacity-40"
+            onClick={handleFamiliarizeNext}
+            className="mt-6 px-12 py-4 bg-purple-600 text-white rounded-2xl font-extrabold text-lg shadow-btn active:scale-95 transition-transform"
           >
-            ✗
+            {wordIdx < block.length - 1 ? 'Got it! Next →' : 'Got it! Finish! 🎉'}
           </button>
-          <button
-            onClick={handleCorrect}
-            disabled={!!feedback}
-            className="w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-green-50 border-[3px] border-green-300 text-4xl flex items-center justify-center shadow-lg active:scale-90 transition-transform disabled:opacity-40"
-          >
-            ✓
-          </button>
-        </div>
+        ) : (
+          <div className="flex gap-6 mt-2">
+            <button
+              onClick={handleIncorrect}
+              disabled={!!feedback}
+              className="w-20 h-20 rounded-full bg-gradient-to-br from-red-100 to-red-50 border-[3px] border-red-300 text-4xl flex items-center justify-center shadow-lg active:scale-90 transition-transform disabled:opacity-40"
+            >
+              ✗
+            </button>
+            <button
+              onClick={handleCorrect}
+              disabled={!!feedback}
+              className="w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-green-50 border-[3px] border-green-300 text-4xl flex items-center justify-center shadow-lg active:scale-90 transition-transform disabled:opacity-40"
+            >
+              ✓
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Bottom info */}
       <div className="text-center pb-5 text-gray-400 text-xs font-bold">
-        {isSpelling ? 'Spelling Bee' : 'Bumblebee'}{blockIndex >= 0 ? ` · Block ${blockIndex + 1}` : ' · Review'}
+        {MODES[mode]?.label} · {sub.label}{blockIndex >= 0 ? ` · Block ${blockIndex + 1}` : ' · Review'}
       </div>
     </div>
   )

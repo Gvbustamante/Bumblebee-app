@@ -1,5 +1,6 @@
 import { SPELLING_BEE_WORDS, BUMBLEBEE_WORDS } from '../data/words'
-import { getMastery, getLetterMastery, getWordStats, getWeakWords, getStars, getGarden } from '../storage'
+import { MODES } from '../data/modes'
+import { getMastery, getLetterMastery, getWordStats, getWeakWords, getStars, getGarden, getModeStats } from '../storage'
 
 export default function Progress() {
   const stars = getStars()
@@ -15,7 +16,6 @@ export default function Progress() {
         <p className="text-sm text-gray-400 font-semibold">Track your learning journey</p>
       </div>
 
-      {/* Stars + Garden summary */}
       <div className="mx-4 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-2xl p-4 mb-4">
         <div className="flex items-center justify-between">
           <div>
@@ -29,35 +29,64 @@ export default function Progress() {
         </div>
       </div>
 
-      <ModeSection mode="spellingBee" label="Spelling Bee" words={SPELLING_BEE_WORDS} color="purple" />
-      <ModeSection mode="bumblebee" label="Bumblebee" words={BUMBLEBEE_WORDS} color="orange" />
+      <ModeSection modeId="spellingBee" words={SPELLING_BEE_WORDS} color="purple" />
+      <ModeSection modeId="bumblebee" words={BUMBLEBEE_WORDS} color="orange" />
     </div>
   )
 }
 
-function ModeSection({ mode, label, words, color }) {
-  const stats = getWordStats(mode)
-  const weak = getWeakWords(mode, words)
-  const colors = {
-    purple: { bg: 'bg-purple-50', border: 'border-purple-200', title: 'text-purple-700', bar: 'bg-purple-500', barBg: 'bg-purple-100' },
-    orange: { bg: 'bg-orange-50', border: 'border-orange-200', title: 'text-orange-600', bar: 'bg-orange-500', barBg: 'bg-orange-100' },
-  }
-  const c = colors[color]
+function ModeSection({ modeId, words, color }) {
+  const modeDef = MODES[modeId]
+  const modeStats = getModeStats(modeId)
+  const c = SECTION_COLORS[color]
 
   return (
     <div className={`mx-4 mb-4 ${c.bg} ${c.border} border-2 rounded-2xl p-4`}>
-      <h2 className={`text-lg font-extrabold ${c.title} mb-3`}>{label}</h2>
+      <h2 className={`text-lg font-extrabold ${c.title} mb-1`}>{modeDef.emoji} {modeDef.label}</h2>
 
       <div className="grid grid-cols-3 gap-2 mb-4">
-        <StatBox value={stats.practiced} label="Practiced" bg="bg-white" text="text-gray-700" />
-        <StatBox value={stats.mastered} label="Mastered" bg="bg-green-100" text="text-green-600" />
-        <StatBox value={stats.weak} label="Weak" bg="bg-red-50" text="text-red-500" />
+        <StatBox value={modeStats.practiced} label="Practiced" bg="bg-white" text="text-gray-700" />
+        <StatBox value={modeStats.mastered} label="Mastered" bg="bg-green-100" text="text-green-600" />
+        <StatBox value={modeStats.weak} label="Weak" bg="bg-red-50" text="text-red-500" />
       </div>
 
+      {modeDef.subModes.map(sub => {
+        const stats = getWordStats(modeId, sub.id)
+        if (stats.practiced === 0) return null
+        return (
+          <SubModeProgress
+            key={sub.id}
+            modeId={modeId}
+            sub={sub}
+            words={words}
+            c={c}
+          />
+        )
+      })}
+
+      {modeStats.practiced === 0 && (
+        <div className="text-center text-gray-400 text-sm py-4">
+          <span className="text-2xl block mb-2">📝</span>
+          No words practiced yet
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SubModeProgress({ modeId, sub, words, c }) {
+  const weak = getWeakWords(modeId, sub.id, words)
+
+  return (
+    <div className="mb-3">
+      <div className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${c.sub} mb-2`}>
+        {sub.emoji} {sub.label}
+      </div>
       <div className="space-y-2">
         {words.map(w => {
-          const m = getMastery(mode, w.word)
-          const lm = mode === 'spellingBee' ? getLetterMastery(w.word) : null
+          const m = getMastery(modeId, sub.id, w.word)
+          if (m < 0) return null
+          const lm = sub.requireSpelling ? getLetterMastery(modeId, sub.id, w.word) : null
           return (
             <div key={w.word} className="bg-white rounded-xl p-2.5 flex items-center gap-2">
               <span className="text-lg w-7 text-center">{w.emoji}</span>
@@ -87,15 +116,24 @@ function ModeSection({ mode, label, words, color }) {
       </div>
 
       {weak.length > 0 && (
-        <div className="mt-3 bg-red-50 rounded-xl p-3 border border-red-200">
+        <div className="mt-2 bg-red-50 rounded-xl p-3 border border-red-200">
           <div className="text-xs font-bold text-red-600 mb-1">Needs practice</div>
           <div className="text-xs text-red-500 font-semibold">{weak.map(w => w.word).join(' · ')}</div>
         </div>
       )}
-
-      {mode === 'spellingBee' && <WeakLetters words={words} />}
     </div>
   )
+}
+
+const SECTION_COLORS = {
+  purple: {
+    bg: 'bg-purple-50', border: 'border-purple-200', title: 'text-purple-700',
+    bar: 'bg-purple-500', barBg: 'bg-purple-100', sub: 'bg-purple-100 text-purple-600',
+  },
+  orange: {
+    bg: 'bg-orange-50', border: 'border-orange-200', title: 'text-orange-600',
+    bar: 'bg-orange-500', barBg: 'bg-orange-100', sub: 'bg-orange-100 text-orange-600',
+  },
 }
 
 function StatBox({ value, label, bg, text }) {
@@ -103,36 +141,6 @@ function StatBox({ value, label, bg, text }) {
     <div className={`${bg} rounded-xl p-2 text-center`}>
       <div className={`text-xl font-extrabold ${text}`}>{value}</div>
       <div className="text-[10px] text-gray-400 font-bold">{label}</div>
-    </div>
-  )
-}
-
-function WeakLetters({ words }) {
-  const scores = {}
-  for (const w of words) {
-    const lm = getLetterMastery(w.word)
-    w.word.split('').forEach((l, i) => {
-      if (lm[i] < 0) return
-      if (!scores[l]) scores[l] = []
-      scores[l].push(lm[i])
-    })
-  }
-  const weak = Object.entries(scores)
-    .map(([l, s]) => ({ l, avg: Math.round(s.reduce((a, b) => a + b, 0) / s.length) }))
-    .filter(x => x.avg < 60)
-    .sort((a, b) => a.avg - b.avg)
-
-  if (!weak.length) return null
-  return (
-    <div className="mt-3 bg-orange-50 rounded-xl p-3 border border-orange-200">
-      <div className="text-xs font-bold text-orange-600 mb-2">Letters to reinforce</div>
-      <div className="flex gap-1.5 flex-wrap">
-        {weak.map(x => (
-          <span key={x.l} className="bg-orange-200 text-orange-800 font-extrabold px-2.5 py-1 rounded-lg text-xs">
-            {x.l} <span className="text-orange-500">{x.avg}%</span>
-          </span>
-        ))}
-      </div>
     </div>
   )
 }
