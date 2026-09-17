@@ -65,21 +65,48 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
   const modeDef = MODES[adventure]
   const c = SUB_COLORS[modeDef.color]
   const { t, lang } = useLang()
-  const { profile } = useAuth()
+  const { profile, updateProfile } = useAuth()
   const masteredPct = words.length ? Math.round((stats.mastered / words.length) * 100) : 0
+  const [showModePicker, setShowModePicker] = useState(false)
 
   return (
     <div className="animate-fade-up">
       <div className="flex items-center justify-between px-5 pt-5 pb-2">
-        <div>
-          <h1 className="text-xl font-extrabold text-gray-800">{t('greeting')}</h1>
-          <p className="text-sm text-gray-400 font-semibold">{profile?.name || ''}</p>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowModePicker(v => !v)}
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-purple-50 border-2 border-purple-200 active:scale-90 transition-transform text-xl"
+            title={t('changeAdventure')}
+          >
+            {modeDef.emoji}
+          </button>
+          <div>
+            <h1 className="text-xl font-extrabold text-gray-800">{t('greeting')}</h1>
+            <p className="text-sm text-gray-400 font-semibold">{profile?.name || ''}</p>
+          </div>
         </div>
         <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1.5 rounded-full border border-yellow-200">
           <span className="text-lg">⭐</span>
           <span className="font-extrabold text-yellow-600 text-sm">{stars}</span>
         </div>
       </div>
+
+      {showModePicker && (
+        <div className="mx-4 mb-3 bg-white rounded-2xl shadow-card border border-gray-200 p-2 flex gap-2 animate-fade-up">
+          {Object.values(MODES).map(m => (
+            <button
+              key={m.id}
+              onClick={() => { updateProfile({ adventure: m.id }); setShowModePicker(false) }}
+              className={`flex-1 flex flex-col items-center py-2 rounded-xl transition-all active:scale-90 ${
+                m.id === adventure ? 'bg-purple-100 border-2 border-purple-300' : 'bg-gray-50 border-2 border-transparent'
+              }`}
+            >
+              <span className="text-2xl">{m.emoji}</span>
+              <span className="text-[10px] font-bold text-gray-600 mt-1 leading-tight">{m.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className={`mx-4 mt-3 ${HERO_GRADIENT[modeDef.color] || 'bg-gradient-to-br from-purple-600 to-purple-500'} rounded-3xl p-5 text-white relative overflow-hidden`}>
         <div className="absolute -right-6 -bottom-6 text-[100px] opacity-10 select-none">{modeDef.emoji}</div>
