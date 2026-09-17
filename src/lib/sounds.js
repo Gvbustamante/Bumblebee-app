@@ -57,9 +57,9 @@ const sounds = {
     try {
       if (!window.speechSynthesis) return
       window.speechSynthesis.cancel()
-      const u = new SpeechSynthesisUtterance(text)
+      const u = new SpeechSynthesisUtterance(text.toLowerCase())
       u.lang = lang === 'es' ? 'es-ES' : 'en-US'
-      u.rate = 0.8
+      u.rate = 0.85
       u.pitch = 1.1
       window.speechSynthesis.speak(u)
     } catch {}
