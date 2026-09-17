@@ -181,6 +181,14 @@ export async function getGarden(userId, adventure, subMode) {
   return { flowers, bees }
 }
 
+export async function resetProgress(userId) {
+  await Promise.all([
+    supabase.from('bumblebee_attempts').delete().eq('user_id', userId),
+    supabase.from('bumblebee_stars').delete().eq('user_id', userId),
+    supabase.from('bumblebee_garden').delete().eq('user_id', userId),
+  ])
+}
+
 // Admin: gestión de palabras
 export async function adminAddWord(adventure, word, emoji, category = 'words') {
   const { data: max } = await supabase

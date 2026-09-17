@@ -88,6 +88,9 @@ const S = {
     noAccount: "Don't have an account? Sign up",
     checkEmail: 'Check your email to confirm!',
     logout: 'Log out',
+    resetProgress: 'Reset progress',
+    resetConfirm: 'This will delete all stars, flowers and practice history. Continue?',
+    resetDone: 'Progress reset!',
     // Adventure
     pickOneAdventure: 'Each adventure has its own progress and stars',
     changeAdventure: 'Change adventure',
@@ -202,6 +205,9 @@ const S = {
     noAccount: '¿No tienes cuenta? Regístrate',
     checkEmail: '¡Revisa tu correo para confirmar!',
     logout: 'Cerrar sesión',
+    resetProgress: 'Borrar progreso',
+    resetConfirm: 'Se borrarán todas las estrellas, flores e historial de práctica. ¿Continuar?',
+    resetDone: '¡Progreso borrado!',
     // Adventure
     pickOneAdventure: 'Cada aventura tiene su propio progreso y estrellas',
     changeAdventure: 'Cambiar aventura',

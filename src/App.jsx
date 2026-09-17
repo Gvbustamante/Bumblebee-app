@@ -8,7 +8,7 @@ import Admin from './screens/Admin'
 import { MODES } from './data/modes'
 import { useLang } from './data/i18n'
 import { useAuth } from './data/AuthContext'
-import { getStars, getGarden } from './lib/db'
+import { getStars, getGarden, resetProgress } from './lib/db'
 
 export default function App() {
   const { session, profile, loading, isAdmin } = useAuth()
@@ -265,6 +265,18 @@ function SettingsTab() {
             <li>🔄 {t('howQueue')}</li>
           </ul>
         </div>
+
+        {/* Reset progress */}
+        <button
+          onClick={async () => {
+            if (!confirm(t('resetConfirm'))) return
+            await resetProgress(session.user.id)
+            alert(t('resetDone'))
+          }}
+          className="w-full bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 text-center"
+        >
+          <span className="text-orange-500 font-bold text-sm">{t('resetProgress')}</span>
+        </button>
 
         {/* Logout */}
         <button
