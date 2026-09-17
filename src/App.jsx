@@ -35,6 +35,7 @@ const Agenda = lazy(() => import('./features/eventos/pages/Agenda'))
 const Devocionales = lazy(() => import('./features/devocionales/pages/Devocionales'))
 const Calendario = lazy(() => import('./features/calendario/pages/Calendario'))
 const Programas = lazy(() => import('./features/programas/pages/Programas'))
+const SpellingBeeApp = lazy(() => import('./features/spelling-bee/SpellingBeeApp'))
 
 const STAFF = [ROLES.ADMINISTRADOR, ROLES.LIDER, ROLES.DOCENTE]
 const TODOS = [ROLES.ADMINISTRADOR, ROLES.LIDER, ROLES.DOCENTE, ROLES.ESTUDIANTE]
@@ -51,6 +52,7 @@ export default function App() {
         <Route path="/primer-acceso" element={<PrimerAcceso />} />
         <Route path="/verificar/:codigo" element={<VerificarCertificado />} />
         <Route path="/403" element={<Forbidden />} />
+        <Route path="/spelling-bee" element={<SpellingBeeApp />} />
 
         <Route
           element={
