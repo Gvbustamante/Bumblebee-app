@@ -4,6 +4,7 @@ import { getWordImageUrl } from '../data/assets'
 import { useLang } from '../data/i18n'
 import { useAuth } from '../data/AuthContext'
 import { recordAttempt, addFlower, addStars } from '../lib/db'
+import sounds from '../lib/sounds'
 
 export default function Game({ config, onExit }) {
   const { mode, subMode: subModeId, block, blockIndex, isChallenge } = config
@@ -36,6 +37,18 @@ export default function Game({ config, onExit }) {
     return () => clearInterval(timerRef.current)
   }, [startTime, blockDone, showResult])
 
+  useEffect(() => {
+    if (!word || blockDone || showResult) return
+    const t = setTimeout(() => sounds.speak(word.word, lang), 400)
+    return () => clearTimeout(t)
+  }, [word?.word, blockDone, showResult])
+
+  useEffect(() => {
+    if (phase !== 'spelling' || !letters[letterIdx]) return
+    const t = setTimeout(() => sounds.speakLetter(letters[letterIdx], lang), 200)
+    return () => clearTimeout(t)
+  }, [letterIdx, phase])
+
   function resetForNextWord() {
     setPhase(getInitialPhase(sub))
     setLetterIdx(0)
@@ -58,6 +71,7 @@ export default function Game({ config, onExit }) {
   function handleCorrect() {
     if (feedback) return
     if (phase === 'spelling') {
+      sounds.correct()
       fb('correct', 400, () => {
         if (letterIdx >= letters.length - 1) {
           const next = getNextPhase('spelling', sub)
@@ -68,12 +82,14 @@ export default function Game({ config, onExit }) {
         }
       })
     } else if (phase === 'reading') {
+      sounds.correct()
       completeAttempt(true)
     }
   }
 
   function handleIncorrect() {
     if (feedback) return
+    sounds.wrong()
     if (phase === 'spelling') {
       setLetterErrors(p => ({ ...p, [letterIdx]: (p[letterIdx] || 0) + 1 }))
       fb('wrong', 500)
@@ -100,6 +116,7 @@ export default function Game({ config, onExit }) {
   }
 
   async function handleLearned() {
+    sounds.learned()
     const earned = currentResult.allPerfect ? 3 : 1
     if (uid) await addStars(uid, mode, earned)
     setBlockResults(p => [...p, {
@@ -109,6 +126,7 @@ export default function Game({ config, onExit }) {
     const next = queue.slice(1)
     if (next.length === 0) {
       if (uid) await addFlower(uid, mode, subModeId)
+      sounds.blockComplete()
       setBlockDone(true)
     } else {
       setQueue(next)
@@ -117,11 +135,13 @@ export default function Game({ config, onExit }) {
   }
 
   function handleNotYet() {
+    sounds.next()
     setQueue(q => [...q.slice(1), q[0]])
     resetForNextWord()
   }
 
   async function handleFamiliarizeLearned() {
+    sounds.learned()
     const time = Date.now() - startTime
     if (uid) {
       await addStars(uid, mode, 1)
@@ -131,6 +151,7 @@ export default function Game({ config, onExit }) {
     const next = queue.slice(1)
     if (next.length === 0) {
       if (uid) await addFlower(uid, mode, subModeId)
+      sounds.blockComplete()
       setBlockDone(true)
     } else {
       setQueue(next)
@@ -139,6 +160,7 @@ export default function Game({ config, onExit }) {
   }
 
   function handleFamiliarizeNotYet() {
+    sounds.next()
     setQueue(q => [...q.slice(1), q[0]])
     resetForNextWord()
   }
@@ -292,8 +314,11 @@ export default function Game({ config, onExit }) {
 
         {isFamiliarize && (
           <div className="mt-6 mb-2">
-            <div className="bg-white rounded-2xl shadow-card px-8 py-5 border border-purple-100">
+            <div className="bg-white rounded-2xl shadow-card px-8 py-5 border border-purple-100 relative">
               <p className="text-4xl font-extrabold text-purple-700 text-center tracking-wider">{word.word}</p>
+              <button onClick={() => sounds.speak(word.word, lang)} className="absolute right-3 top-3 text-purple-300 active:text-purple-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
+              </button>
             </div>
             <p className="text-center mt-3 text-gray-400 font-semibold text-sm">{t('lookAtWord')}</p>
           </div>
@@ -301,8 +326,11 @@ export default function Game({ config, onExit }) {
 
         {phase === 'reading' && sub.showWord && (
           <div className="mt-6 mb-2">
-            <div className="bg-white rounded-2xl shadow-card px-8 py-5 border border-purple-100">
+            <div className="bg-white rounded-2xl shadow-card px-8 py-5 border border-purple-100 relative">
               <p className="text-4xl font-extrabold text-purple-700 text-center tracking-wider">{word.word}</p>
+              <button onClick={() => sounds.speak(word.word, lang)} className="absolute right-3 top-3 text-purple-300 active:text-purple-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
+              </button>
             </div>
             <p className="text-center mt-3 text-gray-400 font-semibold text-sm">{t('readAloud')}</p>
           </div>

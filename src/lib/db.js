@@ -1,6 +1,18 @@
 import { supabase } from './supabase'
 
-export async function fetchWords(adventure, includeInactive = false) {
+export async function fetchWords(adventure, includeInactive = false, category = 'words') {
+  let q = supabase
+    .from('bumblebee_words')
+    .select('*')
+    .eq('adventure', adventure)
+    .eq('category', category)
+    .order('sort_order')
+  if (!includeInactive) q = q.eq('active', true)
+  const { data } = await q
+  return (data || []).map(w => ({ word: w.word, emoji: w.emoji, image_url: w.image_url, active: w.active, category: w.category }))
+}
+
+export async function fetchAllWords(adventure, includeInactive = false) {
   let q = supabase
     .from('bumblebee_words')
     .select('*')
@@ -8,7 +20,7 @@ export async function fetchWords(adventure, includeInactive = false) {
     .order('sort_order')
   if (!includeInactive) q = q.eq('active', true)
   const { data } = await q
-  return (data || []).map(w => ({ word: w.word, emoji: w.emoji, image_url: w.image_url, active: w.active }))
+  return (data || []).map(w => ({ word: w.word, emoji: w.emoji, image_url: w.image_url, active: w.active, category: w.category }))
 }
 
 export async function getStars(userId, adventure) {
@@ -170,16 +182,17 @@ export async function getGarden(userId, adventure, subMode) {
 }
 
 // Admin: gestión de palabras
-export async function adminAddWord(adventure, word, emoji) {
+export async function adminAddWord(adventure, word, emoji, category = 'words') {
   const { data: max } = await supabase
     .from('bumblebee_words')
     .select('sort_order')
     .eq('adventure', adventure)
+    .eq('category', category)
     .order('sort_order', { ascending: false })
     .limit(1)
     .single()
   const order = (max?.sort_order || 0) + 1
-  return supabase.from('bumblebee_words').insert({ adventure, word: word.toUpperCase(), emoji, sort_order: order })
+  return supabase.from('bumblebee_words').insert({ adventure, word: word.toUpperCase(), emoji, sort_order: order, category })
 }
 
 export async function adminDeleteWord(adventure, word) {

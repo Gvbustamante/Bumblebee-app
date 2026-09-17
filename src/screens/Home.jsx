@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getBlocks } from '../data/words'
-import { MODES } from '../data/modes'
+import { MODES, getSubMode } from '../data/modes'
 import { useLang } from '../data/i18n'
 import { useAuth } from '../data/AuthContext'
 import { fetchWords, getStars, getAdventureStats, getMastery, getWeakWords } from '../lib/db'
@@ -12,6 +12,7 @@ export default function Home({ onStartGame }) {
   const adventure = profile?.adventure
   const modeDef = MODES[adventure]
   const [words, setWords] = useState([])
+  const [subWords, setSubWords] = useState([])
   const [stars, setStarsVal] = useState(0)
   const [stats, setStats] = useState({ practiced: 0, mastered: 0 })
 
@@ -22,6 +23,13 @@ export default function Home({ onStartGame }) {
     getAdventureStats(session.user.id, adventure).then(setStats)
   }, [session, adventure])
 
+  useEffect(() => {
+    if (!session || !adventure || !selectedSubMode) return
+    const sub = getSubMode(adventure, selectedSubMode)
+    const cat = sub?.category || 'words'
+    fetchWords(adventure, false, cat).then(setSubWords)
+  }, [session, adventure, selectedSubMode])
+
   if (!modeDef) return null
 
   if (selectedSubMode) {
@@ -29,7 +37,7 @@ export default function Home({ onStartGame }) {
       <BlockSelect
         adventure={adventure}
         subMode={selectedSubMode}
-        words={words}
+        words={subWords}
         onBack={() => setSelectedSubMode(null)}
         onStart={(block, idx, challenge) => onStartGame({
           mode: adventure,

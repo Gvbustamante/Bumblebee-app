@@ -4,11 +4,34 @@ import { useAuth } from '../data/AuthContext'
 import { fetchWords, adminAddWord, adminDeleteWord, adminUploadImage, adminToggleWord, adminCloneWord } from '../lib/db'
 import { supabase } from '../lib/supabase'
 
+const SECTIONS = [
+  { adventure: 'spellingBee', category: 'words', label: '🐝 Spelling Bee', color: 'purple' },
+  { adventure: 'bumblebee', category: 'words', label: '🌸 Bumblebee', color: 'pink' },
+  { adventure: 'spellingBee', category: 'alphabet', label: '🔤 ABC - Spelling Bee', color: 'blue' },
+  { adventure: 'bumblebee', category: 'alphabet', label: '🔤 ABC - Bumblebee', color: 'cyan' },
+  { adventure: 'spellingBee', category: 'colors', label: '🎨 Colores - Spelling Bee', color: 'amber' },
+  { adventure: 'bumblebee', category: 'colors', label: '🎨 Colores - Bumblebee', color: 'orange' },
+  { adventure: 'spellingBee', category: 'shapes', label: '🔷 Formas - Spelling Bee', color: 'indigo' },
+  { adventure: 'bumblebee', category: 'shapes', label: '🔷 Formas - Bumblebee', color: 'violet' },
+]
+
+const SEC_COLORS = {
+  purple: { bg: 'bg-purple-50', border: 'border-purple-200', head: 'bg-purple-100 text-purple-700', badge: 'bg-purple-200 text-purple-700' },
+  pink: { bg: 'bg-pink-50', border: 'border-pink-200', head: 'bg-pink-100 text-pink-700', badge: 'bg-pink-200 text-pink-700' },
+  blue: { bg: 'bg-blue-50', border: 'border-blue-200', head: 'bg-blue-100 text-blue-700', badge: 'bg-blue-200 text-blue-700' },
+  cyan: { bg: 'bg-cyan-50', border: 'border-cyan-200', head: 'bg-cyan-100 text-cyan-700', badge: 'bg-cyan-200 text-cyan-700' },
+  amber: { bg: 'bg-amber-50', border: 'border-amber-200', head: 'bg-amber-100 text-amber-700', badge: 'bg-amber-200 text-amber-700' },
+  orange: { bg: 'bg-orange-50', border: 'border-orange-200', head: 'bg-orange-100 text-orange-700', badge: 'bg-orange-200 text-orange-700' },
+  indigo: { bg: 'bg-indigo-50', border: 'border-indigo-200', head: 'bg-indigo-100 text-indigo-700', badge: 'bg-indigo-200 text-indigo-700' },
+  violet: { bg: 'bg-violet-50', border: 'border-violet-200', head: 'bg-violet-100 text-violet-700', badge: 'bg-violet-200 text-violet-700' },
+}
+
 export default function Admin() {
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const { profile } = useAuth()
-  const [adventure, setAdventure] = useState('spellingBee')
-  const [words, setWords] = useState([])
+  const [wordsBySection, setWordsBySection] = useState({})
+  const [collapsed, setCollapsed] = useState({})
+  const [addSection, setAddSection] = useState('spellingBee|words')
   const [newWord, setNewWord] = useState('')
   const [newEmoji, setNewEmoji] = useState('')
   const [newImage, setNewImage] = useState(null)
@@ -18,17 +41,26 @@ export default function Admin() {
   const fileRef = useRef()
   const addFileRef = useRef()
 
-  useEffect(() => { loadWords() }, [adventure])
+  useEffect(() => { loadAllWords() }, [])
   useEffect(() => { loadUsers() }, [])
 
-  async function loadWords() {
-    const w = await fetchWords(adventure, true)
-    setWords(w)
+  async function loadAllWords() {
+    const map = {}
+    for (const sec of SECTIONS) {
+      const key = `${sec.adventure}|${sec.category}`
+      const w = await fetchWords(sec.adventure, true, sec.category)
+      map[key] = w
+    }
+    setWordsBySection(map)
   }
 
   async function loadUsers() {
     const { data } = await supabase.from('bumblebee_profiles').select('id, name, role, adventure, created_at')
     setUsers(data || [])
+  }
+
+  function toggleCollapse(key) {
+    setCollapsed(p => ({ ...p, [key]: !p[key] }))
   }
 
   function handleNewImage(e) {
@@ -46,32 +78,33 @@ export default function Admin() {
 
   async function handleAdd() {
     if (!newWord.trim()) return
-    const word = newWord.trim()
-    await adminAddWord(adventure, word, newEmoji || '📝')
+    const word = newWord.trim().toUpperCase()
+    const [adventure, category] = addSection.split('|')
+    await adminAddWord(adventure, word, newEmoji || '📝', category)
     if (newImage) {
       await adminUploadImage(newImage, word)
     }
     setNewWord('')
     setNewEmoji('')
     clearNewImage()
-    loadWords()
+    loadAllWords()
   }
 
-  async function handleDelete(word) {
+  async function handleDelete(adventure, word) {
     await adminDeleteWord(adventure, word)
-    loadWords()
+    loadAllWords()
   }
 
-  async function handleToggle(word, currentActive) {
+  async function handleToggle(adventure, word, currentActive) {
     await adminToggleWord(adventure, word, !currentActive)
-    loadWords()
+    loadAllWords()
   }
 
-  async function handleClone(word) {
+  async function handleClone(adventure, word) {
     const dest = adventure === 'spellingBee' ? 'Bumblebee' : 'Spelling Bee'
     const res = await adminCloneWord(adventure, word)
     if (res.error === 'already exists') alert(`"${word}" ya existe en ${dest}`)
-    else loadWords()
+    else loadAllWords()
   }
 
   async function handleUpload(word) {
@@ -81,7 +114,7 @@ export default function Admin() {
     await adminUploadImage(file, word)
     fileRef.current.value = ''
     setUploading(null)
-    loadWords()
+    loadAllWords()
   }
 
   async function toggleAdmin(userId, currentRole) {
@@ -97,27 +130,31 @@ export default function Admin() {
         <p className="text-sm text-gray-400 font-semibold">{t('manageWords')}</p>
       </div>
 
-      {/* Adventure picker */}
-      <div className="px-4 mb-4">
-        <div className="flex gap-2">
-          {['spellingBee', 'bumblebee'].map(a => (
-            <button
-              key={a}
-              onClick={() => setAdventure(a)}
-              className={`flex-1 py-2 rounded-xl font-extrabold text-sm transition-all ${
-                a === adventure ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
-              }`}
-            >
-              {a === 'spellingBee' ? '🐝 Spelling Bee' : '🌸 Bumblebee'}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Add word */}
       <div className="px-4 mb-4">
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
           <div className="text-xs font-bold text-gray-500 mb-2">{t('addWord')}</div>
+
+          {/* Section selector */}
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {SECTIONS.map(sec => {
+              const key = `${sec.adventure}|${sec.category}`
+              const c = SEC_COLORS[sec.color]
+              const active = addSection === key
+              return (
+                <button
+                  key={key}
+                  onClick={() => setAddSection(key)}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                    active ? `${c.head} ring-2 ring-offset-1 ring-current` : 'bg-gray-100 text-gray-400'
+                  }`}
+                >
+                  {sec.label}
+                </button>
+              )
+            })}
+          </div>
+
           <div className="flex gap-2 items-center">
             <input
               value={newEmoji}
@@ -141,12 +178,12 @@ export default function Admin() {
               onClick={() => addFileRef.current?.click()}
               className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold flex items-center gap-1"
             >
-              📷 Imagen
+              Imagen
             </button>
             {newImagePreview && (
               <div className="flex items-center gap-2">
                 <img src={newImagePreview} alt="preview" className="w-10 h-10 rounded-lg object-cover border-2 border-blue-200" />
-                <button onClick={clearNewImage} className="text-red-400 text-xs font-bold">✕</button>
+                <button onClick={clearNewImage} className="text-red-400 text-xs font-bold">x</button>
               </div>
             )}
             {!newImagePreview && <span className="text-[10px] text-gray-300">Emoji, imagen, o ambos</span>}
@@ -154,48 +191,85 @@ export default function Admin() {
         </div>
       </div>
 
-      {/* Hidden file input */}
+      {/* Hidden file input for word image upload */}
       <input ref={fileRef} type="file" accept="image/*" className="hidden" />
 
-      {/* Words list */}
-      <div className="px-4 space-y-2">
-        {words.map(w => (
-          <div key={w.word} className={`rounded-xl shadow-card border p-3 flex items-center gap-3 ${w.active ? 'bg-white border-gray-100' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
-            {w.image_url ? (
-              <img src={w.image_url} alt={w.word} className="w-12 h-12 rounded-lg object-cover" />
-            ) : (
-              <span className="text-2xl w-12 text-center">{w.emoji}</span>
-            )}
-            <span className={`font-extrabold flex-1 ${w.active ? 'text-gray-700' : 'text-gray-400 line-through'}`}>{w.word}</span>
-            <button
-              onClick={() => handleToggle(w.word, w.active)}
-              className={`px-2 py-1 rounded-lg text-xs font-bold ${w.active ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'}`}
-              title={w.active ? 'Desactivar' : 'Activar'}
-            >
-              {w.active ? '✅' : '⏸️'}
-            </button>
-            <button
-              onClick={() => handleClone(w.word)}
-              className="px-2 py-1 bg-purple-50 text-purple-600 rounded-lg text-xs font-bold"
-              title={`Clonar a ${adventure === 'spellingBee' ? 'Bumblebee' : 'Spelling Bee'}`}
-            >
-              📋
-            </button>
-            <button
-              onClick={() => { fileRef.current.onchange = () => handleUpload(w.word); fileRef.current.click() }}
-              className="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold"
-              disabled={uploading === w.word}
-            >
-              {uploading === w.word ? '...' : '📷'}
-            </button>
-            <button
-              onClick={() => handleDelete(w.word)}
-              className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-bold"
-            >
-              🗑
-            </button>
-          </div>
-        ))}
+      {/* Collapsible sections */}
+      <div className="px-4 space-y-3">
+        {SECTIONS.map(sec => {
+          const key = `${sec.adventure}|${sec.category}`
+          const words = wordsBySection[key] || []
+          const isOpen = !collapsed[key]
+          const c = SEC_COLORS[sec.color]
+          const activeCount = words.filter(w => w.active).length
+
+          return (
+            <div key={key} className={`rounded-2xl border overflow-hidden ${c.border}`}>
+              <button
+                onClick={() => toggleCollapse(key)}
+                className={`w-full flex items-center justify-between px-4 py-3 ${c.head} font-extrabold text-sm`}
+              >
+                <span>{sec.label}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${c.badge}`}>
+                    {activeCount}/{words.length}
+                  </span>
+                  <span className="text-lg">{isOpen ? '−' : '+'}</span>
+                </div>
+              </button>
+
+              {isOpen && (
+                <div className={`${c.bg} p-2 space-y-1.5`}>
+                  {words.length === 0 && (
+                    <p className="text-center text-xs text-gray-400 py-3">{lang === 'es' ? 'Sin palabras' : 'No words'}</p>
+                  )}
+                  {words.map(w => (
+                    <div key={w.word} className={`rounded-xl border p-2.5 flex items-center gap-2 ${
+                      w.active ? 'bg-white border-gray-100' : 'bg-gray-50 border-gray-200 opacity-60'
+                    }`}>
+                      {w.image_url ? (
+                        <img src={w.image_url} alt={w.word} className="w-10 h-10 rounded-lg object-cover" />
+                      ) : (
+                        <span className="text-xl w-10 text-center">{w.emoji}</span>
+                      )}
+                      <span className={`font-extrabold text-sm flex-1 ${w.active ? 'text-gray-700' : 'text-gray-400 line-through'}`}>
+                        {w.word}
+                      </span>
+                      <button
+                        onClick={() => handleToggle(sec.adventure, w.word, w.active)}
+                        className={`px-1.5 py-1 rounded-lg text-[10px] font-bold ${
+                          w.active ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'
+                        }`}
+                      >
+                        {w.active ? 'ON' : 'OFF'}
+                      </button>
+                      <button
+                        onClick={() => handleClone(sec.adventure, w.word)}
+                        className="px-1.5 py-1 bg-purple-50 text-purple-600 rounded-lg text-[10px] font-bold"
+                        title={`Clonar a ${sec.adventure === 'spellingBee' ? 'Bumblebee' : 'Spelling Bee'}`}
+                      >
+                        Copy
+                      </button>
+                      <button
+                        onClick={() => { fileRef.current.onchange = () => handleUpload(w.word); fileRef.current.click() }}
+                        className="px-1.5 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold"
+                        disabled={uploading === w.word}
+                      >
+                        {uploading === w.word ? '...' : 'Img'}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(sec.adventure, w.word)}
+                        className="px-1.5 py-1 bg-red-50 text-red-500 rounded-lg text-[10px] font-bold"
+                      >
+                        Del
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       {/* Users management */}
