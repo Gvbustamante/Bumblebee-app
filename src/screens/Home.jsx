@@ -70,8 +70,11 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
 
   return (
     <div className="animate-fade-up">
-      <div className="flex items-center justify-between px-5 pt-5 pb-2">
-        <div>
+      <div className="flex items-center gap-3 px-5 pt-5 pb-2">
+        {modeDef.img && (
+          <img src={modeDef.img} alt={modeDef.label} className="w-16 h-16 object-contain" />
+        )}
+        <div className="flex-1 min-w-0">
           <h1 className="text-xl font-extrabold text-gray-800">
             {playerName ? `${lang === 'es' ? '¡Hola' : 'Hi'}, ${playerName}!` : t('greeting')}
           </h1>
@@ -95,11 +98,7 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
                 active ? `${mc.activeBg} border-2 ${mc.activeBorder}` : 'bg-gray-50 border-2 border-transparent'
               }`}
             >
-              {m.img
-                ? <img src={m.img} alt={m.label} className={`h-8 w-8 object-contain ${active ? '' : 'opacity-60'}`} />
-                : <span className={active ? 'text-2xl' : 'text-xl opacity-60'}>{m.emoji}</span>
-              }
-              <span className={`text-[9px] font-bold mt-0.5 leading-tight ${active ? mc.activeText : 'text-gray-400'}`}>{m.label}</span>
+              <span className={`text-[10px] font-bold leading-tight ${active ? mc.activeText : 'text-gray-400'}`}>{m.label}</span>
             </button>
           )
         })}
@@ -107,7 +106,7 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
 
       <div className={`mx-4 mt-3 ${HERO_GRADIENT[modeDef.color]} rounded-3xl p-5 text-white relative overflow-hidden`}>
         {modeDef.img
-          ? <img src={modeDef.img} alt="" className="absolute -right-4 -bottom-4 w-28 opacity-20 select-none" />
+          ? <img src={modeDef.img} alt="" className="absolute -right-2 -bottom-2 w-32 opacity-40 select-none" />
           : <div className="absolute -right-6 -bottom-6 text-[100px] opacity-10 select-none">{modeDef.emoji}</div>
         }
         <p className="text-white/70 text-sm font-semibold">{modeDef.label}</p>
@@ -127,13 +126,13 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
             <button
               key={sub.id}
               onClick={() => onSelect(sub.id)}
-              className={`w-full ${c.bg} ${c.border} border-2 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform`}
+              className={`w-full ${c.bg} ${c.border} border-2 rounded-2xl p-4 pl-24 text-left active:scale-[0.98] transition-transform relative overflow-hidden min-h-[88px]`}
             >
-              <div className="flex items-center gap-3">
-                {sub.img
-                  ? <img src={sub.img} alt={sub.label} className="w-10 h-10 object-contain" />
-                  : <span className="text-3xl">{sub.emoji}</span>
-                }
+              {sub.img
+                ? <img src={sub.img} alt="" className="absolute left-2 bottom-0 w-20 h-20 object-contain select-none" />
+                : <span className="absolute left-3 bottom-2 text-5xl select-none opacity-80">{sub.emoji}</span>
+              }
+              <div className="flex items-center gap-2">
                 <div className="flex-1 min-w-0">
                   <div className={`font-extrabold text-sm ${c.text}`}>
                     {lang === 'es' ? sub.labelEs : sub.label}
@@ -143,30 +142,6 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
                   </div>
                 </div>
                 <span className="text-gray-300 text-lg font-bold">→</span>
-              </div>
-              <div className="mt-3 bg-white/60 rounded-xl p-3 flex items-center justify-center gap-3">
-                {sub.preview.showImg && <span className="text-2xl">🐱</span>}
-                {sub.preview.showTxt && <span className="font-extrabold text-purple-700 text-lg">CAT</span>}
-                {sub.preview.showLetters && sub.preview.scrambled ? (
-                  <div className="flex gap-1">
-                    {['T', 'A', 'C'].map((l, i) => (
-                      <span key={i} className="w-7 h-7 bg-amber-100 border border-amber-300 rounded-lg flex items-center justify-center text-amber-700 font-extrabold text-xs">{l}</span>
-                    ))}
-                    <span className="text-gray-400 mx-1">→</span>
-                    {['C', 'A', 'T'].map((l, i) => (
-                      <span key={i} className="w-7 h-7 bg-green-100 border border-green-300 rounded-lg flex items-center justify-center text-green-700 font-extrabold text-xs">{l}</span>
-                    ))}
-                  </div>
-                ) : sub.preview.showLetters ? (
-                  <div className="flex gap-1">
-                    {['C', 'A', 'T'].map((l, i) => (
-                      <span key={i} className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center text-purple-700 font-extrabold text-xs">{l}</span>
-                    ))}
-                  </div>
-                ) : null}
-                {!sub.preview.showTxt && !sub.preview.showLetters && (
-                  <span className="text-xs text-gray-400 font-bold">{t('sayTheWord')}</span>
-                )}
               </div>
             </button>
           ))}

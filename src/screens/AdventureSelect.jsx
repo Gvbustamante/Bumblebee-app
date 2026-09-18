@@ -13,7 +13,10 @@ export default function AdventureSelect() {
   return (
     <div className="app-shell status-bar-blur flex flex-col min-h-screen bg-gradient-to-b from-purple-50 to-white items-center px-6 py-8">
       <div className="w-full max-w-sm">
-        <img src="/images/adventure-banner.webp" alt="Mis Aventuras" className="w-full rounded-2xl mb-6" />
+        <img src="/images/adventure-banner.webp" alt="Mis Aventuras" className="w-full rounded-2xl mb-4" />
+        <h1 className="text-xl font-extrabold text-gray-800 text-center mb-4">
+          {lang === 'es' ? 'Elige tu aventura' : 'Choose your adventure'}
+        </h1>
 
         <div className="space-y-3">
           {Object.values(MODES).map(mode => {
@@ -22,18 +25,16 @@ export default function AdventureSelect() {
               <button
                 key={mode.id}
                 onClick={() => pick(mode.id)}
-                className={`w-full bg-gradient-to-br ${c.gradient} ${c.border} border-2 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform`}
+                className={`w-full bg-gradient-to-br ${c.gradient} ${c.border} border-2 rounded-2xl p-4 pl-24 text-left active:scale-[0.98] transition-transform relative overflow-hidden min-h-[80px]`}
               >
-                <div className="flex items-center gap-3">
-                  {mode.img
-                    ? <img src={mode.img} alt={mode.label} className="w-12 h-12 object-contain" />
-                    : <span className="text-4xl">{mode.emoji}</span>
-                  }
-                  <div>
-                    <div className={`font-extrabold text-base ${c.text}`}>{mode.label}</div>
-                    <div className="text-xs text-gray-400 font-semibold mt-0.5">
-                      {lang === 'es' ? mode.subtitleEs : mode.subtitle}
-                    </div>
+                {mode.img
+                  ? <img src={mode.img} alt={mode.label} className="absolute left-2 bottom-0 w-20 h-20 object-contain select-none" />
+                  : <span className="absolute left-3 bottom-2 text-5xl select-none">{mode.emoji}</span>
+                }
+                <div>
+                  <div className={`font-extrabold text-base ${c.text}`}>{mode.label}</div>
+                  <div className="text-xs text-gray-400 font-semibold mt-0.5">
+                    {lang === 'es' ? mode.subtitleEs : mode.subtitle}
                   </div>
                 </div>
               </button>

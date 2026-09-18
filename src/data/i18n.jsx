@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useCallback } from 'react'
 const S = {
   en: {
     greeting: 'Hi, Little Learner!',
-    whatToDo: 'What do you want to do today?',
+    whatToDo: 'What do you want to learn today?',
     chooseAdventure: 'Choose your adventure',
     activities: 'activities',
     words: 'words',
@@ -125,7 +125,7 @@ const S = {
   },
   es: {
     greeting: '¡Hola, Pequeño Aprendiz!',
-    whatToDo: '¿Qué quieres hacer hoy?',
+    whatToDo: '¿Qué quieres aprender hoy?',
     chooseAdventure: 'Elige tu aventura',
     activities: 'actividades',
     words: 'palabras',
