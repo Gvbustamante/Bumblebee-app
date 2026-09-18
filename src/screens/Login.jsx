@@ -71,7 +71,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-yellow-400 text-amber-900 font-extrabold rounded-xl shadow-btn active:scale-[0.98] transition-transform disabled:opacity-50 text-base"
+              className="w-full py-3.5 bg-purple-600 text-white font-extrabold rounded-xl shadow-btn active:scale-[0.98] transition-transform disabled:opacity-50 text-base"
             >
               {loading ? '...' : isRegister ? t('register') : t('login')}
             </button>
@@ -79,7 +79,7 @@ export default function Login() {
 
           <button
             onClick={() => { setIsRegister(!isRegister); setError(''); setSuccess('') }}
-            className="w-full mt-3 text-sm text-purple-600 font-bold text-center"
+            className="w-full mt-3 text-sm text-purple-700 font-bold text-center bg-purple-100 py-2.5 rounded-xl"
             type="button"
           >
             {isRegister ? t('hasAccount') : t('noAccount')}
