@@ -58,6 +58,45 @@ const sounds = {
     notes.forEach((f, i) => setTimeout(() => tone(f, 0.15), i * 120))
   },
 
+  kidsCheer() {
+    if (this._muteFx) return
+    try {
+      const c = ctx()
+      const now = c.currentTime
+      const voices = [
+        { f: 800, mod: 6, dur: 0.9, delay: 0 },
+        { f: 950, mod: 7, dur: 0.85, delay: 0.05 },
+        { f: 700, mod: 5, dur: 0.95, delay: 0.08 },
+        { f: 1100, mod: 8, dur: 0.8, delay: 0.12 },
+        { f: 850, mod: 6.5, dur: 0.88, delay: 0.03 },
+      ]
+      voices.forEach(v => {
+        const o = c.createOscillator()
+        const g = c.createGain()
+        const lfo = c.createOscillator()
+        const lfoG = c.createGain()
+        o.type = 'sine'
+        o.frequency.setValueAtTime(v.f * 0.85, now + v.delay)
+        o.frequency.linearRampToValueAtTime(v.f, now + v.delay + 0.15)
+        o.frequency.linearRampToValueAtTime(v.f * 1.1, now + v.delay + v.dur * 0.5)
+        o.frequency.linearRampToValueAtTime(v.f * 0.95, now + v.delay + v.dur)
+        lfo.type = 'sine'
+        lfo.frequency.value = v.mod
+        lfoG.gain.value = 50
+        lfo.connect(lfoG).connect(o.frequency)
+        lfo.start(now + v.delay)
+        lfo.stop(now + v.delay + v.dur)
+        g.gain.setValueAtTime(0, now + v.delay)
+        g.gain.linearRampToValueAtTime(0.12, now + v.delay + 0.08)
+        g.gain.setValueAtTime(0.12, now + v.delay + v.dur * 0.7)
+        g.gain.exponentialRampToValueAtTime(0.001, now + v.delay + v.dur)
+        o.connect(g).connect(c.destination)
+        o.start(now + v.delay)
+        o.stop(now + v.delay + v.dur)
+      })
+    } catch {}
+  },
+
   tap() {
     tone(600, 0.05, 'sine', 0.15)
   },

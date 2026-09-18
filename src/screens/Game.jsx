@@ -221,6 +221,7 @@ export default function Game({ config, onExit, onExitHome }) {
     if (next.length === 0) {
       if (uid) addFlower(uid, mode, subModeId)
       sounds.blockComplete()
+      setTimeout(() => sounds.kidsCheer(), 300)
       setBlockDone(true)
     } else {
       setQueue(next)
@@ -246,6 +247,7 @@ export default function Game({ config, onExit, onExitHome }) {
     if (next.length === 0) {
       if (uid) addFlower(uid, mode, subModeId)
       sounds.blockComplete()
+      setTimeout(() => sounds.kidsCheer(), 300)
       setBlockDone(true)
     } else {
       setQueue(next)
