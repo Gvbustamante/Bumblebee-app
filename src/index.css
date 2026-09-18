@@ -23,6 +23,16 @@
   }
 }
 
+/* Refined shadows */
+.shadow-card { box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04); }
+.shadow-card-hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06); }
+.shadow-soft { box-shadow: 0 2px 12px rgba(124,58,237,0.08); }
+.shadow-glow-purple { box-shadow: 0 4px 20px rgba(124,58,237,0.15); }
+.shadow-glow-pink { box-shadow: 0 4px 20px rgba(236,72,153,0.15); }
+.shadow-glow-blue { box-shadow: 0 4px 20px rgba(37,99,235,0.15); }
+.shadow-glow-amber { box-shadow: 0 4px 20px rgba(245,158,11,0.15); }
+.shadow-glow-indigo { box-shadow: 0 4px 20px rgba(99,102,241,0.15); }
+
 /* Animations */
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(12px); }
@@ -48,12 +58,21 @@
   60%      { transform: translateX(-4px); }
   80%      { transform: translateX(4px); }
 }
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
 
 .animate-fade-up   { animation: fadeSlideUp 0.3s ease-out both; }
 .animate-pop       { animation: pop 0.35s ease-out both; }
 .animate-float     { animation: float 2s ease-in-out infinite; }
 .animate-sparkle   { animation: sparkle 0.6s ease-in-out; }
 .animate-shake     { animation: shake 0.4s ease-in-out; }
+
+.animate-stagger-1 { animation-delay: 0.05s; }
+.animate-stagger-2 { animation-delay: 0.1s; }
+.animate-stagger-3 { animation-delay: 0.15s; }
+.animate-stagger-4 { animation-delay: 0.2s; }
 
 /* Safe area for bottom nav on notch phones */
 .pb-safe { padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px); }
