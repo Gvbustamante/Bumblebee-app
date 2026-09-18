@@ -338,19 +338,58 @@ function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
         )}
 
         {weakWords.length > 0 && (
-          <button
-            onClick={() => onStart(weakWords.slice(0, bSize), -1, false)}
-            className="w-full bg-brand-card rounded-2xl p-4 text-left active:scale-[0.97] transition-all duration-200 shadow-card"
+          <div
+            className="bg-brand-card rounded-2xl shadow-card overflow-hidden"
             style={{ border: '1.5px solid #F58BB5' }}
           >
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg" style={{ background: '#FFF1F5' }}>💪</div>
-              <div>
-                <div className="font-extrabold text-sm" style={{ color: '#C0457B' }}>{t('reviewWeak')}</div>
-                <div className="text-[11px] font-semibold" style={{ color: '#F58BB5' }}>{weakWords.length} {t('needsPractice')}</div>
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg" style={{ background: '#FFF1F5' }}>💪</div>
+                  <div>
+                    <span className="font-extrabold text-sm" style={{ color: '#C0457B' }}>{t('weakWordsBlock')}</span>
+                    <div className="text-[10px] font-semibold" style={{ color: '#F58BB5' }}>{weakWords.length} {t('needsPractice')}</div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {weakWords.slice(0, 10).map(w => {
+                  const m = masteryMap[w.word] ?? -1
+                  return (
+                    <span
+                      key={w.word}
+                      className="text-[11px] font-bold px-2 py-1 rounded-lg"
+                      style={{ background: '#FFF1F5', color: '#C0457B' }}
+                    >
+                      {w.emoji} {w.word}
+                    </span>
+                  )
+                })}
+                {weakWords.length > 10 && (
+                  <span className="text-[11px] font-bold px-2 py-1 rounded-lg" style={{ background: '#FFF1F5', color: '#F58BB5' }}>
+                    +{weakWords.length - 10}
+                  </span>
+                )}
               </div>
             </div>
-          </button>
+            <div className="flex" style={{ borderTop: '1px solid #F3F0F8' }}>
+              <button
+                onClick={() => onStart(weakWords.slice(0, bSize), -1, false)}
+                className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
+                style={{ color: '#C0457B' }}
+              >
+                🧸 {t('practice')}
+              </button>
+              <div className="w-px" style={{ background: '#F3F0F8' }} />
+              <button
+                onClick={() => onStart(weakWords.slice(0, bSize), -1, true)}
+                className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
+                style={{ color: '#F58BB5' }}
+              >
+                🏆 {t('challenge')}
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>

@@ -39,30 +39,32 @@ export default function Progress() {
       </div>
 
       <div
-        className="mx-4 rounded-2xl p-4 mb-4 relative overflow-hidden"
+        className="mx-4 rounded-3xl p-5 pb-4 mb-4 relative overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, #FFFBEA 0%, #FFF8E1 100%)',
+          background: 'linear-gradient(135deg, #FFFBEA 0%, #FFF8E1 50%, #FFF3C4 100%)',
           border: '2px solid #FFD84D',
-          boxShadow: '0 4px 16px rgba(255,216,77,0.15)',
+          boxShadow: '0 6px 24px rgba(255,216,77,0.2)',
+          minHeight: '140px',
         }}
       >
         <img
           src="/images/block-complete.webp"
           alt=""
-          className="absolute -right-3 -bottom-2 w-28 h-28 object-contain select-none pointer-events-none opacity-80"
+          className="absolute -right-2 -bottom-1 w-44 h-44 object-contain select-none pointer-events-none animate-float"
+          style={{ filter: 'drop-shadow(0 4px 12px rgba(255,216,77,0.3))' }}
         />
-        <div className="relative z-10">
-          <div className="text-3xl font-extrabold" style={{ color: '#A07B00' }}>
-            <span className="inline-block animate-float">⭐</span> {stars}
+        <div className="relative z-10 max-w-[55%]">
+          <div className="text-4xl font-extrabold" style={{ color: '#A07B00' }}>
+            <span className="inline-block animate-sparkle">⭐</span> {stars}
           </div>
-          <div className="text-xs font-bold mt-0.5" style={{ color: '#D4A017' }}>{t('totalStars')}</div>
-          <div className="flex items-center gap-1.5 mt-2">
-            {modeDef.img && <img src={modeDef.img} alt="" className="w-5 h-5 object-contain" />}
+          <div className="text-xs font-bold mt-1" style={{ color: '#D4A017' }}>{t('totalStars')}</div>
+          <div className="flex items-center gap-1.5 mt-3">
+            {modeDef.img && <img src={modeDef.img} alt="" className="w-6 h-6 object-contain" />}
             <span className="text-xs font-bold" style={{ color: '#A07B00' }}>{modeDef.label}</span>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: '#FFD84D30', color: '#A07B00' }}>
-              {stats.practiced} {t('practiced').toLowerCase()}
-            </span>
           </div>
+          <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1.5" style={{ background: '#FFD84D30', color: '#A07B00' }}>
+            {stats.practiced} {t('practiced').toLowerCase()}
+          </span>
         </div>
       </div>
 

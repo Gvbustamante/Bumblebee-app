@@ -122,6 +122,11 @@ const S = {
     allWords: 'All Words',
     allWordsDesc: 'Practice all words in one session',
     voiceLanguage: 'Voice language',
+    repeat: 'Repeat',
+    yes: 'Yes!',
+    skipWord: 'Skip',
+    weakWordsBlock: 'Weak Words',
+    weakWordsDesc: 'Words that need more practice',
   },
   es: {
     greeting: '¡Hola, Pequeño Aprendiz!',
@@ -244,6 +249,11 @@ const S = {
     allWords: 'Todas las Palabras',
     allWordsDesc: 'Practica todas las palabras en una sesión',
     voiceLanguage: 'Idioma de la voz',
+    repeat: 'Repetir',
+    yes: '¡Sí!',
+    skipWord: 'Saltar',
+    weakWordsBlock: 'Palabras Débiles',
+    weakWordsDesc: 'Palabras que necesitan más práctica',
   },
 }
 
