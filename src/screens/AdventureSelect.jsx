@@ -14,7 +14,6 @@ export default function AdventureSelect() {
     <div className="app-shell flex flex-col min-h-screen bg-gradient-to-b from-purple-50 to-white items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
-          <img src="/images/icon-192.webp" alt="Bumblebee Kids" className="w-24 h-24 object-contain mx-auto mb-2" />
         </div>
 
         <div className="space-y-3">
