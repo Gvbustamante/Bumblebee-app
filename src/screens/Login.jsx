@@ -31,17 +31,16 @@ export default function Login() {
   }
 
   return (
-    <div className="app-shell flex flex-col min-h-screen bg-white">
-      <div className="flex-1 flex items-center justify-center">
-        <img src="/images/login-hero.webp" alt="Bumblebee Kids" className="w-64 max-w-[70vw] object-contain" />
-      </div>
+    <div className="app-shell flex flex-col min-h-screen relative overflow-hidden">
+      <img src="/images/login-hero.webp" alt="Bumblebee Kids" className="absolute inset-0 w-full h-full object-cover object-top" />
 
-      <div className="bg-white rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-6 pt-6 pb-8">
-        <p className="text-center text-sm text-gray-400 font-bold mb-4">
-          {isRegister ? t('createAccount') : t('welcomeBack')}
-        </p>
+      <div className="relative z-10 flex-1 flex flex-col justify-end pb-0">
+        <div className="bg-white/90 backdrop-blur-sm rounded-t-3xl px-6 pt-5 pb-8">
+          <p className="text-center text-sm text-gray-500 font-bold mb-4">
+            {isRegister ? t('createAccount') : t('welcomeBack')}
+          </p>
 
-        <form onSubmit={handleSubmit} className="space-y-3 max-w-sm mx-auto">
+          <form onSubmit={handleSubmit} className="space-y-3 max-w-sm mx-auto">
           {isRegister && (
             <input
               type="text"
@@ -82,12 +81,14 @@ export default function Login() {
           </button>
         </form>
 
-        <button
-          onClick={() => { setIsRegister(!isRegister); setError(''); setSuccess('') }}
-          className="w-full mt-4 text-sm text-purple-500 font-bold text-center"
-        >
-          {isRegister ? t('hasAccount') : t('noAccount')}
-        </button>
+          <button
+            onClick={() => { setIsRegister(!isRegister); setError(''); setSuccess('') }}
+            className="w-full mt-3 text-sm text-purple-500 font-bold text-center"
+            type="button"
+          >
+            {isRegister ? t('hasAccount') : t('noAccount')}
+          </button>
+        </div>
       </div>
     </div>
   )
