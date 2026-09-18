@@ -234,7 +234,24 @@ function SettingsTab() {
                   lang === l ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
                 }`}
               >
-                {l.toUpperCase()}
+                {l === 'es' ? '🇪🇸 ES' : '🇺🇸 EN'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
+          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('voiceLanguage')}</label>
+          <div className="flex gap-2 mt-2">
+            {['es', 'en'].map(l => (
+              <button
+                key={l}
+                onClick={() => updateProfile({ voice_lang: l })}
+                className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all ${
+                  (profile?.voice_lang || 'en') === l ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
+                }`}
+              >
+                {l === 'es' ? '🇪🇸 ES' : '🇺🇸 EN'}
               </button>
             ))}
           </div>

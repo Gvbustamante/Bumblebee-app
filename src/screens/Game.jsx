@@ -13,6 +13,7 @@ export default function Game({ config, onExit, onExitHome }) {
   const { session, profile } = useAuth()
   const uid = session?.user?.id
   const imgSize = profile?.image_size || 'medium'
+  const voiceLang = profile?.voice_lang || 'en'
 
   const [queue, setQueue] = useState([...block])
   const [phase, setPhase] = useState(() => getInitialPhase(sub))
@@ -40,13 +41,13 @@ export default function Game({ config, onExit, onExitHome }) {
 
   useEffect(() => {
     if (!word || blockDone || showResult) return
-    const t = setTimeout(() => sounds.speak(word.word, lang), 400)
+    const t = setTimeout(() => sounds.speak(word.word, voiceLang), 400)
     return () => clearTimeout(t)
   }, [word?.word, blockDone, showResult])
 
   useEffect(() => {
     if (phase !== 'spelling' || !letters[letterIdx]) return
-    const t = setTimeout(() => sounds.speakLetter(letters[letterIdx], 'en'), 200)
+    const t = setTimeout(() => sounds.speakLetter(letters[letterIdx], voiceLang), 200)
     return () => clearTimeout(t)
   }, [letterIdx, phase])
 
@@ -312,7 +313,7 @@ export default function Game({ config, onExit, onExitHome }) {
                     {i === letterIdx && <span className="text-xl animate-float">🐝</span>}
                   </div>
                   <button
-                    onClick={() => sounds.speakLetter(letter, 'en')}
+                    onClick={() => sounds.speakLetter(letter, voiceLang)}
                     className={`w-14 h-14 rounded-2xl flex items-center justify-center font-extrabold text-2xl transition-all duration-200 active:scale-90 ${
                       i < letterIdx
                         ? 'bg-green-100 text-green-600 scale-95'
@@ -336,7 +337,7 @@ export default function Game({ config, onExit, onExitHome }) {
           <div className="mt-6 mb-2">
             <div className="bg-white rounded-2xl shadow-card px-8 py-5 border border-purple-100 relative">
               <p className="text-4xl font-extrabold text-purple-700 text-center tracking-wider">{word.word}</p>
-              <button onClick={() => sounds.speak(word.word, lang)} className="absolute right-3 top-3 text-purple-300 active:text-purple-600 transition-colors">
+              <button onClick={() => sounds.speak(word.word, voiceLang)} className="absolute right-3 top-3 text-purple-300 active:text-purple-600 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
               </button>
             </div>
@@ -348,7 +349,7 @@ export default function Game({ config, onExit, onExitHome }) {
           <div className="mt-6 mb-2">
             <div className="bg-white rounded-2xl shadow-card px-8 py-5 border border-purple-100 relative">
               <p className="text-4xl font-extrabold text-purple-700 text-center tracking-wider">{word.word}</p>
-              <button onClick={() => sounds.speak(word.word, lang)} className="absolute right-3 top-3 text-purple-300 active:text-purple-600 transition-colors">
+              <button onClick={() => sounds.speak(word.word, voiceLang)} className="absolute right-3 top-3 text-purple-300 active:text-purple-600 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
               </button>
             </div>

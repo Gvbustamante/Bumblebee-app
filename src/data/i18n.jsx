@@ -119,6 +119,7 @@ const S = {
     helpTip: 'Tip: Words repeat until you learn them. No rush!',
     allWords: 'All Words',
     allWordsDesc: 'Practice all words in one session',
+    voiceLanguage: 'Voice language',
   },
   es: {
     greeting: '¡Hola, Pequeño Aprendiz!',
@@ -238,6 +239,7 @@ const S = {
     helpTip: 'Consejo: Las palabras se repiten hasta que las aprendas. ¡Sin prisa!',
     allWords: 'Todas las Palabras',
     allWordsDesc: 'Practica todas las palabras en una sesión',
+    voiceLanguage: 'Idioma de la voz',
   },
 }
 
