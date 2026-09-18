@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLang } from '../data/i18n'
 import { useAuth } from '../data/AuthContext'
-import { fetchWords, adminAddWord, adminDeleteWord, adminUploadImage, adminToggleWord, adminCloneWord, adminUpdateWord, adminBulkToggle } from '../lib/db'
+import { fetchWords, adminAddWord, adminDeleteWord, adminUploadImage, adminToggleWord, adminCloneWord, adminUpdateWord, adminBulkToggle, adminSwapOrder } from '../lib/db'
 import { supabase } from '../lib/supabase'
 
 const SECTIONS = [
@@ -167,6 +167,16 @@ export default function Admin() {
     setSelected(all)
   }
 
+  async function handleMove(sectionKey, adventure, idx, dir) {
+    const words = wordsBySection[sectionKey]
+    if (!words) return
+    const targetIdx = idx + dir
+    if (targetIdx < 0 || targetIdx >= words.length) return
+    const a = words[idx], b = words[targetIdx]
+    await adminSwapOrder(adventure, a.word, a.sort_order, b.word, b.sort_order)
+    loadAllWords()
+  }
+
   async function toggleAdmin(userId, currentRole) {
     const newRole = currentRole === 'admin' ? 'user' : 'admin'
     await supabase.from('bumblebee_profiles').update({ role: newRole }).eq('id', userId)
@@ -312,7 +322,7 @@ export default function Admin() {
                     {words.length === 0 && (
                       <p className="text-center text-xs text-gray-400 py-3">{lang === 'es' ? 'Sin palabras' : 'No words'}</p>
                     )}
-                    {words.map(w => {
+                    {words.map((w, wIdx) => {
                       const isEditing = editing === `${sec.adventure}|${w.word}`
 
                       if (isEditing) {
@@ -366,6 +376,22 @@ export default function Admin() {
                           </span>
                           {!inSelectMode && (
                             <>
+                              <div className="flex flex-col gap-0.5">
+                                <button
+                                  onClick={() => handleMove(key, sec.adventure, wIdx, -1)}
+                                  disabled={wIdx === 0}
+                                  className="px-1 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px] font-bold disabled:opacity-20 active:scale-90"
+                                >
+                                  ▲
+                                </button>
+                                <button
+                                  onClick={() => handleMove(key, sec.adventure, wIdx, 1)}
+                                  disabled={wIdx === words.length - 1}
+                                  className="px-1 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px] font-bold disabled:opacity-20 active:scale-90"
+                                >
+                                  ▼
+                                </button>
+                              </div>
                               <button
                                 onClick={() => startEdit(sec.adventure, w)}
                                 className="px-1.5 py-1 bg-gray-100 text-gray-500 rounded-lg text-[10px] font-bold"

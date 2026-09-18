@@ -415,7 +415,7 @@ export default function Game({ config, onExit, onExitHome }) {
 
       <div className="text-center pb-5 text-gray-400 text-xs font-bold">
         {MODES[mode]?.label} · {lang === 'es' ? sub.labelEs : sub.label}
-        {blockIndex >= 0 ? ` · ${t('block')} ${blockIndex + 1}` : ` · ${t('review')}`}
+        {blockIndex >= 0 ? ` · ${t('block')} ${blockIndex + 1}` : blockIndex === -2 ? ` · ${t('allWords')}` : ` · ${t('review')}`}
       </div>
     </div>
   )

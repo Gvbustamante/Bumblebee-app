@@ -270,6 +270,35 @@ function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
           )
         })}
 
+        {words.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-card overflow-hidden border border-purple-200">
+            <div className="p-4">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">📚</span>
+                <div className="flex-1">
+                  <span className="font-extrabold text-purple-700 text-sm">{t('allWords')}</span>
+                  <div className="text-xs text-purple-400 font-semibold">{words.length} {t('words')}</div>
+                </div>
+              </div>
+            </div>
+            <div className="flex border-t border-purple-100">
+              <button
+                onClick={() => onStart(words, -2, false)}
+                className="flex-1 py-3 text-center text-sm font-bold text-purple-600 active:bg-purple-50 transition-colors"
+              >
+                🧸 {t('practice')}
+              </button>
+              <div className="w-px bg-purple-100" />
+              <button
+                onClick={() => onStart(words, -2, true)}
+                className="flex-1 py-3 text-center text-sm font-bold text-orange-500 active:bg-orange-50 transition-colors"
+              >
+                🏆 {t('challenge')}
+              </button>
+            </div>
+          </div>
+        )}
+
         {weakWords.length > 0 && (
           <button
             onClick={() => onStart(weakWords.slice(0, bSize), -1, false)}

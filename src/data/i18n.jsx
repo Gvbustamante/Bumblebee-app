@@ -117,6 +117,8 @@ const S = {
     helpStep6Title: 'Track progress',
     helpStep6: 'See which words you mastered and which need more practice.',
     helpTip: 'Tip: Words repeat until you learn them. No rush!',
+    allWords: 'All Words',
+    allWordsDesc: 'Practice all words in one session',
   },
   es: {
     greeting: '¡Hola, Pequeño Aprendiz!',
@@ -234,6 +236,8 @@ const S = {
     helpStep6Title: 'Revisa tu progreso',
     helpStep6: 'Mira qué palabras dominas y cuáles necesitan más práctica.',
     helpTip: 'Consejo: Las palabras se repiten hasta que las aprendas. ¡Sin prisa!',
+    allWords: 'Todas las Palabras',
+    allWordsDesc: 'Practica todas las palabras en una sesión',
   },
 }
 
