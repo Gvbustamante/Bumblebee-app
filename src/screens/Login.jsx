@@ -34,8 +34,8 @@ export default function Login() {
     <div className="app-shell flex flex-col min-h-screen bg-gradient-to-b from-purple-50 to-white items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="text-6xl mb-3">🐝</div>
-          <h1 className="text-2xl font-extrabold text-purple-700">Spelling Bee Kids</h1>
+          <img src="/images/splash.webp" alt="Bumblebee Kids" className="w-32 h-32 object-contain mx-auto mb-1" />
+          <h1 className="text-2xl font-extrabold text-purple-700">Bumblebee Kids</h1>
           <p className="text-sm text-gray-400 font-semibold mt-1">
             {isRegister ? t('createAccount') : t('welcomeBack')}
           </p>
