@@ -15,10 +15,7 @@ export default function App() {
   const { session, profile, loading, isAdmin } = useAuth()
 
   useEffect(() => {
-    if (!loading) {
-      const el = document.getElementById('splash-preload')
-      if (el) { el.classList.add('hide'); setTimeout(() => el.remove(), 500) }
-    }
+    if (!loading && window.__dismissSplash) window.__dismissSplash()
   }, [loading])
 
   if (loading) return null
