@@ -101,6 +101,40 @@ export async function getWeakWords(userId, adventure, subMode, words) {
   return results
 }
 
+export async function getBulkMastery(userId, adventure, subMode) {
+  const { data } = await supabase
+    .from('bumblebee_attempts')
+    .select('word, word_correct, letter_results, created_at')
+    .eq('user_id', userId)
+    .eq('adventure', adventure)
+    .eq('sub_mode', subMode)
+    .order('created_at', { ascending: false })
+  if (!data?.length) return {}
+  const byWord = {}
+  for (const a of data) {
+    if (!byWord[a.word]) byWord[a.word] = []
+    if (byWord[a.word].length < 5) byWord[a.word].push(a)
+  }
+  const result = {}
+  for (const [word, attempts] of Object.entries(byWord)) {
+    let t = 0, ok = 0
+    for (const a of attempts) {
+      if (a.letter_results) for (const r of a.letter_results) { t++; if (r) ok++ }
+      if (a.word_correct !== null) { t++; if (a.word_correct) ok++ }
+    }
+    const mastery = t ? Math.round((ok / t) * 100) : 0
+    const letterMastery = word.split('').map((_, i) => {
+      let lok = 0, lt = 0
+      for (const a of attempts) {
+        if (a.letter_results?.[i] !== undefined) { lt++; if (a.letter_results[i]) lok++ }
+      }
+      return lt ? Math.round((lok / lt) * 100) : -1
+    })
+    result[word] = { mastery, letterMastery }
+  }
+  return result
+}
+
 export async function getWordStats(userId, adventure, subMode) {
   const { data } = await supabase
     .from('bumblebee_attempts')
@@ -122,23 +156,34 @@ export async function getWordStats(userId, adventure, subMode) {
 export async function getAdventureStats(userId, adventure) {
   const { data } = await supabase
     .from('bumblebee_attempts')
-    .select('word, sub_mode')
+    .select('word, sub_mode, word_correct, letter_results, created_at')
     .eq('user_id', userId)
     .eq('adventure', adventure)
+    .order('created_at', { ascending: false })
   if (!data?.length) return { practiced: 0, mastered: 0, weak: 0 }
-  const wordSet = new Set(data.map(r => r.word))
-  let mastered = 0, weak = 0
-  const subModes = [...new Set(data.map(r => r.sub_mode))]
-  for (const word of wordSet) {
-    let best = -1
-    for (const sm of subModes) {
-      const m = await getMastery(userId, adventure, sm, word)
-      if (m > best) best = m
-    }
-    if (best >= 80) mastered++
-    else if (best >= 0 && best < 60) weak++
+  const byKey = {}
+  for (const a of data) {
+    const k = `${a.word}|${a.sub_mode}`
+    if (!byKey[k]) byKey[k] = []
+    if (byKey[k].length < 5) byKey[k].push(a)
   }
-  return { practiced: wordSet.size, mastered, weak }
+  const bestByWord = {}
+  for (const [k, attempts] of Object.entries(byKey)) {
+    const word = k.split('|')[0]
+    let t = 0, ok = 0
+    for (const a of attempts) {
+      if (a.letter_results) for (const r of a.letter_results) { t++; if (r) ok++ }
+      if (a.word_correct !== null) { t++; if (a.word_correct) ok++ }
+    }
+    const m = t ? Math.round((ok / t) * 100) : 0
+    if (bestByWord[word] === undefined || m > bestByWord[word]) bestByWord[word] = m
+  }
+  let mastered = 0, weak = 0
+  for (const m of Object.values(bestByWord)) {
+    if (m >= 80) mastered++
+    else if (m < 60) weak++
+  }
+  return { practiced: Object.keys(bestByWord).length, mastered, weak }
 }
 
 export async function addFlower(userId, adventure, subMode) {

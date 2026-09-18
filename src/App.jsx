@@ -29,11 +29,18 @@ export default function App() {
 }
 
 function MainApp() {
-  const [tab, setTab] = useState('home')
+  const [tab, setTab] = useState(() => {
+    try { return sessionStorage.getItem('sbk-tab') || 'home' } catch { return 'home' }
+  })
   const [gameConfig, setGameConfig] = useState(null)
   const [selectedSubMode, setSelectedSubMode] = useState(null)
   const { t } = useLang()
   const { isAdmin } = useAuth()
+
+  function switchTab(id) {
+    setTab(id)
+    try { sessionStorage.setItem('sbk-tab', id) } catch {}
+  }
 
   const TABS = [
     { id: 'home', label: t('navHome'), icon: 'home' },
@@ -70,7 +77,7 @@ function MainApp() {
             return (
               <button
                 key={tb.id}
-                onClick={() => setTab(tb.id)}
+                onClick={() => switchTab(tb.id)}
                 className={`flex-1 flex flex-col items-center pt-2.5 pb-1 transition-all ${
                   active ? 'text-purple-600' : 'text-gray-300'
                 }`}

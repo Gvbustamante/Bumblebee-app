@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { MODES } from '../data/modes'
 import { useLang } from '../data/i18n'
 import { useAuth } from '../data/AuthContext'
-import { fetchWords, getStars, getAdventureStats, getWordStats, getMastery, getLetterMastery, getWeakWords } from '../lib/db'
+import { fetchWords, getStars, getAdventureStats, getBulkMastery } from '../lib/db'
 
 export default function Progress() {
   const { t } = useLang()
@@ -65,21 +65,24 @@ function SubModeProgress({ adventure, sub, words }) {
   const c = SECTION_COLORS[modeColor] || SECTION_COLORS.purple
 
   useEffect(() => {
-    if (!session) return
+    if (!session || !words.length) return
     const uid = session.user.id
-    async function load() {
+    getBulkMastery(uid, adventure, sub.id).then(bulk => {
       const data = []
+      const weak = []
       for (const w of words) {
-        const m = await getMastery(uid, adventure, sub.id, w.word)
-        if (m < 0) continue
-        const lm = sub.requireSpelling ? await getLetterMastery(uid, adventure, sub.id, w.word) : null
-        data.push({ ...w, mastery: m, letterMastery: lm })
+        const b = bulk[w.word]
+        if (!b) continue
+        data.push({
+          ...w,
+          mastery: b.mastery,
+          letterMastery: sub.requireSpelling ? b.letterMastery : null,
+        })
+        if (b.mastery >= 0 && b.mastery < 60) weak.push(w)
       }
       setWordData(data)
-      const weak = await getWeakWords(uid, adventure, sub.id, words)
       setWeakWords(weak)
-    }
-    load()
+    })
   }, [session, adventure, sub.id, words])
 
   if (!wordData.length) return null
