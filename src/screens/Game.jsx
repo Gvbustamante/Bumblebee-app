@@ -279,7 +279,7 @@ export default function Game({ config, onExit, onExitHome }) {
     const totalStars = blockResults.reduce((s, r) => s + r.starsEarned, 0)
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex flex-col items-center justify-center p-6 animate-pop">
-        <div className="text-6xl mb-2">🎉</div>
+        <img src="/images/block-complete.webp" alt="" className="w-56 mb-2" />
         <h1 className="text-2xl font-extrabold text-purple-700">{t('blockComplete')}</h1>
         <div className="text-xl text-yellow-500 font-bold mt-1">+{totalStars} ⭐</div>
 
