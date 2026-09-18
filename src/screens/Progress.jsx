@@ -4,8 +4,16 @@ import { useLang } from '../data/i18n'
 import { useAuth } from '../data/AuthContext'
 import { fetchWords, getStars, getAdventureStats, getBulkMastery } from '../lib/db'
 
+const SECTION_COLORS = {
+  purple: { bar: '#9B6DDF', barBg: '#F2E8FF', tagBg: '#F2E8FF', tagText: '#57358F' },
+  pink: { bar: '#F58BB5', barBg: '#FFF1F5', tagBg: '#FFF1F5', tagText: '#C0457B' },
+  blue: { bar: '#72B7E8', barBg: '#EEF7FF', tagBg: '#EEF7FF', tagText: '#2E78B0' },
+  amber: { bar: '#FFD84D', barBg: '#FFFBEA', tagBg: '#FFFBEA', tagText: '#A07B00' },
+  indigo: { bar: '#7B78D8', barBg: '#F1F2FF', tagBg: '#F1F2FF', tagText: '#4B48A0' },
+}
+
 export default function Progress() {
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const { session, profile } = useAuth()
   const adventure = profile?.adventure
   const [stars, setStarsVal] = useState(0)
@@ -24,29 +32,44 @@ export default function Progress() {
   if (!modeDef) return null
 
   return (
-    <div className="animate-fade-up pb-4">
+    <div className="animate-fade-up bg-brand-bg min-h-screen pb-4">
       <div className="px-5 pt-5 pb-3">
-        <h1 className="text-xl font-extrabold text-gray-800">{t('progress')}</h1>
-        <p className="text-sm text-gray-400 font-semibold">{t('trackJourney')}</p>
+        <h1 className="text-xl font-extrabold" style={{ color: '#57358F' }}>{t('progress')}</h1>
+        <p className="text-xs font-semibold" style={{ color: '#9B6DDF' }}>{t('trackJourney')}</p>
       </div>
 
-      <div className="mx-4 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-2xl p-4 mb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-3xl font-extrabold text-yellow-600">⭐ {stars}</div>
-            <div className="text-xs text-yellow-500 font-bold">{t('totalStars')}</div>
+      <div
+        className="mx-4 rounded-2xl p-4 mb-4 relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, #FFFBEA 0%, #FFF8E1 100%)',
+          border: '2px solid #FFD84D',
+          boxShadow: '0 4px 16px rgba(255,216,77,0.15)',
+        }}
+      >
+        <img
+          src="/images/block-complete.webp"
+          alt=""
+          className="absolute -right-3 -bottom-2 w-28 h-28 object-contain select-none pointer-events-none opacity-80"
+        />
+        <div className="relative z-10">
+          <div className="text-3xl font-extrabold" style={{ color: '#A07B00' }}>
+            <span className="inline-block animate-float">⭐</span> {stars}
           </div>
-          <div className="text-right">
-            <div className="text-sm font-bold text-gray-500">{modeDef.emoji} {modeDef.label}</div>
-            <div className="text-xs text-yellow-500 font-bold">{stats.practiced} {t('practiced').toLowerCase()}</div>
+          <div className="text-xs font-bold mt-0.5" style={{ color: '#D4A017' }}>{t('totalStars')}</div>
+          <div className="flex items-center gap-1.5 mt-2">
+            {modeDef.img && <img src={modeDef.img} alt="" className="w-5 h-5 object-contain" />}
+            <span className="text-xs font-bold" style={{ color: '#A07B00' }}>{modeDef.label}</span>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: '#FFD84D30', color: '#A07B00' }}>
+              {stats.practiced} {t('practiced').toLowerCase()}
+            </span>
           </div>
         </div>
       </div>
 
       <div className="mx-4 grid grid-cols-3 gap-2 mb-4">
-        <StatBox value={stats.practiced} label={t('practiced')} bg="bg-white" text="text-gray-700" />
-        <StatBox value={stats.mastered} label={t('mastered')} bg="bg-green-100" text="text-green-600" />
-        <StatBox value={stats.weak} label={t('weak')} bg="bg-red-50" text="text-red-500" />
+        <StatBox value={stats.practiced} label={t('practiced')} bg="#F2E8FF" text="#57358F" />
+        <StatBox value={stats.mastered} label={t('mastered')} bg="#E8F5E0" text="#4A8C2A" />
+        <StatBox value={stats.weak} label={t('weak')} bg="#FFF1F5" text="#C0457B" />
       </div>
 
       {modeDef.subModes.map(sub => (
@@ -89,31 +112,48 @@ function SubModeProgress({ adventure, sub, words }) {
 
   return (
     <div className="mx-4 mb-4">
-      <div className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${c.sub} mb-2`}>
+      <div
+        className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mb-2"
+        style={{ background: c.tagBg, color: c.tagText }}
+      >
         {sub.emoji} {lang === 'es' ? sub.labelEs : sub.label}
       </div>
       <div className="space-y-2">
         {wordData.map(w => (
-          <div key={w.word} className="bg-white rounded-xl p-2.5 flex items-center gap-2 shadow-card border border-gray-100">
+          <div
+            key={w.word}
+            className="bg-brand-card rounded-xl p-2.5 flex items-center gap-2 shadow-card"
+            style={{ border: '1px solid #E8E0F0' }}
+          >
             <span className="text-lg w-7 text-center">{w.emoji}</span>
-            <span className="font-bold text-sm w-12 text-gray-700">{w.word}</span>
+            <span className="font-bold text-sm w-12" style={{ color: '#57358F' }}>{w.word}</span>
             <div className="flex-1">
-              <div className={`h-2 ${c.barBg} rounded-full overflow-hidden`}>
-                <div className={`h-full ${c.bar} rounded-full transition-all`} style={{ width: `${Math.max(w.mastery, 0)}%` }} />
+              <div className="h-2 rounded-full overflow-hidden" style={{ background: c.barBg }}>
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${Math.max(w.mastery, 0)}%`, background: c.bar }}
+                />
               </div>
               {w.letterMastery && (
                 <div className="flex gap-0.5 mt-1">
                   {w.word.split('').map((l, i) => (
-                    <span key={i} className={`text-[9px] font-bold ${
-                      w.letterMastery[i] < 0 ? 'text-gray-300' : w.letterMastery[i] >= 80 ? 'text-green-500' : w.letterMastery[i] >= 50 ? 'text-yellow-500' : 'text-red-400'
-                    }`}>
+                    <span
+                      key={i}
+                      className="text-[9px] font-bold"
+                      style={{
+                        color: w.letterMastery[i] < 0 ? '#B0A0C0'
+                          : w.letterMastery[i] >= 80 ? '#4A8C2A'
+                          : w.letterMastery[i] >= 50 ? '#A07B00'
+                          : '#C0457B',
+                      }}
+                    >
                       {l}
                     </span>
                   ))}
                 </div>
               )}
             </div>
-            <span className="text-[11px] font-bold text-gray-400 w-8 text-right">
+            <span className="text-[11px] font-bold w-8 text-right" style={{ color: '#B0A0C0' }}>
               {w.mastery < 0 ? '—' : `${w.mastery}%`}
             </span>
           </div>
@@ -121,28 +161,26 @@ function SubModeProgress({ adventure, sub, words }) {
       </div>
 
       {weakWords.length > 0 && (
-        <div className="mt-2 bg-red-50 rounded-xl p-3 border border-red-200">
-          <div className="text-xs font-bold text-red-600 mb-1">{t('needsPracticeLabel')}</div>
-          <div className="text-xs text-red-500 font-semibold">{weakWords.map(w => w.word).join(' · ')}</div>
+        <div
+          className="mt-2 rounded-xl p-3"
+          style={{ background: '#FFF1F5', border: '1px solid #F58BB5' }}
+        >
+          <div className="text-xs font-bold mb-1" style={{ color: '#C0457B' }}>{t('needsPracticeLabel')}</div>
+          <div className="text-xs font-semibold" style={{ color: '#F58BB5' }}>{weakWords.map(w => w.word).join(' · ')}</div>
         </div>
       )}
     </div>
   )
 }
 
-const SECTION_COLORS = {
-  purple: { bar: 'bg-purple-500', barBg: 'bg-purple-100', sub: 'bg-purple-100 text-purple-600' },
-  pink: { bar: 'bg-pink-500', barBg: 'bg-pink-100', sub: 'bg-pink-100 text-pink-600' },
-  blue: { bar: 'bg-blue-500', barBg: 'bg-blue-100', sub: 'bg-blue-100 text-blue-600' },
-  amber: { bar: 'bg-amber-500', barBg: 'bg-amber-100', sub: 'bg-amber-100 text-amber-600' },
-  indigo: { bar: 'bg-indigo-500', barBg: 'bg-indigo-100', sub: 'bg-indigo-100 text-indigo-600' },
-}
-
 function StatBox({ value, label, bg, text }) {
   return (
-    <div className={`${bg} rounded-xl p-2 text-center shadow-card border border-gray-100`}>
-      <div className={`text-xl font-extrabold ${text}`}>{value}</div>
-      <div className="text-[10px] text-gray-400 font-bold">{label}</div>
+    <div
+      className="rounded-xl p-2 text-center shadow-card"
+      style={{ background: bg, border: '1px solid #E8E0F0' }}
+    >
+      <div className="text-xl font-extrabold" style={{ color: text }}>{value}</div>
+      <div className="text-[10px] font-bold" style={{ color: '#B0A0C0' }}>{label}</div>
     </div>
   )
 }
