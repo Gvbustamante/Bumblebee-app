@@ -35,10 +35,6 @@ export default function Login() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <img src="/images/splash.webp" alt="Bumblebee Kids" className="w-32 h-32 object-contain mx-auto mb-1" />
-          <h1 className="text-2xl font-extrabold text-purple-700">Bumblebee Kids</h1>
-          <p className="text-sm text-gray-400 font-semibold mt-1">
-            {isRegister ? t('createAccount') : t('welcomeBack')}
-          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">

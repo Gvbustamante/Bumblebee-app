@@ -15,8 +15,6 @@ export default function AdventureSelect() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
           <img src="/images/splash.webp" alt="Bumblebee Kids" className="w-28 h-28 object-contain mx-auto mb-1" />
-          <h1 className="text-xl font-extrabold text-purple-700">{t('chooseAdventure')}</h1>
-          <p className="text-xs text-gray-400 font-semibold mt-1">{t('pickOneAdventure')}</p>
         </div>
 
         <div className="space-y-3">
