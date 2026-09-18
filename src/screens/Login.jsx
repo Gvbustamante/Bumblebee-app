@@ -36,6 +36,9 @@ export default function Login() {
 
       <div className="relative z-10 flex-1 flex flex-col justify-end" style={{ paddingBottom: 'max(60px, 8vh)' }}>
         <div className="px-8 max-w-sm mx-auto w-full">
+          <p className="text-center text-sm text-purple-700 font-extrabold mb-3">
+            {isRegister ? t('createAccount') : t('welcomeBack')}
+          </p>
           <form onSubmit={handleSubmit} className="space-y-3">
             {isRegister && (
               <input
