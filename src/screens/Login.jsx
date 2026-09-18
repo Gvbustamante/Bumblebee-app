@@ -31,19 +31,24 @@ export default function Login() {
   }
 
   return (
-    <div className="app-shell flex flex-col min-h-screen bg-gradient-to-b from-purple-50 to-white items-center justify-center px-6">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-        </div>
+    <div className="app-shell flex flex-col min-h-screen bg-white">
+      <div className="flex-1 flex items-center justify-center">
+        <img src="/images/login-hero.webp" alt="Bumblebee Kids" className="w-64 max-w-[70vw] object-contain" />
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="bg-white rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-6 pt-6 pb-8">
+        <p className="text-center text-sm text-gray-400 font-bold mb-4">
+          {isRegister ? t('createAccount') : t('welcomeBack')}
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-3 max-w-sm mx-auto">
           {isRegister && (
             <input
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder={t('enterName')}
-              className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none font-bold text-gray-700"
+              className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none font-bold text-gray-700 bg-purple-50"
               required
             />
           )}
@@ -52,7 +57,7 @@ export default function Login() {
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder={t('email')}
-            className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none font-bold text-gray-700"
+            className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none font-bold text-gray-700 bg-purple-50"
             required
           />
           <input
@@ -60,7 +65,7 @@ export default function Login() {
             value={password}
             onChange={e => setPassword(e.target.value)}
             placeholder={t('password')}
-            className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none font-bold text-gray-700"
+            className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none font-bold text-gray-700 bg-purple-50"
             minLength={6}
             required
           />
@@ -71,7 +76,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-purple-600 text-white font-extrabold rounded-xl shadow-btn active:scale-[0.98] transition-transform disabled:opacity-50"
+            className="w-full py-3.5 bg-yellow-400 text-amber-900 font-extrabold rounded-xl shadow-btn active:scale-[0.98] transition-transform disabled:opacity-50 text-base"
           >
             {loading ? '...' : isRegister ? t('register') : t('login')}
           </button>
