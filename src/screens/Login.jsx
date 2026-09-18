@@ -34,7 +34,7 @@ export default function Login() {
     <div className="app-shell flex flex-col min-h-screen bg-gradient-to-b from-purple-50 to-white items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <img src="/images/splash.webp" alt="Bumblebee Kids" className="w-32 h-32 object-contain mx-auto mb-1" />
+          <img src="/images/icon-192.webp" alt="Bumblebee Kids" className="w-24 h-24 object-contain mx-auto mb-2" />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
