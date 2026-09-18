@@ -11,7 +11,7 @@ export default function AdventureSelect() {
   }
 
   return (
-    <div className="app-shell flex flex-col min-h-screen bg-gradient-to-b from-purple-50 to-white items-center justify-center px-6">
+    <div className="app-shell status-bar-blur flex flex-col min-h-screen bg-gradient-to-b from-purple-50 to-white items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
         </div>

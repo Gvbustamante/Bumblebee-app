@@ -31,7 +31,7 @@ export default function Login() {
   }
 
   return (
-    <div className="app-shell flex flex-col min-h-screen relative overflow-hidden">
+    <div className="app-shell status-bar-blur flex flex-col min-h-screen relative overflow-hidden">
       <img src="/images/login-bg.webp" alt="" className="absolute inset-0 w-full h-full object-cover object-top" />
 
       <div className="relative z-10 flex-1 flex flex-col justify-end" style={{ paddingBottom: 'max(60px, 8vh)' }}>
