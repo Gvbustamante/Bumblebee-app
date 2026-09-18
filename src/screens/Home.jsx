@@ -130,7 +130,10 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
               className={`w-full ${c.bg} ${c.border} border-2 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform`}
             >
               <div className="flex items-center gap-3">
-                <span className="text-3xl">{sub.emoji}</span>
+                {sub.img
+                  ? <img src={sub.img} alt={sub.label} className="w-10 h-10 object-contain" />
+                  : <span className="text-3xl">{sub.emoji}</span>
+                }
                 <div className="flex-1 min-w-0">
                   <div className={`font-extrabold text-sm ${c.text}`}>
                     {lang === 'es' ? sub.labelEs : sub.label}

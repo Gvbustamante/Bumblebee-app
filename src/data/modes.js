@@ -5,8 +5,8 @@ export const MODES = {
     emoji: '🐝',
     img: '/images/mode-spelling-bee.webp',
     color: 'purple',
-    subtitle: 'Spell + Read',
-    subtitleEs: 'Deletrea + Lee',
+    subtitle: 'The Word Hive',
+    subtitleEs: 'La Colmena de las Palabras',
     subModes: [
       {
         id: 'imageWord',
@@ -15,6 +15,7 @@ export const MODES = {
         description: 'See the picture and the word',
         descriptionEs: 'Ve la imagen y la palabra',
         emoji: '👀',
+        img: '/images/sub-image-word.webp',
         preview: { showImg: true, showTxt: true, showLetters: false },
         showImage: true,
         showWord: true,
@@ -29,6 +30,7 @@ export const MODES = {
         description: 'See picture and word, spell each letter',
         descriptionEs: 'Ve imagen y palabra, deletrea cada letra',
         emoji: '🔡',
+        img: '/images/sub-image-word-letters.webp',
         preview: { showImg: true, showTxt: true, showLetters: true },
         showImage: true,
         showWord: true,
@@ -43,6 +45,7 @@ export const MODES = {
         description: 'See the picture, spell each letter, then read',
         descriptionEs: 'Ve la imagen, deletrea cada letra y lee',
         emoji: '✏️',
+        img: '/images/sub-image-spelling.webp',
         preview: { showImg: true, showTxt: false, showLetters: true },
         showImage: true,
         showWord: false,
@@ -57,6 +60,7 @@ export const MODES = {
         description: 'See the picture, drag letters into the right order',
         descriptionEs: 'Ve la imagen, ordena las letras',
         emoji: '🧩',
+        img: '/images/sub-image-word-letters.webp',
         preview: { showImg: true, showTxt: false, showLetters: true, scrambled: true },
         showImage: true,
         showWord: false,
@@ -72,6 +76,7 @@ export const MODES = {
         description: 'See the picture, say the word',
         descriptionEs: 'Ve la imagen, di la palabra',
         emoji: '🖼️',
+        img: '/images/sub-image-only.webp',
         preview: { showImg: true, showTxt: false, showLetters: false },
         showImage: true,
         showWord: false,
@@ -87,8 +92,8 @@ export const MODES = {
     emoji: '🌸',
     img: '/images/mode-bumblebee.webp',
     color: 'pink',
-    subtitle: 'Read the word',
-    subtitleEs: 'Lee la palabra',
+    subtitle: 'The Word Garden',
+    subtitleEs: 'El Jardín de Palabras',
     subModes: [
       {
         id: 'imageWord',
@@ -97,6 +102,7 @@ export const MODES = {
         description: 'See the picture and read the word',
         descriptionEs: 'Ve la imagen y lee la palabra',
         emoji: '📖',
+        img: '/images/sub-image-word.webp',
         preview: { showImg: true, showTxt: true, showLetters: false },
         showImage: true,
         showWord: true,
@@ -111,6 +117,7 @@ export const MODES = {
         description: 'See the picture, say what it is',
         descriptionEs: 'Ve la imagen, di qué es',
         emoji: '🖼️',
+        img: '/images/sub-image-only.webp',
         preview: { showImg: true, showTxt: false, showLetters: false },
         showImage: true,
         showWord: false,
@@ -126,8 +133,8 @@ export const MODES = {
     emoji: '🔤',
     img: '/images/mode-alphabet.webp',
     color: 'blue',
-    subtitle: 'Learn the alphabet',
-    subtitleEs: 'Aprende el abecedario',
+    subtitle: 'The Alphabet Trail',
+    subtitleEs: 'La Ruta del Abecedario',
     subModes: [
       {
         id: 'seeAndSay',
@@ -136,6 +143,7 @@ export const MODES = {
         description: 'See the letter and say its name',
         descriptionEs: 'Mira la letra y di su nombre',
         emoji: '👀',
+        img: '/images/sub-image-word.webp',
         preview: { showImg: false, showTxt: true, showLetters: false },
         showImage: false,
         showWord: true,
@@ -151,8 +159,8 @@ export const MODES = {
     emoji: '🎨',
     img: '/images/mode-colors.webp',
     color: 'amber',
-    subtitle: 'Learn color names',
-    subtitleEs: 'Aprende los colores',
+    subtitle: 'The Color Valley',
+    subtitleEs: 'El Valle de los Colores',
     subModes: [
       {
         id: 'colorWord',
@@ -161,6 +169,7 @@ export const MODES = {
         description: 'See the color and read the name',
         descriptionEs: 'Ve el color y lee el nombre',
         emoji: '📖',
+        img: '/images/sub-image-word.webp',
         preview: { showImg: true, showTxt: true, showLetters: false },
         showImage: true,
         showWord: true,
@@ -175,6 +184,7 @@ export const MODES = {
         description: 'See the color and spell the name',
         descriptionEs: 'Ve el color y deletrea el nombre',
         emoji: '✏️',
+        img: '/images/sub-image-spelling.webp',
         preview: { showImg: true, showTxt: false, showLetters: true },
         showImage: true,
         showWord: false,
@@ -189,6 +199,7 @@ export const MODES = {
         description: 'See the color, say the name',
         descriptionEs: 'Ve el color, di el nombre',
         emoji: '🎯',
+        img: '/images/sub-image-only.webp',
         preview: { showImg: true, showTxt: false, showLetters: false },
         showImage: true,
         showWord: false,
@@ -204,8 +215,8 @@ export const MODES = {
     emoji: '🔷',
     img: '/images/mode-shapes.webp',
     color: 'indigo',
-    subtitle: 'Learn shapes',
-    subtitleEs: 'Aprende las formas',
+    subtitle: 'The Shape Island',
+    subtitleEs: 'La Isla de las Formas',
     subModes: [
       {
         id: 'shapeWord',
@@ -214,6 +225,7 @@ export const MODES = {
         description: 'See the shape and read the name',
         descriptionEs: 'Ve la forma y lee el nombre',
         emoji: '📖',
+        img: '/images/sub-image-word.webp',
         preview: { showImg: true, showTxt: true, showLetters: false },
         showImage: true,
         showWord: true,
@@ -228,6 +240,7 @@ export const MODES = {
         description: 'See the shape and spell the name',
         descriptionEs: 'Ve la forma y deletrea el nombre',
         emoji: '✏️',
+        img: '/images/sub-image-spelling.webp',
         preview: { showImg: true, showTxt: false, showLetters: true },
         showImage: true,
         showWord: false,
@@ -242,6 +255,7 @@ export const MODES = {
         description: 'See the shape, say the name',
         descriptionEs: 'Ve la forma, di el nombre',
         emoji: '🎯',
+        img: '/images/sub-image-only.webp',
         preview: { showImg: true, showTxt: false, showLetters: false },
         showImage: true,
         showWord: false,
@@ -252,6 +266,12 @@ export const MODES = {
     ],
   },
 }
+
+export const COMING_SOON = [
+  { id: 'stories', label: 'Stories', emoji: '📖', subtitleEs: 'El Bosque de Historias', subtitle: 'The Story Forest', color: 'green' },
+  { id: 'songs', label: 'Songs', emoji: '🎵', subtitleEs: 'El Valle de las Canciones', subtitle: 'The Song Valley', color: 'rose' },
+  { id: 'puzzles', label: 'Puzzles', emoji: '🧩', subtitleEs: 'La Montaña de los Retos', subtitle: 'The Challenge Mountain', color: 'teal' },
+]
 
 export function getSubMode(modeId, subModeId) {
   const mode = MODES[modeId]
