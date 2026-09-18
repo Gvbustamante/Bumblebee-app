@@ -14,13 +14,14 @@ import sounds from './lib/sounds'
 export default function App() {
   const { session, profile, loading, isAdmin } = useAuth()
 
-  if (loading) {
-    return (
-      <div className="app-shell flex items-center justify-center min-h-screen bg-gradient-to-b from-sky-300 via-sky-200 to-green-200 overflow-hidden">
-        <img src="/images/splash.webp" alt="Bumblebee Kids" className="w-full h-full object-cover absolute inset-0" />
-      </div>
-    )
-  }
+  useEffect(() => {
+    if (!loading) {
+      const el = document.getElementById('splash-preload')
+      if (el) { el.classList.add('hide'); setTimeout(() => el.remove(), 500) }
+    }
+  }, [loading])
+
+  if (loading) return null
 
   if (!session) return <Login />
   if (!profile?.adventure) return <AdventureSelect />
