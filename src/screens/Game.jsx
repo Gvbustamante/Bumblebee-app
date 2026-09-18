@@ -1,10 +1,101 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { MODES, getSubMode, getInitialPhase, getNextPhase } from '../data/modes'
 import { getWordImageUrl } from '../data/assets'
 import { useLang } from '../data/i18n'
 import { useAuth } from '../data/AuthContext'
 import { recordAttempt, addFlower, addStars } from '../lib/db'
 import sounds from '../lib/sounds'
+
+function SwipeCard({ onSwipeRight, onSwipeLeft, enabled, children }) {
+  const cardRef = useRef(null)
+  const startX = useRef(0)
+  const startY = useRef(0)
+  const currentX = useRef(0)
+  const swiping = useRef(false)
+  const [dx, setDx] = useState(0)
+  const [exiting, setExiting] = useState(null)
+
+  const onTouchStart = useCallback(e => {
+    if (!enabled) return
+    const t = e.touches[0]
+    startX.current = t.clientX
+    startY.current = t.clientY
+    currentX.current = 0
+    swiping.current = false
+  }, [enabled])
+
+  const onTouchMove = useCallback(e => {
+    if (!enabled) return
+    const t = e.touches[0]
+    const diffX = t.clientX - startX.current
+    const diffY = t.clientY - startY.current
+    if (!swiping.current && Math.abs(diffX) > 10 && Math.abs(diffX) > Math.abs(diffY)) {
+      swiping.current = true
+    }
+    if (swiping.current) {
+      e.preventDefault()
+      currentX.current = diffX
+      setDx(diffX)
+    }
+  }, [enabled])
+
+  const onTouchEnd = useCallback(() => {
+    if (!enabled || !swiping.current) return
+    const threshold = 80
+    if (currentX.current > threshold) {
+      setExiting('right')
+      setTimeout(() => { setExiting(null); setDx(0); onSwipeRight() }, 250)
+    } else if (currentX.current < -threshold) {
+      setExiting('left')
+      setTimeout(() => { setExiting(null); setDx(0); onSwipeLeft() }, 250)
+    } else {
+      setDx(0)
+    }
+    swiping.current = false
+    currentX.current = 0
+  }, [enabled, onSwipeRight, onSwipeLeft])
+
+  const rotation = exiting ? (exiting === 'right' ? 15 : -15) : dx * 0.08
+  const translateX = exiting ? (exiting === 'right' ? 400 : -400) : dx
+  const opacity = exiting ? 0 : 1
+  const overlayOpacity = Math.min(Math.abs(dx) / 120, 0.7)
+  const showRight = dx > 30
+  const showLeft = dx < -30
+
+  return (
+    <div
+      ref={cardRef}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      className="relative w-full"
+      style={{
+        transform: `translateX(${translateX}px) rotate(${rotation}deg)`,
+        opacity,
+        transition: exiting || dx === 0 ? 'transform 0.25s ease-out, opacity 0.25s ease-out' : 'none',
+        touchAction: 'pan-y',
+      }}
+    >
+      {enabled && showRight && (
+        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+          <div className="bg-green-500 text-white font-extrabold text-2xl px-6 py-3 rounded-2xl shadow-lg border-4 border-green-300"
+            style={{ opacity: overlayOpacity, transform: 'rotate(-15deg)' }}>
+            ✓
+          </div>
+        </div>
+      )}
+      {enabled && showLeft && (
+        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+          <div className="bg-orange-500 text-white font-extrabold text-2xl px-6 py-3 rounded-2xl shadow-lg border-4 border-orange-300"
+            style={{ opacity: overlayOpacity, transform: 'rotate(15deg)' }}>
+            →
+          </div>
+        </div>
+      )}
+      {children}
+    </div>
+  )
+}
 
 export default function Game({ config, onExit, onExitHome }) {
   const { mode, subMode: subModeId, block, blockIndex, isChallenge } = config
@@ -117,7 +208,8 @@ export default function Game({ config, onExit, onExitHome }) {
     setShowResult(true)
   }
 
-  function handleLearned() {
+  const handleLearned = useCallback(() => {
+    if (!currentResult) return
     sounds.learned()
     const earned = currentResult.allPerfect ? 3 : 1
     if (uid) addStars(uid, mode, earned)
@@ -134,15 +226,15 @@ export default function Game({ config, onExit, onExitHome }) {
       setQueue(next)
       resetForNextWord()
     }
-  }
+  }, [currentResult, uid, mode, subModeId, word, queue])
 
-  function handleNotYet() {
+  const handleNotYet = useCallback(() => {
     sounds.next()
     setQueue(q => [...q.slice(1), q[0]])
     resetForNextWord()
-  }
+  }, [])
 
-  function handleFamiliarizeLearned() {
+  const handleFamiliarizeLearned = useCallback(() => {
     sounds.learned()
     const time = Date.now() - startTime
     if (uid) {
@@ -159,13 +251,13 @@ export default function Game({ config, onExit, onExitHome }) {
       setQueue(next)
       resetForNextWord()
     }
-  }
+  }, [uid, mode, subModeId, word, queue, startTime])
 
-  function handleFamiliarizeNotYet() {
+  const handleFamiliarizeNotYet = useCallback(() => {
     sounds.next()
     setQueue(q => [...q.slice(1), q[0]])
     resetForNextWord()
-  }
+  }, [])
 
   const fmt = ms => `${Math.floor(ms / 1000)}.${Math.floor((ms % 1000) / 100)}s`
 
@@ -220,28 +312,37 @@ export default function Game({ config, onExit, onExitHome }) {
   if (showResult && currentResult) {
     const { lr, allPerfect } = currentResult
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex flex-col items-center justify-center p-6 animate-pop">
-        {sub.showImage && <Img w={word} className="text-[80px]" />}
-        <h2 className="text-3xl font-extrabold text-gray-800 mt-4">{word.word}</h2>
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex flex-col items-center justify-center p-6 animate-pop overflow-hidden">
+        <SwipeCard enabled onSwipeRight={handleLearned} onSwipeLeft={handleNotYet}>
+          <div className="flex flex-col items-center">
+            {sub.showImage && <Img w={word} className="text-[80px]" />}
+            <h2 className="text-3xl font-extrabold text-gray-800 mt-4">{word.word}</h2>
 
-        {lr && (
-          <div className="flex gap-2 mt-4">
-            {letters.map((l, i) => (
-              <div key={i} className={`w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-lg ${
-                lr[i] ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'
-              }`}>
-                {l}
+            {lr && (
+              <div className="flex gap-2 mt-4">
+                {letters.map((l, i) => (
+                  <div key={i} className={`w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-lg ${
+                    lr[i] ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'
+                  }`}>
+                    {l}
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
+
+            <div className={`mt-4 text-3xl font-extrabold ${allPerfect ? 'text-yellow-500 animate-sparkle' : 'text-purple-400'}`}>
+              {allPerfect ? `⭐ ${t('perfect')}` : `💪 ${t('goodTry')}`}
+            </div>
+            <div className="text-gray-400 text-sm mt-1 font-mono">{fmt(elapsed)}</div>
+
+            <div className="flex items-center justify-center gap-6 mt-4 text-xs font-bold text-gray-300">
+              <span>← {t('notYet')}</span>
+              <span>{t('learned')} →</span>
+            </div>
           </div>
-        )}
+        </SwipeCard>
 
-        <div className={`mt-4 text-3xl font-extrabold ${allPerfect ? 'text-yellow-500 animate-sparkle' : 'text-purple-400'}`}>
-          {allPerfect ? `⭐ ${t('perfect')}` : `💪 ${t('goodTry')}`}
-        </div>
-        <div className="text-gray-400 text-sm mt-1 font-mono">{fmt(elapsed)}</div>
-
-        <div className="flex gap-3 w-full max-w-xs mt-8">
+        <div className="flex gap-3 w-full max-w-xs mt-6">
           <button onClick={handleNotYet} className="flex-1 py-4 bg-orange-100 border-2 border-orange-300 text-orange-600 rounded-2xl font-extrabold active:scale-95 transition-transform">
             → {t('notYet')}
           </button>
@@ -261,7 +362,7 @@ export default function Game({ config, onExit, onExitHome }) {
   const isSpellingPhase = phase === 'spelling'
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-white to-purple-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-white to-purple-50 flex flex-col overflow-hidden">
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <button onClick={onExit} className="w-10 h-10 flex items-center justify-center rounded-xl bg-purple-100 text-purple-600 font-bold active:scale-90 transition-transform">
           ←
@@ -290,129 +391,144 @@ export default function Game({ config, onExit, onExitHome }) {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-6">
-        {sub.showImage && (
-          <div className="animate-float">
-            <Img w={word} className="text-[100px]" />
-          </div>
-        )}
+        {isFamiliarize ? (
+          <SwipeCard enabled onSwipeRight={handleFamiliarizeLearned} onSwipeLeft={handleFamiliarizeNotYet}>
+            <div className="flex flex-col items-center">
+              {sub.showImage && (
+                <div className="animate-float">
+                  <Img w={word} className="text-[100px]" />
+                </div>
+              )}
 
-        {isSpellingPhase && sub.showWord && (
-          <div className="mt-4 mb-1">
-            <div className="bg-white/80 rounded-xl px-6 py-2 border border-purple-100 inline-block">
-              <p className="text-2xl font-extrabold text-purple-400 tracking-wider">{word.word}</p>
-            </div>
-          </div>
-        )}
-
-        {isSpellingPhase && sub.showLetters && (
-          <div className="mt-6 mb-2">
-            <div className="flex gap-3 justify-center">
-              {letters.map((letter, i) => (
-                <div key={i} className="flex flex-col items-center">
-                  <div className="h-8 flex items-center justify-center">
-                    {i === letterIdx && <span className="text-xl animate-float">🐝</span>}
-                  </div>
-                  <button
-                    onClick={() => sounds.speakLetter(letter, voiceLang)}
-                    className={`w-14 h-14 rounded-2xl flex items-center justify-center font-extrabold text-2xl transition-all duration-200 active:scale-90 ${
-                      i < letterIdx
-                        ? 'bg-green-100 text-green-600 scale-95'
-                        : i === letterIdx
-                          ? 'bg-purple-600 text-white scale-110 shadow-btn'
-                          : 'bg-gray-100 text-gray-300'
-                    }`}
-                  >
-                    {letter}
+              <div className="mt-6 mb-2">
+                <div className="bg-white rounded-2xl shadow-card px-8 py-5 border border-purple-100 relative">
+                  <p className="text-4xl font-extrabold text-purple-700 text-center tracking-wider">{word.word}</p>
+                  <button onClick={() => sounds.speak(word.word, voiceLang)} className="absolute right-3 top-3 text-purple-300 active:text-purple-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
                   </button>
                 </div>
-              ))}
-            </div>
-            <p className="text-center mt-4 text-gray-400 font-semibold text-sm">
-              {t('sayLetter')} <span className="text-purple-600 font-extrabold text-xl">{letters[letterIdx]}</span>
-            </p>
-          </div>
-        )}
-
-        {isFamiliarize && (
-          <div className="mt-6 mb-2">
-            <div className="bg-white rounded-2xl shadow-card px-8 py-5 border border-purple-100 relative">
-              <p className="text-4xl font-extrabold text-purple-700 text-center tracking-wider">{word.word}</p>
-              <button onClick={() => sounds.speak(word.word, voiceLang)} className="absolute right-3 top-3 text-purple-300 active:text-purple-600 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
-              </button>
-            </div>
-            <p className="text-center mt-3 text-gray-400 font-semibold text-sm">{t('lookAtWord')}</p>
-          </div>
-        )}
-
-        {phase === 'reading' && sub.showWord && (
-          <div className="mt-6 mb-2">
-            <div className="bg-white rounded-2xl shadow-card px-8 py-5 border border-purple-100 relative">
-              <p className="text-4xl font-extrabold text-purple-700 text-center tracking-wider">{word.word}</p>
-              <button onClick={() => sounds.speak(word.word, voiceLang)} className="absolute right-3 top-3 text-purple-300 active:text-purple-600 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
-              </button>
-            </div>
-            <p className="text-center mt-3 text-gray-400 font-semibold text-sm">{t('readAloud')}</p>
-          </div>
-        )}
-
-        {phase === 'reading' && !sub.showWord && (
-          <div className="mt-8 mb-2">
-            <p className="text-center text-gray-500 font-bold text-lg">{t('whatDoYouSee')}</p>
-            <p className="text-center text-gray-400 font-semibold text-sm mt-1">{t('sayTheWord')}</p>
-          </div>
-        )}
-
-        {!isFamiliarize && (
-          <div className="h-16 flex items-center justify-center">
-            {feedback === 'correct' && (
-              <div className="animate-pop text-green-500 font-extrabold text-2xl flex items-center gap-2">
-                <span className="text-3xl">⭐</span> {t('great')}
+                <p className="text-center mt-3 text-gray-400 font-semibold text-sm">{t('lookAtWord')}</p>
               </div>
-            )}
-            {feedback === 'wrong' && (
-              <div className="animate-shake text-orange-500 font-extrabold text-2xl flex items-center gap-2">
-                <span className="text-3xl">🔄</span> {t('tryAgain')}
-              </div>
-            )}
-          </div>
-        )}
 
-        {isFamiliarize ? (
-          <div className="flex gap-3 w-full max-w-xs mt-6">
-            <button
-              onClick={handleFamiliarizeNotYet}
-              className="flex-1 py-4 bg-orange-100 border-2 border-orange-300 text-orange-600 rounded-2xl font-extrabold active:scale-95 transition-transform"
-            >
-              → {t('notYet')}
-            </button>
-            <button
-              onClick={handleFamiliarizeLearned}
-              className="flex-1 py-4 bg-green-500 text-white rounded-2xl font-extrabold shadow-btn active:scale-95 transition-transform"
-            >
-              ✓ {t('learned')}
-            </button>
-          </div>
+              <div className="flex items-center justify-center gap-6 mt-2 text-xs font-bold text-gray-300">
+                <span>← {t('notYet')}</span>
+                <span>{t('learned')} →</span>
+              </div>
+            </div>
+          </SwipeCard>
         ) : (
-          <div className="flex gap-6 mt-2">
-            <button
-              onClick={handleIncorrect}
-              disabled={!!feedback}
-              className="w-20 h-20 rounded-full bg-gradient-to-br from-red-100 to-red-50 border-[3px] border-red-300 text-4xl flex items-center justify-center shadow-lg active:scale-90 transition-transform disabled:opacity-40"
-            >
-              ✗
-            </button>
-            <button
-              onClick={handleCorrect}
-              disabled={!!feedback}
-              className="w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-green-50 border-[3px] border-green-300 text-4xl flex items-center justify-center shadow-lg active:scale-90 transition-transform disabled:opacity-40"
-            >
-              ✓
-            </button>
-          </div>
+          <>
+            {sub.showImage && (
+              <div className="animate-float">
+                <Img w={word} className="text-[100px]" />
+              </div>
+            )}
+
+            {isSpellingPhase && sub.showWord && (
+              <div className="mt-4 mb-1">
+                <div className="bg-white/80 rounded-xl px-6 py-2 border border-purple-100 inline-block">
+                  <p className="text-2xl font-extrabold text-purple-400 tracking-wider">{word.word}</p>
+                </div>
+              </div>
+            )}
+
+            {isSpellingPhase && sub.showLetters && (
+              <div className="mt-6 mb-2">
+                <div className="flex gap-3 justify-center">
+                  {letters.map((letter, i) => (
+                    <div key={i} className="flex flex-col items-center">
+                      <div className="h-8 flex items-center justify-center">
+                        {i === letterIdx && <span className="text-xl animate-float">🐝</span>}
+                      </div>
+                      <button
+                        onClick={() => sounds.speakLetter(letter, voiceLang)}
+                        className={`w-14 h-14 rounded-2xl flex items-center justify-center font-extrabold text-2xl transition-all duration-200 active:scale-90 ${
+                          i < letterIdx
+                            ? 'bg-green-100 text-green-600 scale-95'
+                            : i === letterIdx
+                              ? 'bg-purple-600 text-white scale-110 shadow-btn'
+                              : 'bg-gray-100 text-gray-300'
+                        }`}
+                      >
+                        {letter}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-center mt-4 text-gray-400 font-semibold text-sm">
+                  {t('sayLetter')} <span className="text-purple-600 font-extrabold text-xl">{letters[letterIdx]}</span>
+                </p>
+              </div>
+            )}
+
+            {phase === 'reading' && sub.showWord && (
+              <div className="mt-6 mb-2">
+                <div className="bg-white rounded-2xl shadow-card px-8 py-5 border border-purple-100 relative">
+                  <p className="text-4xl font-extrabold text-purple-700 text-center tracking-wider">{word.word}</p>
+                  <button onClick={() => sounds.speak(word.word, voiceLang)} className="absolute right-3 top-3 text-purple-300 active:text-purple-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
+                  </button>
+                </div>
+                <p className="text-center mt-3 text-gray-400 font-semibold text-sm">{t('readAloud')}</p>
+              </div>
+            )}
+
+            {phase === 'reading' && !sub.showWord && (
+              <div className="mt-8 mb-2">
+                <p className="text-center text-gray-500 font-bold text-lg">{t('whatDoYouSee')}</p>
+                <p className="text-center text-gray-400 font-semibold text-sm mt-1">{t('sayTheWord')}</p>
+              </div>
+            )}
+
+            <div className="h-16 flex items-center justify-center">
+              {feedback === 'correct' && (
+                <div className="animate-pop text-green-500 font-extrabold text-2xl flex items-center gap-2">
+                  <span className="text-3xl">⭐</span> {t('great')}
+                </div>
+              )}
+              {feedback === 'wrong' && (
+                <div className="animate-shake text-orange-500 font-extrabold text-2xl flex items-center gap-2">
+                  <span className="text-3xl">🔄</span> {t('tryAgain')}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-6 mt-2">
+              <button
+                onClick={handleIncorrect}
+                disabled={!!feedback}
+                className="w-20 h-20 rounded-full bg-gradient-to-br from-red-100 to-red-50 border-[3px] border-red-300 text-4xl flex items-center justify-center shadow-lg active:scale-90 transition-transform disabled:opacity-40"
+              >
+                ✗
+              </button>
+              <button
+                onClick={handleCorrect}
+                disabled={!!feedback}
+                className="w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-green-50 border-[3px] border-green-300 text-4xl flex items-center justify-center shadow-lg active:scale-90 transition-transform disabled:opacity-40"
+              >
+                ✓
+              </button>
+            </div>
+          </>
         )}
       </div>
+
+      {isFamiliarize && (
+        <div className="flex gap-3 px-6 pb-3">
+          <button
+            onClick={handleFamiliarizeNotYet}
+            className="flex-1 py-3 bg-orange-100 border-2 border-orange-300 text-orange-600 rounded-2xl font-extrabold active:scale-95 transition-transform text-sm"
+          >
+            → {t('notYet')}
+          </button>
+          <button
+            onClick={handleFamiliarizeLearned}
+            className="flex-1 py-3 bg-green-500 text-white rounded-2xl font-extrabold shadow-btn active:scale-95 transition-transform text-sm"
+          >
+            ✓ {t('learned')}
+          </button>
+        </div>
+      )}
 
       <div className="text-center pb-5 text-gray-400 text-xs font-bold">
         {MODES[mode]?.label} · {lang === 'es' ? sub.labelEs : sub.label}
