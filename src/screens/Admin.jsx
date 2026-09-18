@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLang } from '../data/i18n'
 import { useAuth } from '../data/AuthContext'
-import { fetchWords, adminAddWord, adminDeleteWord, adminUploadImage, adminToggleWord, adminCloneWord, adminUpdateWord, adminBulkToggle, adminSwapOrder } from '../lib/db'
+import { fetchWords, adminAddWord, adminDeleteWord, adminUploadImage, adminToggleWord, adminCloneWord, adminUpdateWord, adminBulkToggle, adminSaveOrder } from '../lib/db'
 import { supabase } from '../lib/supabase'
 
 const SECTIONS = [
@@ -41,8 +41,14 @@ export default function Admin() {
   const [editEmoji, setEditEmoji] = useState('')
   const [selected, setSelected] = useState({})
   const [selectMode, setSelectMode] = useState(null)
+  const [reorderMode, setReorderMode] = useState(null)
+  const [reorderList, setReorderList] = useState([])
+  const [dragIdx, setDragIdx] = useState(null)
+  const [overIdx, setOverIdx] = useState(null)
   const fileRef = useRef()
   const addFileRef = useRef()
+  const listRef = useRef()
+  const itemRefs = useRef([])
 
   useEffect(() => { loadAllWords() }, [])
   useEffect(() => { loadUsers() }, [])
@@ -167,14 +173,79 @@ export default function Admin() {
     setSelected(all)
   }
 
-  async function handleMove(sectionKey, adventure, idx, dir) {
-    const words = wordsBySection[sectionKey]
-    if (!words) return
-    const targetIdx = idx + dir
-    if (targetIdx < 0 || targetIdx >= words.length) return
-    const a = words[idx], b = words[targetIdx]
-    await adminSwapOrder(adventure, a.word, a.sort_order, b.word, b.sort_order)
+  function enterReorderMode(sectionKey) {
+    setReorderMode(sectionKey)
+    setReorderList([...(wordsBySection[sectionKey] || [])])
+    setDragIdx(null)
+    setOverIdx(null)
+  }
+
+  async function saveReorder(adventure) {
+    const orders = reorderList.map((w, i) => ({ word: w.word, sort_order: i + 1 }))
+    await adminSaveOrder(adventure, orders)
+    setReorderMode(null)
+    setReorderList([])
+    setDragIdx(null)
+    setOverIdx(null)
     loadAllWords()
+  }
+
+  function cancelReorder() {
+    setReorderMode(null)
+    setReorderList([])
+    setDragIdx(null)
+    setOverIdx(null)
+  }
+
+  const getIdxFromY = useCallback((y) => {
+    for (let i = 0; i < itemRefs.current.length; i++) {
+      const el = itemRefs.current[i]
+      if (!el) continue
+      const rect = el.getBoundingClientRect()
+      if (y < rect.top + rect.height / 2) return i
+    }
+    return itemRefs.current.length - 1
+  }, [])
+
+  function handleDragStart(idx) {
+    setDragIdx(idx)
+    setOverIdx(idx)
+  }
+
+  function handleDragOver(y) {
+    if (dragIdx === null) return
+    const newOver = getIdxFromY(y)
+    if (newOver !== overIdx) {
+      setOverIdx(newOver)
+      setReorderList(prev => {
+        const list = [...prev]
+        const [item] = list.splice(dragIdx, 1)
+        list.splice(newOver, 0, item)
+        setDragIdx(newOver)
+        return list
+      })
+    }
+  }
+
+  function handleDragEnd() {
+    setDragIdx(null)
+    setOverIdx(null)
+  }
+
+  function handleTouchStart(idx, e) {
+    e.preventDefault()
+    handleDragStart(idx)
+  }
+
+  function handleTouchMove(e) {
+    if (dragIdx === null) return
+    e.preventDefault()
+    const touch = e.touches[0]
+    handleDragOver(touch.clientY)
+  }
+
+  function handleTouchEnd() {
+    handleDragEnd()
   }
 
   async function toggleAdmin(userId, currentRole) {
@@ -259,12 +330,14 @@ export default function Admin() {
           const c = SEC_COLORS[sec.color]
           const activeCount = words.filter(w => w.active).length
           const inSelectMode = selectMode === key
+          const inReorderMode = reorderMode === key
           const selectedCount = Object.values(selected).filter(Boolean).length
+          const displayWords = inReorderMode ? reorderList : words
 
           return (
             <div key={key} className={`rounded-2xl border overflow-hidden ${c.border}`}>
               <button
-                onClick={() => { if (!inSelectMode) toggleCollapse(key) }}
+                onClick={() => { if (!inSelectMode && !inReorderMode) toggleCollapse(key) }}
                 className={`w-full flex items-center justify-between px-4 py-3 ${c.head} font-extrabold text-sm`}
               >
                 <span>{sec.label}</span>
@@ -272,22 +345,47 @@ export default function Admin() {
                   <span className={`text-[10px] px-2 py-0.5 rounded-full ${c.badge}`}>
                     {activeCount}/{words.length}
                   </span>
-                  {!inSelectMode && <span className="text-lg">{isOpen ? '−' : '+'}</span>}
+                  {!inSelectMode && !inReorderMode && <span className="text-lg">{isOpen ? '−' : '+'}</span>}
                 </div>
               </button>
 
-              {isOpen && (
+              {(isOpen || inReorderMode) && (
                 <div className={`${c.bg} p-2`}>
-                  {/* Select mode toolbar */}
+                  {/* Toolbar */}
                   {words.length > 0 && (
                     <div className="flex items-center gap-2 mb-2">
-                      {!inSelectMode ? (
-                        <button
-                          onClick={() => enterSelectMode(key)}
-                          className="text-[10px] font-bold text-gray-400 px-2 py-1 bg-white rounded-lg border border-gray-200"
-                        >
-                          Seleccionar
-                        </button>
+                      {!inSelectMode && !inReorderMode ? (
+                        <>
+                          <button
+                            onClick={() => enterSelectMode(key)}
+                            className="text-[10px] font-bold text-gray-400 px-2 py-1 bg-white rounded-lg border border-gray-200"
+                          >
+                            Seleccionar
+                          </button>
+                          <button
+                            onClick={() => enterReorderMode(key)}
+                            className="text-[10px] font-bold text-indigo-600 px-2 py-1 bg-indigo-50 rounded-lg border border-indigo-200"
+                          >
+                            ↕ Ordenar
+                          </button>
+                        </>
+                      ) : inReorderMode ? (
+                        <>
+                          <span className="text-[10px] font-bold text-indigo-600">↕ Arrastra para ordenar</span>
+                          <div className="flex-1" />
+                          <button
+                            onClick={() => saveReorder(sec.adventure)}
+                            className="text-[10px] font-bold text-green-600 px-2.5 py-1 bg-green-50 rounded-lg border border-green-200"
+                          >
+                            ✓ Guardar
+                          </button>
+                          <button
+                            onClick={cancelReorder}
+                            className="text-[10px] font-bold text-red-500 px-2 py-1 bg-red-50 rounded-lg"
+                          >
+                            ✕
+                          </button>
+                        </>
                       ) : (
                         <>
                           <button onClick={() => selectAll(key)} className="text-[10px] font-bold text-blue-600 px-2 py-1 bg-blue-50 rounded-lg">
@@ -311,18 +409,23 @@ export default function Admin() {
                             OFF
                           </button>
                           <button onClick={exitSelectMode} className="text-[10px] font-bold text-red-500 px-2 py-1 bg-red-50 rounded-lg">
-                            x
+                            ✕
                           </button>
                         </>
                       )}
                     </div>
                   )}
 
-                  <div className="space-y-1.5">
-                    {words.length === 0 && (
+                  <div
+                    ref={listRef}
+                    className="space-y-1.5"
+                    onTouchMove={inReorderMode ? handleTouchMove : undefined}
+                    onTouchEnd={inReorderMode ? handleTouchEnd : undefined}
+                  >
+                    {displayWords.length === 0 && (
                       <p className="text-center text-xs text-gray-400 py-3">{lang === 'es' ? 'Sin palabras' : 'No words'}</p>
                     )}
-                    {words.map((w, wIdx) => {
+                    {displayWords.map((w, wIdx) => {
                       const isEditing = editing === `${sec.adventure}|${w.word}`
 
                       if (isEditing) {
@@ -348,8 +451,43 @@ export default function Admin() {
                               onClick={() => setEditing(null)}
                               className="px-2 py-1 bg-gray-100 text-gray-500 rounded-lg text-[10px] font-bold"
                             >
-                              x
+                              ✕
                             </button>
+                          </div>
+                        )
+                      }
+
+                      if (inReorderMode) {
+                        return (
+                          <div
+                            key={w.word}
+                            ref={el => { itemRefs.current[wIdx] = el }}
+                            className={`rounded-xl border p-2.5 flex items-center gap-2 transition-all ${
+                              dragIdx === wIdx
+                                ? 'bg-indigo-50 border-indigo-300 shadow-lg scale-[1.02]'
+                                : 'bg-white border-gray-100'
+                            }`}
+                          >
+                            <div
+                              className="w-8 h-10 flex items-center justify-center text-gray-400 cursor-grab active:cursor-grabbing touch-none select-none"
+                              onTouchStart={e => handleTouchStart(wIdx, e)}
+                              onMouseDown={() => handleDragStart(wIdx)}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <circle cx="5" cy="3" r="1.5" /><circle cx="11" cy="3" r="1.5" />
+                                <circle cx="5" cy="8" r="1.5" /><circle cx="11" cy="8" r="1.5" />
+                                <circle cx="5" cy="13" r="1.5" /><circle cx="11" cy="13" r="1.5" />
+                              </svg>
+                            </div>
+                            <span className="text-sm font-bold text-indigo-500 w-5 text-center">{wIdx + 1}</span>
+                            {w.image_url ? (
+                              <img src={w.image_url} alt={w.word} className="w-8 h-8 rounded-lg object-cover" />
+                            ) : (
+                              <span className="text-lg w-8 text-center">{w.emoji}</span>
+                            )}
+                            <span className={`font-extrabold text-sm flex-1 ${w.active ? 'text-gray-700' : 'text-gray-400'}`}>
+                              {w.word}
+                            </span>
                           </div>
                         )
                       }
@@ -376,22 +514,6 @@ export default function Admin() {
                           </span>
                           {!inSelectMode && (
                             <>
-                              <div className="flex flex-col gap-0.5">
-                                <button
-                                  onClick={() => handleMove(key, sec.adventure, wIdx, -1)}
-                                  disabled={wIdx === 0}
-                                  className="px-1 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px] font-bold disabled:opacity-20 active:scale-90"
-                                >
-                                  ▲
-                                </button>
-                                <button
-                                  onClick={() => handleMove(key, sec.adventure, wIdx, 1)}
-                                  disabled={wIdx === words.length - 1}
-                                  className="px-1 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px] font-bold disabled:opacity-20 active:scale-90"
-                                >
-                                  ▼
-                                </button>
-                              </div>
                               <button
                                 onClick={() => startEdit(sec.adventure, w)}
                                 className="px-1.5 py-1 bg-gray-100 text-gray-500 rounded-lg text-[10px] font-bold"

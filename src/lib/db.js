@@ -219,13 +219,10 @@ export async function adminBulkToggle(adventure, words, active) {
   return supabase.from('bumblebee_words').update({ active }).eq('adventure', adventure).in('word', words)
 }
 
-export async function adminReorderWord(adventure, word, newOrder) {
-  return supabase.from('bumblebee_words').update({ sort_order: newOrder }).eq('adventure', adventure).eq('word', word)
-}
-
-export async function adminSwapOrder(adventure, wordA, orderA, wordB, orderB) {
-  await supabase.from('bumblebee_words').update({ sort_order: orderB }).eq('adventure', adventure).eq('word', wordA)
-  await supabase.from('bumblebee_words').update({ sort_order: orderA }).eq('adventure', adventure).eq('word', wordB)
+export async function adminSaveOrder(adventure, wordOrders) {
+  for (const { word, sort_order } of wordOrders) {
+    await supabase.from('bumblebee_words').update({ sort_order }).eq('adventure', adventure).eq('word', word)
+  }
 }
 
 export async function adminCloneWord(fromAdventure, word) {
