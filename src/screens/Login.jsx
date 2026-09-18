@@ -34,8 +34,8 @@ export default function Login() {
     <div className="app-shell flex flex-col min-h-screen relative overflow-hidden">
       <img src="/images/login-bg.webp" alt="" className="absolute inset-0 w-full h-full object-cover object-top" />
 
-      <div className="relative z-10 flex-1 flex flex-col overflow-y-auto">
-        <div className="px-8 max-w-sm mx-auto w-full pb-6" style={{ marginTop: '42%' }}>
+      <div className="relative z-10 flex-1 flex flex-col justify-end" style={{ paddingBottom: 'max(16px, 3vh)' }}>
+        <div className="px-8 max-w-sm mx-auto w-full">
           <form onSubmit={handleSubmit} className="space-y-3">
             {isRegister && (
               <input
