@@ -26,7 +26,10 @@ export default function AdventureSelect() {
                 className={`w-full bg-gradient-to-br ${c.gradient} ${c.border} border-2 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform`}
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-4xl">{mode.emoji}</span>
+                  {mode.img
+                    ? <img src={mode.img} alt={mode.label} className="w-12 h-12 object-contain" />
+                    : <span className="text-4xl">{mode.emoji}</span>
+                  }
                   <div>
                     <div className={`font-extrabold text-base ${c.text}`}>{mode.label}</div>
                     <div className="text-xs text-gray-400 font-semibold mt-0.5">

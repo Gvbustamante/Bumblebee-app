@@ -111,6 +111,10 @@ export default function Game({ config, onExit, onExitHome }) {
   const [letterIdx, setLetterIdx] = useState(0)
   const [letterErrors, setLetterErrors] = useState({})
   const [wordReadErrors, setWordReadErrors] = useState(0)
+  const [scrambled, setScrambled] = useState([])
+  const [placed, setPlaced] = useState([])
+  const [sortErrors, setSortErrors] = useState(0)
+  const [shakeIdx, setShakeIdx] = useState(null)
   const [feedback, setFeedback] = useState(null)
   const [startTime, setStartTime] = useState(Date.now())
   const [elapsed, setElapsed] = useState(0)
@@ -123,6 +127,27 @@ export default function Game({ config, onExit, onExitHome }) {
 
   const word = queue[0]
   const letters = word?.word.split('') || []
+
+  function shuffleLetters(arr) {
+    const a = arr.map((l, i) => ({ letter: l, origIdx: i }))
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]]
+    }
+    if (a.length > 1 && a.every((item, idx) => item.origIdx === idx)) {
+      [a[0], a[1]] = [a[1], a[0]]
+    }
+    return a
+  }
+
+  useEffect(() => {
+    if (phase === 'letterSort' && word) {
+      setScrambled(shuffleLetters(letters))
+      setPlaced([])
+      setSortErrors(0)
+      setShakeIdx(null)
+    }
+  }, [phase, word?.word])
 
   useEffect(() => {
     if (blockDone || showResult) { clearInterval(timerRef.current); return }
@@ -159,6 +184,51 @@ export default function Game({ config, onExit, onExitHome }) {
     setFeedback(type)
     clearTimeout(fbRef.current)
     fbRef.current = setTimeout(() => { setFeedback(null); cb?.() }, ms)
+  }
+
+  function handleLetterSortTap(item, scrambledIdx) {
+    const nextCorrect = letters[placed.length]
+    if (item.letter === nextCorrect) {
+      sounds.correct()
+      const newPlaced = [...placed, item]
+      setPlaced(newPlaced)
+      setScrambled(s => s.filter((_, i) => i !== scrambledIdx))
+      if (newPlaced.length === letters.length) {
+        setTimeout(() => {
+          sounds.learned()
+          completeLetterSort()
+        }, 400)
+      }
+    } else {
+      sounds.wrong()
+      setSortErrors(e => e + 1)
+      setShakeIdx(scrambledIdx)
+      setTimeout(() => setShakeIdx(null), 500)
+    }
+  }
+
+  function completeLetterSort() {
+    clearInterval(timerRef.current)
+    const time = Date.now() - startTime
+    const allPerfect = sortErrors === 0
+    if (uid) {
+      recordAttempt(uid, mode, subModeId, word.word, { wordCorrect: true })
+      addStars(uid, mode, allPerfect ? 3 : 1)
+    }
+    setBlockResults(p => [...p, {
+      word: word.word, emoji: word.emoji,
+      perfect: allPerfect, starsEarned: allPerfect ? 3 : 1, time,
+    }])
+    const next = queue.slice(1)
+    if (next.length === 0) {
+      if (uid) addFlower(uid, mode, subModeId)
+      sounds.blockComplete()
+      setTimeout(() => sounds.kidsCheer(), 300)
+      setBlockDone(true)
+    } else {
+      setQueue(next)
+      resetForNextWord()
+    }
   }
 
   function handleCorrect() {
@@ -362,6 +432,7 @@ export default function Game({ config, onExit, onExitHome }) {
 
   const isFamiliarize = phase === 'familiarize'
   const isSpellingPhase = phase === 'spelling'
+  const isLetterSort = phase === 'letterSort'
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 via-white to-purple-50 flex flex-col overflow-hidden">
@@ -383,17 +454,56 @@ export default function Game({ config, onExit, onExitHome }) {
       <div className="text-center mt-2">
         <span className={`inline-block text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${
           isFamiliarize ? 'bg-blue-100 text-blue-600' :
+          isLetterSort ? 'bg-amber-100 text-amber-600' :
           isSpellingPhase ? 'bg-purple-100 text-purple-600' :
           'bg-orange-100 text-orange-600'
         }`}>
           {isFamiliarize ? `👀 ${t('lookAndLearn')}` :
+           isLetterSort ? `🧩 ${t('sortLetters')}` :
            isSpellingPhase ? `🐝 ${t('spellLetters')}` :
            `📖 ${t('readWord')}`}
         </span>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-6">
-        {isFamiliarize ? (
+        {isLetterSort ? (
+          <div className="flex flex-col items-center w-full">
+            {sub.showImage && (
+              <div className="animate-float">
+                <Img w={word} className="text-[80px]" />
+              </div>
+            )}
+
+            <div className="flex gap-2 justify-center mt-4 min-h-[56px]">
+              {letters.map((l, i) => (
+                <div key={i} className={`w-12 h-12 rounded-xl flex items-center justify-center font-extrabold text-xl border-2 transition-all duration-200 ${
+                  i < placed.length
+                    ? 'bg-green-100 border-green-300 text-green-600 scale-95'
+                    : 'bg-gray-50 border-dashed border-gray-300 text-gray-200'
+                }`}>
+                  {i < placed.length ? placed[i].letter : ''}
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-3 justify-center mt-6 flex-wrap">
+              {scrambled.map((item, i) => (
+                <button
+                  key={`${item.origIdx}-${item.letter}`}
+                  onClick={() => handleLetterSortTap(item, i)}
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center font-extrabold text-2xl shadow-md active:scale-90 transition-all duration-200 ${
+                    shakeIdx === i ? 'animate-shake bg-red-100 border-2 border-red-300 text-red-500' :
+                    'bg-white border-2 border-purple-200 text-purple-700'
+                  }`}
+                >
+                  {item.letter}
+                </button>
+              ))}
+            </div>
+
+            <p className="text-center mt-5 text-gray-400 font-semibold text-sm">{t('tapInOrder')}</p>
+          </div>
+        ) : isFamiliarize ? (
           <SwipeCard enabled onSwipeRight={handleFamiliarizeLearned} onSwipeLeft={handleFamiliarizeNotYet}>
             <div className="flex flex-col items-center">
               {sub.showImage && (

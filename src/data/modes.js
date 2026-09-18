@@ -3,6 +3,7 @@ export const MODES = {
     id: 'spellingBee',
     label: 'Spelling Bee',
     emoji: '🐝',
+    img: '/images/mode-spelling-bee.webp',
     color: 'purple',
     subtitle: 'Spell + Read',
     subtitleEs: 'Deletrea + Lee',
@@ -50,6 +51,21 @@ export const MODES = {
         requireReading: true,
       },
       {
+        id: 'letterSort',
+        label: 'Sort Letters',
+        labelEs: 'Ordena Letras',
+        description: 'See the picture, drag letters into the right order',
+        descriptionEs: 'Ve la imagen, ordena las letras',
+        emoji: '🧩',
+        preview: { showImg: true, showTxt: false, showLetters: true, scrambled: true },
+        showImage: true,
+        showWord: false,
+        showLetters: true,
+        requireSpelling: false,
+        requireReading: false,
+        isLetterSort: true,
+      },
+      {
         id: 'imageOnly',
         label: 'Image Only',
         labelEs: 'Solo Imagen',
@@ -69,6 +85,7 @@ export const MODES = {
     id: 'bumblebee',
     label: 'Bumblebee',
     emoji: '🌸',
+    img: '/images/mode-bumblebee.webp',
     color: 'pink',
     subtitle: 'Read the word',
     subtitleEs: 'Lee la palabra',
@@ -107,6 +124,7 @@ export const MODES = {
     id: 'alphabet',
     label: 'ABC',
     emoji: '🔤',
+    img: '/images/mode-alphabet.webp',
     color: 'blue',
     subtitle: 'Learn the alphabet',
     subtitleEs: 'Aprende el abecedario',
@@ -131,6 +149,7 @@ export const MODES = {
     id: 'colors',
     label: 'Colors',
     emoji: '🎨',
+    img: '/images/mode-colors.webp',
     color: 'amber',
     subtitle: 'Learn color names',
     subtitleEs: 'Aprende los colores',
@@ -183,6 +202,7 @@ export const MODES = {
     id: 'shapes',
     label: 'Shapes',
     emoji: '🔷',
+    img: '/images/mode-shapes.webp',
     color: 'indigo',
     subtitle: 'Learn shapes',
     subtitleEs: 'Aprende las formas',
@@ -239,6 +259,7 @@ export function getSubMode(modeId, subModeId) {
 }
 
 export function getInitialPhase(sub) {
+  if (sub.isLetterSort) return 'letterSort'
   if (sub.requireSpelling) return 'spelling'
   if (sub.requireReading) return 'reading'
   return 'familiarize'

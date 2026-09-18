@@ -95,7 +95,10 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
                 active ? `${mc.activeBg} border-2 ${mc.activeBorder}` : 'bg-gray-50 border-2 border-transparent'
               }`}
             >
-              <span className={active ? 'text-2xl' : 'text-xl opacity-60'}>{m.emoji}</span>
+              {m.img
+                ? <img src={m.img} alt={m.label} className={`h-8 w-8 object-contain ${active ? '' : 'opacity-60'}`} />
+                : <span className={active ? 'text-2xl' : 'text-xl opacity-60'}>{m.emoji}</span>
+              }
               <span className={`text-[9px] font-bold mt-0.5 leading-tight ${active ? mc.activeText : 'text-gray-400'}`}>{m.label}</span>
             </button>
           )
@@ -103,8 +106,11 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
       </div>
 
       <div className={`mx-4 mt-3 ${HERO_GRADIENT[modeDef.color]} rounded-3xl p-5 text-white relative overflow-hidden`}>
-        <div className="absolute -right-6 -bottom-6 text-[100px] opacity-10 select-none">{modeDef.emoji}</div>
-        <p className="text-white/70 text-sm font-semibold">{modeDef.emoji} {modeDef.label}</p>
+        {modeDef.img
+          ? <img src={modeDef.img} alt="" className="absolute -right-4 -bottom-4 w-28 opacity-20 select-none" />
+          : <div className="absolute -right-6 -bottom-6 text-[100px] opacity-10 select-none">{modeDef.emoji}</div>
+        }
+        <p className="text-white/70 text-sm font-semibold">{modeDef.label}</p>
         <p className="font-extrabold text-lg mt-0.5">{t('doingAmazing')}</p>
         <div className="flex items-center gap-3 mt-3">
           <div className="flex-1 h-2.5 bg-white/20 rounded-full overflow-hidden">
@@ -138,13 +144,23 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
               <div className="mt-3 bg-white/60 rounded-xl p-3 flex items-center justify-center gap-3">
                 {sub.preview.showImg && <span className="text-2xl">🐱</span>}
                 {sub.preview.showTxt && <span className="font-extrabold text-purple-700 text-lg">CAT</span>}
-                {sub.preview.showLetters && (
+                {sub.preview.showLetters && sub.preview.scrambled ? (
+                  <div className="flex gap-1">
+                    {['T', 'A', 'C'].map((l, i) => (
+                      <span key={i} className="w-7 h-7 bg-amber-100 border border-amber-300 rounded-lg flex items-center justify-center text-amber-700 font-extrabold text-xs">{l}</span>
+                    ))}
+                    <span className="text-gray-400 mx-1">→</span>
+                    {['C', 'A', 'T'].map((l, i) => (
+                      <span key={i} className="w-7 h-7 bg-green-100 border border-green-300 rounded-lg flex items-center justify-center text-green-700 font-extrabold text-xs">{l}</span>
+                    ))}
+                  </div>
+                ) : sub.preview.showLetters ? (
                   <div className="flex gap-1">
                     {['C', 'A', 'T'].map((l, i) => (
                       <span key={i} className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center text-purple-700 font-extrabold text-xs">{l}</span>
                     ))}
                   </div>
-                )}
+                ) : null}
                 {!sub.preview.showTxt && !sub.preview.showLetters && (
                   <span className="text-xs text-gray-400 font-bold">{t('sayTheWord')}</span>
                 )}
