@@ -301,12 +301,16 @@ export async function adminCloneWord(fromAdventure, word) {
   return { ok: true, to: toAdventure }
 }
 
-export async function adminUploadImage(file, word) {
+export async function adminUploadImage(file, word, adventure) {
   const ext = file.name.split('.').pop()
   const path = `words/${word.toLowerCase()}.${ext}`
   const { error } = await supabase.storage.from('bumblebee-images').upload(path, file, { upsert: true })
   if (error) return { error }
   const { data: { publicUrl } } = supabase.storage.from('bumblebee-images').getPublicUrl(path)
-  await supabase.from('bumblebee_words').update({ image_url: publicUrl }).eq('word', word)
-  return { url: publicUrl }
+  const ts = `?t=${Date.now()}`
+  const url = publicUrl + ts
+  let q = supabase.from('bumblebee_words').update({ image_url: url }).eq('word', word)
+  if (adventure) q = q.eq('adventure', adventure)
+  await q
+  return { url }
 }

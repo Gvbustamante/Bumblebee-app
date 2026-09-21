@@ -91,7 +91,7 @@ export default function Admin() {
     const [adventure, category] = addSection.split('|')
     await adminAddWord(adventure, word, newEmoji || '📝', category)
     if (newImage) {
-      await adminUploadImage(newImage, word)
+      await adminUploadImage(newImage, word, adventure)
     }
     setNewWord('')
     setNewEmoji('')
@@ -116,11 +116,11 @@ export default function Admin() {
     else loadAllWords()
   }
 
-  async function handleUpload(word) {
+  async function handleUpload(word, adventure) {
     const file = fileRef.current?.files?.[0]
     if (!file) return
     setUploading(word)
-    await adminUploadImage(file, word)
+    await adminUploadImage(file, word, adventure)
     fileRef.current.value = ''
     setUploading(null)
     loadAllWords()
@@ -529,12 +529,20 @@ export default function Admin() {
                                 {w.active ? 'ON' : 'OFF'}
                               </button>
                               <button
-                                onClick={() => { fileRef.current.onchange = () => handleUpload(w.word); fileRef.current.click() }}
+                                onClick={() => { fileRef.current.onchange = () => handleUpload(w.word, sec.adventure); fileRef.current.click() }}
                                 className="px-1.5 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold"
                                 disabled={uploading === w.word}
                               >
                                 {uploading === w.word ? '...' : 'Img'}
                               </button>
+                              {(sec.adventure === 'spellingBee' || sec.adventure === 'bumblebee') && (
+                                <button
+                                  onClick={() => handleClone(sec.adventure, w.word)}
+                                  className="px-1.5 py-1 bg-purple-50 text-purple-600 rounded-lg text-[10px] font-bold"
+                                >
+                                  Copy
+                                </button>
+                              )}
                               <button
                                 onClick={() => handleDelete(sec.adventure, w.word)}
                                 className="px-1.5 py-1 bg-red-50 text-red-500 rounded-lg text-[10px] font-bold"

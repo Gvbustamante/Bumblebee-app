@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Home from './screens/Home'
 import Game from './screens/Game'
 import Progress from './screens/Progress'
@@ -34,10 +34,12 @@ function MainApp() {
   const [selectedSubMode, setSelectedSubMode] = useState(null)
   const { t } = useLang()
   const { isAdmin } = useAuth()
+  const scrollRef = useRef()
 
   function switchTab(id) {
     setTab(id)
     try { sessionStorage.setItem('sbk-tab', id) } catch {}
+    if (scrollRef.current) scrollRef.current.scrollTo(0, 0)
   }
 
   const TABS = [
@@ -59,7 +61,7 @@ function MainApp() {
 
   return (
     <div className="app-shell flex flex-col min-h-screen bg-white">
-      <div className="flex-1 overflow-y-auto pb-20">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pb-20">
         {tab === 'home' && <Home onStartGame={setGameConfig} selectedSubMode={selectedSubMode} setSelectedSubMode={setSelectedSubMode} />}
         {tab === 'progress' && <Progress />}
         {tab === 'rewards' && <RewardsTab />}
