@@ -331,10 +331,9 @@ export default function Game({ config, onExit, onExitHome }) {
     sounds.learned()
     const time = Date.now() - startTime
     if (uid) {
-      addStars(uid, mode, 1)
       recordAttempt(uid, mode, subModeId, word.word, { wordCorrect: true })
     }
-    setBlockResults(p => [...p, { word: word.word, emoji: word.emoji, perfect: true, starsEarned: 1, time }])
+    setBlockResults(p => [...p, { word: word.word, emoji: word.emoji, perfect: true, starsEarned: 0, time }])
     const next = queue.slice(1)
     if (next.length === 0) {
       if (uid) addFlower(uid, mode, subModeId)
@@ -346,6 +345,12 @@ export default function Game({ config, onExit, onExitHome }) {
       resetForNextWord()
     }
   }, [uid, mode, subModeId, word, queue, startTime])
+
+  useEffect(() => {
+    if (!showResult || !currentResult?.allPerfect) return
+    const t = setTimeout(handleLearned, 2000)
+    return () => clearTimeout(t)
+  }, [showResult, currentResult?.allPerfect, handleLearned])
 
   const handleFamiliarizeNotYet = useCallback(() => {
     sounds.next()

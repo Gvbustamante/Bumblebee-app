@@ -3,7 +3,7 @@ import { getBlocks } from '../data/words'
 import { MODES, getSubMode } from '../data/modes'
 import { useLang } from '../data/i18n'
 import { useAuth } from '../data/AuthContext'
-import { fetchWords, getStars, getAdventureStats, getMastery, getWeakWords } from '../lib/db'
+import { fetchWords, getStars, getAdventureStats, getBulkMastery } from '../lib/db'
 
 export default function Home({ onStartGame, selectedSubMode, setSelectedSubMode }) {
   const { t, lang } = useLang()
@@ -202,18 +202,19 @@ function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
   const [weakWords, setWeakWords] = useState([])
 
   useEffect(() => {
-    if (!session) return
+    if (!session || !words.length) return
     const uid = session.user.id
-    async function load() {
+    getBulkMastery(uid, adventure, subMode).then(bulk => {
       const map = {}
+      const weak = []
       for (const w of words) {
-        map[w.word] = await getMastery(uid, adventure, subMode, w.word)
+        const m = bulk[w.word]?.mastery ?? -1
+        map[w.word] = m
+        if (m >= 0 && m < 60) weak.push(w)
       }
       setMasteryMap(map)
-      const weak = await getWeakWords(uid, adventure, subMode, words)
       setWeakWords(weak)
-    }
-    load()
+    })
   }, [session, adventure, subMode, words])
 
   return (
