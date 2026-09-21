@@ -224,7 +224,7 @@ export default function Game({ config, onExit, onExitHome }) {
     const time = Date.now() - startTime
     const allPerfect = sortErrors === 0
     if (uid) {
-      recordAttempt(uid, mode, subModeId, word.word, { wordCorrect: true })
+      recordAttempt(uid, mode, subModeId, word.word, { wordCorrect: true, timeMs: time })
       addStars(uid, mode, allPerfect ? 3 : 1)
     }
     setBlockResults(p => [...p, {
@@ -292,7 +292,7 @@ export default function Game({ config, onExit, onExitHome }) {
 
     if (uid) {
       recordAttempt(uid, mode, subModeId, word.word, {
-        letterResults: lr, wordCorrect: wordOk,
+        letterResults: lr, wordCorrect: wordOk, timeMs: time,
       })
     }
 
@@ -331,7 +331,7 @@ export default function Game({ config, onExit, onExitHome }) {
     sounds.learned()
     const time = Date.now() - startTime
     if (uid) {
-      recordAttempt(uid, mode, subModeId, word.word, { wordCorrect: true })
+      recordAttempt(uid, mode, subModeId, word.word, { wordCorrect: true, timeMs: time })
     }
     setBlockResults(p => [...p, { word: word.word, emoji: word.emoji, perfect: true, starsEarned: 0, time }])
     const next = queue.slice(1)
@@ -347,10 +347,16 @@ export default function Game({ config, onExit, onExitHome }) {
   }, [uid, mode, subModeId, word, queue, startTime])
 
   useEffect(() => {
-    if (!showResult || !currentResult?.allPerfect) return
-    const t = setTimeout(handleLearned, 2000)
-    return () => clearTimeout(t)
-  }, [showResult, currentResult?.allPerfect, handleLearned])
+    if (!showResult || !currentResult) return
+    if (currentResult.allPerfect) {
+      const t = setTimeout(handleLearned, 2000)
+      return () => clearTimeout(t)
+    }
+    if (blockIndex === -1) {
+      const t = setTimeout(handleNotYet, 2500)
+      return () => clearTimeout(t)
+    }
+  }, [showResult, currentResult, blockIndex, handleLearned, handleNotYet])
 
   const handleFamiliarizeNotYet = useCallback(() => {
     sounds.next()
@@ -756,7 +762,7 @@ export default function Game({ config, onExit, onExitHome }) {
 
       <div className="text-center pb-5 text-xs font-bold" style={{ color: '#B0A0C0' }}>
         {MODES[mode]?.label} · {lang === 'es' ? sub.labelEs : sub.label}
-        {blockIndex >= 0 ? ` · ${t('block')} ${blockIndex + 1}` : blockIndex === -2 ? ` · ${t('allWords')}` : ` · ${t('review')}`}
+        {blockIndex >= 0 ? ` · ${t('block')} ${blockIndex + 1}` : blockIndex === -2 ? ` · ${t('allWords')}` : blockIndex === -3 ? ` · ${t('randomBlock')}` : ` · ${t('review')}`}
       </div>
     </div>
   )

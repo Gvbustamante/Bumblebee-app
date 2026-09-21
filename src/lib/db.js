@@ -50,6 +50,7 @@ export async function recordAttempt(userId, adventure, subMode, word, attempt) {
     word,
     word_correct: attempt.wordCorrect ?? null,
     letter_results: attempt.letterResults ?? null,
+    time_ms: attempt.timeMs ?? null,
   })
 }
 
@@ -99,6 +100,37 @@ export async function getWeakWords(userId, adventure, subMode, words) {
     if (m >= 0 && m < 60) results.push(w)
   }
   return results
+}
+
+export async function getWeakWordsGlobal(userId, adventure) {
+  const { data } = await supabase
+    .from('bumblebee_attempts')
+    .select('word, word_correct, letter_results, time_ms, created_at')
+    .eq('user_id', userId)
+    .eq('adventure', adventure)
+    .order('created_at', { ascending: false })
+  if (!data?.length) return []
+  const byWord = {}
+  for (const a of data) {
+    if (!byWord[a.word]) byWord[a.word] = []
+    if (byWord[a.word].length < 8) byWord[a.word].push(a)
+  }
+  const result = []
+  for (const [word, attempts] of Object.entries(byWord)) {
+    let t = 0, ok = 0, totalTime = 0, timeCount = 0
+    for (const a of attempts) {
+      if (a.letter_results) for (const r of a.letter_results) { t++; if (r) ok++ }
+      if (a.word_correct !== null) { t++; if (a.word_correct) ok++ }
+      if (a.time_ms) { totalTime += a.time_ms; timeCount++ }
+    }
+    const mastery = t ? Math.round((ok / t) * 100) : -1
+    const avgTime = timeCount ? totalTime / timeCount : 0
+    if (mastery >= 0 && (mastery < 60 || avgTime > 10000)) {
+      result.push({ word, mastery, avgTime })
+    }
+  }
+  result.sort((a, b) => a.mastery - b.mastery)
+  return result
 }
 
 export async function getBulkMastery(userId, adventure, subMode) {

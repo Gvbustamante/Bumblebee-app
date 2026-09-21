@@ -278,7 +278,7 @@ function SettingsTab() {
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('wordsPerBlock')}</label>
           <div className="flex gap-2 mt-2">
-            {[3, 5, 7, 10].map(s => (
+            {[3, 5, 7, 10, 14].map(s => (
               <button
                 key={s}
                 onClick={() => updateProfile({ block_size: s })}

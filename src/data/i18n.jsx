@@ -127,6 +127,8 @@ const S = {
     skipWord: 'Skip',
     weakWordsBlock: 'Weak Words',
     weakWordsDesc: 'Words that need more practice',
+    randomBlock: 'Random',
+    randomBlockDesc: 'Surprise words every time!',
   },
   es: {
     greeting: '¡Hola, Pequeño Aprendiz!',
@@ -254,6 +256,8 @@ const S = {
     skipWord: 'Saltar',
     weakWordsBlock: 'Palabras Débiles',
     weakWordsDesc: 'Palabras que necesitan más práctica',
+    randomBlock: 'Aleatorio',
+    randomBlockDesc: '¡Palabras sorpresa cada vez!',
   },
 }
 

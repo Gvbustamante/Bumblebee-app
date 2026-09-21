@@ -3,7 +3,7 @@ import { getBlocks } from '../data/words'
 import { MODES, getSubMode } from '../data/modes'
 import { useLang } from '../data/i18n'
 import { useAuth } from '../data/AuthContext'
-import { fetchWords, getStars, getAdventureStats, getBulkMastery } from '../lib/db'
+import { fetchWords, getStars, getAdventureStats, getBulkMastery, getWeakWordsGlobal, fetchAllWords } from '../lib/db'
 
 export default function Home({ onStartGame, selectedSubMode, setSelectedSubMode }) {
   const { t, lang } = useLang()
@@ -200,21 +200,30 @@ function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
   const blocks = getBlocks(words, bSize)
   const [masteryMap, setMasteryMap] = useState({})
   const [weakWords, setWeakWords] = useState([])
+  const [allAdventureWords, setAllAdventureWords] = useState([])
 
   useEffect(() => {
     if (!session || !words.length) return
     const uid = session.user.id
     getBulkMastery(uid, adventure, subMode).then(bulk => {
       const map = {}
-      const weak = []
       for (const w of words) {
-        const m = bulk[w.word]?.mastery ?? -1
-        map[w.word] = m
-        if (m >= 0 && m < 60) weak.push(w)
+        map[w.word] = bulk[w.word]?.mastery ?? -1
       }
       setMasteryMap(map)
-      setWeakWords(weak)
     })
+    getWeakWordsGlobal(uid, adventure).then(globalWeak => {
+      const wordSet = new Set(words.map(w => w.word))
+      const matched = globalWeak
+        .filter(gw => wordSet.has(gw.word))
+        .map(gw => {
+          const orig = words.find(w => w.word === gw.word)
+          return orig ? { ...orig, mastery: gw.mastery, avgTime: gw.avgTime } : null
+        })
+        .filter(Boolean)
+      setWeakWords(matched)
+    })
+    fetchAllWords(adventure).then(setAllAdventureWords)
   }, [session, adventure, subMode, words])
 
   return (
@@ -354,18 +363,15 @@ function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
                 </div>
               </div>
               <div className="flex gap-1.5 flex-wrap">
-                {weakWords.slice(0, 10).map(w => {
-                  const m = masteryMap[w.word] ?? -1
-                  return (
-                    <span
-                      key={w.word}
-                      className="text-[11px] font-bold px-2 py-1 rounded-lg"
-                      style={{ background: '#FFF1F5', color: '#C0457B' }}
-                    >
-                      {w.emoji} {w.word}
-                    </span>
-                  )
-                })}
+                {weakWords.slice(0, 10).map(w => (
+                  <span
+                    key={w.word}
+                    className="text-[11px] font-bold px-2 py-1 rounded-lg"
+                    style={{ background: '#FFF1F5', color: '#C0457B' }}
+                  >
+                    {w.emoji} {w.word}
+                  </span>
+                ))}
                 {weakWords.length > 10 && (
                   <span className="text-[11px] font-bold px-2 py-1 rounded-lg" style={{ background: '#FFF1F5', color: '#F58BB5' }}>
                     +{weakWords.length - 10}
@@ -384,6 +390,43 @@ function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
               <div className="w-px" style={{ background: '#F3F0F8' }} />
               <button
                 onClick={() => onStart(weakWords.slice(0, bSize), -1, true)}
+                className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
+                style={{ color: '#F58BB5' }}
+              >
+                🏆 {t('challenge')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {allAdventureWords.length > bSize && (
+          <div className="bg-brand-card rounded-2xl shadow-card overflow-hidden" style={{ border: `1.5px solid ${mc.modeBg}` }}>
+            <div className="p-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg" style={{ background: mc.modeBg }}>🎲</div>
+                <div className="flex-1">
+                  <span className="font-extrabold text-sm" style={{ color: mc.accent }}>{t('randomBlock')}</span>
+                  <div className="text-[11px] font-semibold" style={{ color: '#9B6DDF' }}>{t('randomBlockDesc')}</div>
+                </div>
+              </div>
+            </div>
+            <div className="flex" style={{ borderTop: '1px solid #F3F0F8' }}>
+              <button
+                onClick={() => {
+                  const shuffled = [...allAdventureWords].sort(() => Math.random() - 0.5)
+                  onStart(shuffled.slice(0, bSize), -3, false)
+                }}
+                className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
+                style={{ color: mc.accent }}
+              >
+                🧸 {t('practice')}
+              </button>
+              <div className="w-px" style={{ background: '#F3F0F8' }} />
+              <button
+                onClick={() => {
+                  const shuffled = [...allAdventureWords].sort(() => Math.random() - 0.5)
+                  onStart(shuffled.slice(0, bSize), -3, true)
+                }}
                 className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
                 style={{ color: '#F58BB5' }}
               >
