@@ -170,6 +170,7 @@ export default function Game({ config, onExit, onExitHome }) {
 
   useEffect(() => {
     if (!isChallenge || !word || blockDone || showResult) return
+    if (sub.requireSpelling) return
     const t = setTimeout(() => sounds.speak(word.word, voiceLang), 400)
     return () => clearTimeout(t)
   }, [word?.word, blockDone, showResult, isChallenge])
@@ -252,8 +253,10 @@ export default function Game({ config, onExit, onExitHome }) {
       fb('correct', 400, () => {
         if (letterIdx >= letters.length - 1) {
           const next = getNextPhase('spelling', sub)
-          if (next && next !== 'result') setPhase(next)
-          else completeAttempt(true)
+          if (next && next !== 'result') {
+            setPhase(next)
+            if (isChallenge) setTimeout(() => sounds.speak(word.word, voiceLang), 300)
+          } else completeAttempt(true)
         } else {
           setLetterIdx(i => i + 1)
         }
