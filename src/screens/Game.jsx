@@ -125,6 +125,7 @@ export default function Game({ config, onExit, onExitHome }) {
   const [placed, setPlaced] = useState([])
   const [sortErrors, setSortErrors] = useState(0)
   const [shakeIdx, setShakeIdx] = useState(null)
+  const [dragLetter, setDragLetter] = useState(null)
   const [feedback, setFeedback] = useState(null)
   const [startTime, setStartTime] = useState(Date.now())
   const [elapsed, setElapsed] = useState(0)
@@ -187,6 +188,7 @@ export default function Game({ config, onExit, onExitHome }) {
     setFeedback(null)
     setShowResult(false)
     setCurrentResult(null)
+    setDragLetter(null)
     setStartTime(Date.now())
     setElapsed(0)
     clearTimeout(fbRef.current)
@@ -401,7 +403,8 @@ export default function Game({ config, onExit, onExitHome }) {
   if (blockDone) {
     const totalStars = blockResults.reduce((s, r) => s + r.starsEarned, 0)
     return (
-      <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-6 animate-pop">
+      <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-6 animate-pop relative">
+        <div className="absolute top-4 right-4 z-10"><MuteBtn mc={mc} /></div>
         <img src="/images/block-complete.webp" alt="" className="w-72 mb-3 animate-float" style={{ filter: 'drop-shadow(0 8px 20px rgba(155,109,223,0.2))' }} />
         <h1 className="text-2xl font-extrabold" style={{ color: '#57358F' }}>{t('blockComplete')}</h1>
         <div className="flex items-center gap-1.5 mt-2">
@@ -451,6 +454,7 @@ export default function Game({ config, onExit, onExitHome }) {
     const { lr, allPerfect } = currentResult
     return (
       <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-6 animate-pop overflow-hidden">
+        <div className="absolute top-4 right-4 z-10"><MuteBtn mc={mc} /></div>
         <SwipeCard enabled onSwipeRight={handleLearned} onSwipeLeft={handleNotYet}>
           <div className="flex flex-col items-center">
             {sub.showImage && <Img w={word} className="text-[80px]" />}
@@ -555,7 +559,20 @@ export default function Game({ config, onExit, onExitHome }) {
 
       <div className="flex-1 flex flex-col items-center justify-center px-6">
         {isLetterSort ? (
-          <div className="flex flex-col items-center w-full">
+          <div
+            className="flex flex-col items-center w-full"
+            onTouchMove={(e) => {
+              if (!dragLetter) return
+              e.preventDefault()
+              const touch = e.touches[0]
+              setDragLetter(prev => prev ? { ...prev, x: touch.clientX, y: touch.clientY } : null)
+            }}
+            onTouchEnd={() => {
+              if (!dragLetter) return
+              handleLetterSortTap(dragLetter.item, dragLetter.idx)
+              setDragLetter(null)
+            }}
+          >
             {sub.showImage && (
               <div className="animate-float">
                 <Img w={word} className="text-[80px]" />
@@ -568,10 +585,10 @@ export default function Game({ config, onExit, onExitHome }) {
                   key={i}
                   className="w-12 h-12 rounded-xl flex items-center justify-center font-extrabold text-xl transition-all duration-200"
                   style={{
-                    background: i < placed.length ? '#E8F5E0' : '#F3F0F8',
-                    border: i < placed.length ? '2px solid #8ED36B' : '2px dashed #D0C8E0',
+                    background: i < placed.length ? '#E8F5E0' : i === placed.length && dragLetter ? `${mc.modeBg}` : '#F3F0F8',
+                    border: i < placed.length ? '2px solid #8ED36B' : i === placed.length && dragLetter ? `2px solid ${mc.accent}` : '2px dashed #D0C8E0',
                     color: i < placed.length ? '#4A8C2A' : '#D0C8E0',
-                    transform: i < placed.length ? 'scale(0.95)' : 'none',
+                    transform: i < placed.length ? 'scale(0.95)' : i === placed.length && dragLetter ? 'scale(1.05)' : 'none',
                   }}
                 >
                   {i < placed.length ? placed[i].letter : ''}
@@ -584,19 +601,41 @@ export default function Game({ config, onExit, onExitHome }) {
                 <button
                   key={`${item.origIdx}-${item.letter}`}
                   onClick={() => handleLetterSortTap(item, i)}
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center font-extrabold text-2xl shadow-md active:scale-90 transition-all duration-200 ${
+                  onTouchStart={(e) => {
+                    const touch = e.touches[0]
+                    setDragLetter({ item, idx: i, x: touch.clientX, y: touch.clientY })
+                  }}
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center font-extrabold text-2xl shadow-md transition-all duration-200 ${
                     shakeIdx === i ? 'animate-shake' : ''
                   }`}
                   style={{
                     background: shakeIdx === i ? '#FFF1F5' : '#FFFFFF',
                     border: shakeIdx === i ? '2px solid #F58BB5' : `2px solid ${mc.modeBg}`,
                     color: shakeIdx === i ? '#C0457B' : mc.accent,
+                    opacity: dragLetter?.idx === i ? 0.3 : 1,
+                    touchAction: 'none',
                   }}
                 >
                   {item.letter}
                 </button>
               ))}
             </div>
+
+            {dragLetter && (
+              <div
+                className="fixed z-50 w-16 h-16 rounded-2xl flex items-center justify-center font-extrabold text-2xl shadow-xl pointer-events-none"
+                style={{
+                  left: dragLetter.x - 32,
+                  top: dragLetter.y - 64,
+                  background: mc.modeBg,
+                  border: `3px solid ${mc.accent}`,
+                  color: mc.accent,
+                  transform: 'scale(1.15)',
+                }}
+              >
+                {dragLetter.item.letter}
+              </div>
+            )}
 
             <p className="text-center mt-5 font-semibold text-sm" style={{ color: '#9B6DDF' }}>{t('tapInOrder')}</p>
           </div>
