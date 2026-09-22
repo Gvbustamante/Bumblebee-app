@@ -35,6 +35,7 @@ export function AuthProvider({ children }) {
     if (data) {
       sounds.muteFx = !!data.mute_fx
       sounds.muteVoice = !!data.mute_voice
+      supabase.from('bumblebee_profiles').update({ last_active_at: new Date().toISOString() }).eq('id', uid).then(() => {})
     }
     setLoading(false)
   }
