@@ -169,16 +169,16 @@ export default function Game({ config, onExit, onExitHome }) {
   }, [startTime, blockDone, showResult])
 
   useEffect(() => {
-    if (!word || blockDone || showResult) return
+    if (!isChallenge || !word || blockDone || showResult) return
     const t = setTimeout(() => sounds.speak(word.word, voiceLang), 400)
     return () => clearTimeout(t)
-  }, [word?.word, blockDone, showResult])
+  }, [word?.word, blockDone, showResult, isChallenge])
 
   useEffect(() => {
-    if (phase !== 'spelling' || !letters[letterIdx]) return
+    if (!isChallenge || phase !== 'spelling' || !letters[letterIdx]) return
     const t = setTimeout(() => sounds.speakLetter(letters[letterIdx], voiceLang), 200)
     return () => clearTimeout(t)
-  }, [letterIdx, phase])
+  }, [letterIdx, phase, isChallenge])
 
   function resetForNextWord() {
     setPhase(getInitialPhase(sub))
@@ -203,18 +203,18 @@ export default function Game({ config, onExit, onExitHome }) {
   function handleLetterSortTap(item, scrambledIdx) {
     const nextCorrect = letters[placed.length]
     if (item.letter === nextCorrect) {
-      sounds.correct()
+      if (isChallenge) sounds.correct()
       const newPlaced = [...placed, item]
       setPlaced(newPlaced)
       setScrambled(s => s.filter((_, i) => i !== scrambledIdx))
       if (newPlaced.length === letters.length) {
         setTimeout(() => {
-          sounds.learned()
+          if (isChallenge) sounds.learned()
           completeLetterSort()
         }, 400)
       }
     } else {
-      sounds.wrong()
+      if (isChallenge) sounds.wrong()
       setSortErrors(e => e + 1)
       setShakeIdx(scrambledIdx)
       setTimeout(() => setShakeIdx(null), 500)
@@ -236,8 +236,8 @@ export default function Game({ config, onExit, onExitHome }) {
     const next = queue.slice(1)
     if (next.length === 0) {
       if (uid) addFlower(uid, mode, subModeId)
-      sounds.blockComplete()
-      setTimeout(() => sounds.kidsCheer(), 300)
+      if (isChallenge) sounds.blockComplete()
+      if (isChallenge) setTimeout(() => sounds.kidsCheer(), 300)
       setBlockDone(true)
     } else {
       setQueue(next)
@@ -248,7 +248,7 @@ export default function Game({ config, onExit, onExitHome }) {
   function handleCorrect() {
     if (feedback) return
     if (phase === 'spelling') {
-      sounds.correct()
+      if (isChallenge) sounds.correct()
       fb('correct', 400, () => {
         if (letterIdx >= letters.length - 1) {
           const next = getNextPhase('spelling', sub)
@@ -259,29 +259,29 @@ export default function Game({ config, onExit, onExitHome }) {
         }
       })
     } else if (phase === 'reading') {
-      sounds.correct()
+      if (isChallenge) sounds.correct()
       completeAttempt(true)
     }
   }
 
   function handleIncorrect() {
     if (feedback) return
-    sounds.wrong()
+    if (isChallenge) sounds.wrong()
     if (phase === 'spelling') {
       setLetterErrors(p => ({ ...p, [letterIdx]: (p[letterIdx] || 0) + 1 }))
       fb('wrong', 600, () => {
-        sounds.speakLetter(letters[letterIdx], voiceLang)
+        if (isChallenge) sounds.speakLetter(letters[letterIdx], voiceLang)
       })
     } else if (phase === 'reading') {
       setWordReadErrors(e => e + 1)
       fb('wrong', 600, () => {
-        sounds.speak(word.word, voiceLang)
+        if (isChallenge) sounds.speak(word.word, voiceLang)
       })
     }
   }
 
   function handleSkip() {
-    sounds.next()
+    if (isChallenge) sounds.next()
     setQueue(q => [...q.slice(1), q[0]])
     resetForNextWord()
   }
@@ -304,7 +304,7 @@ export default function Game({ config, onExit, onExitHome }) {
 
   const handleLearned = useCallback(() => {
     if (!currentResult) return
-    sounds.learned()
+    if (isChallenge) sounds.learned()
     const earned = currentResult.allPerfect ? 3 : 1
     if (uid) addStars(uid, mode, earned)
     setBlockResults(p => [...p, {
@@ -314,23 +314,23 @@ export default function Game({ config, onExit, onExitHome }) {
     const next = queue.slice(1)
     if (next.length === 0) {
       if (uid) addFlower(uid, mode, subModeId)
-      sounds.blockComplete()
-      setTimeout(() => sounds.kidsCheer(), 300)
+      if (isChallenge) sounds.blockComplete()
+      if (isChallenge) setTimeout(() => sounds.kidsCheer(), 300)
       setBlockDone(true)
     } else {
       setQueue(next)
       resetForNextWord()
     }
-  }, [currentResult, uid, mode, subModeId, word, queue])
+  }, [currentResult, uid, mode, subModeId, word, queue, isChallenge])
 
   const handleNotYet = useCallback(() => {
-    sounds.next()
+    if (isChallenge) sounds.next()
     setQueue(q => [...q.slice(1), q[0]])
     resetForNextWord()
-  }, [])
+  }, [isChallenge])
 
   const handleFamiliarizeLearned = useCallback(() => {
-    sounds.learned()
+    if (isChallenge) sounds.learned()
     const time = Date.now() - startTime
     if (uid) {
       recordAttempt(uid, mode, subModeId, word.word, { wordCorrect: true, timeMs: time })
@@ -339,14 +339,14 @@ export default function Game({ config, onExit, onExitHome }) {
     const next = queue.slice(1)
     if (next.length === 0) {
       if (uid) addFlower(uid, mode, subModeId)
-      sounds.blockComplete()
-      setTimeout(() => sounds.kidsCheer(), 300)
+      if (isChallenge) sounds.blockComplete()
+      if (isChallenge) setTimeout(() => sounds.kidsCheer(), 300)
       setBlockDone(true)
     } else {
       setQueue(next)
       resetForNextWord()
     }
-  }, [uid, mode, subModeId, word, queue, startTime])
+  }, [uid, mode, subModeId, word, queue, startTime, isChallenge])
 
   useEffect(() => {
     if (!showResult || !currentResult) return
@@ -361,10 +361,10 @@ export default function Game({ config, onExit, onExitHome }) {
   }, [showResult, currentResult, blockIndex, handleLearned, handleNotYet])
 
   const handleFamiliarizeNotYet = useCallback(() => {
-    sounds.next()
+    if (isChallenge) sounds.next()
     setQueue(q => [...q.slice(1), q[0]])
     resetForNextWord()
-  }, [])
+  }, [isChallenge])
 
   const fmt = ms => `${Math.floor(ms / 1000)}.${Math.floor((ms % 1000) / 100)}s`
 
