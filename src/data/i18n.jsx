@@ -129,6 +129,13 @@ const S = {
     weakWordsDesc: 'Words that need more practice',
     randomBlock: 'Random',
     randomBlockDesc: 'Surprise words every time!',
+    myWords: 'My Words',
+    lookHowMuch: 'Look how much you learned!',
+    iKnow: 'I know these!',
+    imLearning: "I'm learning!",
+    newWordsLabel: 'New!',
+    myGarden: 'My Garden',
+    gardenGrows: 'Your garden grows when you learn!',
   },
   es: {
     greeting: '¡Hola, Pequeño Aprendiz!',
@@ -258,6 +265,13 @@ const S = {
     weakWordsDesc: 'Palabras que necesitan más práctica',
     randomBlock: 'Aleatorio',
     randomBlockDesc: '¡Palabras sorpresa cada vez!',
+    myWords: 'Mis Palabras',
+    lookHowMuch: '¡Mira cuánto aprendiste!',
+    iKnow: '¡Ya me las sé!',
+    imLearning: '¡Estoy aprendiendo!',
+    newWordsLabel: '¡Nuevas!',
+    myGarden: 'Mi Jardín',
+    gardenGrows: '¡Tu jardín crece cuando aprendes!',
   },
 }
 

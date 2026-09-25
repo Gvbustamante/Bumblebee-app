@@ -185,6 +185,34 @@ export async function getWordStats(userId, adventure, subMode) {
   return { practiced: wordSet.size, mastered, weak }
 }
 
+export async function getWordMasteryMap(userId, adventure) {
+  const { data } = await supabase
+    .from('bumblebee_attempts')
+    .select('word, sub_mode, word_correct, letter_results')
+    .eq('user_id', userId)
+    .eq('adventure', adventure)
+    .order('created_at', { ascending: false })
+  if (!data?.length) return {}
+  const byKey = {}
+  for (const a of data) {
+    const k = `${a.word}|${a.sub_mode}`
+    if (!byKey[k]) byKey[k] = []
+    if (byKey[k].length < 5) byKey[k].push(a)
+  }
+  const result = {}
+  for (const [k, attempts] of Object.entries(byKey)) {
+    const word = k.split('|')[0]
+    let t = 0, ok = 0
+    for (const a of attempts) {
+      if (a.letter_results) for (const r of a.letter_results) { t++; if (r) ok++ }
+      if (a.word_correct !== null) { t++; if (a.word_correct) ok++ }
+    }
+    const m = t ? Math.round((ok / t) * 100) : 0
+    if (result[word] === undefined || m > result[word]) result[word] = m
+  }
+  return result
+}
+
 export async function getAdventureStats(userId, adventure) {
   const { data } = await supabase
     .from('bumblebee_attempts')

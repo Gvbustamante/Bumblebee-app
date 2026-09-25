@@ -108,58 +108,99 @@ function RewardsTab() {
     getGarden(session.user.id, profile.adventure).then(setGarden)
   }, [session, profile?.adventure])
 
-  const gardenRows = []
-  const flowerEmojis = ['🌻', '🌷', '🌼', '🌸', '🌺', '💐']
-  for (let i = 0; i < Math.min(garden.flowers, 30); i++) {
-    gardenRows.push(flowerEmojis[i % flowerEmojis.length])
-  }
+  const FLOWERS = ['🌻', '🌷', '🌼', '🌸', '🌺', '🌹', '💐', '🪻']
+  const spots = []
+  const rows = [
+    { y: 55, cols: 6, x0: 4, dx: 16, sz: 'text-lg', op: 0.7 },
+    { y: 44, cols: 5, x0: 11, dx: 17, sz: 'text-xl', op: 0.8 },
+    { y: 33, cols: 6, x0: 4, dx: 16, sz: 'text-2xl', op: 0.9 },
+    { y: 22, cols: 5, x0: 11, dx: 17, sz: 'text-2xl', op: 0.95 },
+    { y: 10, cols: 6, x0: 4, dx: 16, sz: 'text-3xl', op: 1 },
+  ]
+  rows.forEach((row, ri) => {
+    for (let c = 0; c < row.cols; c++) {
+      spots.push({
+        left: `${row.x0 + c * row.dx}%`,
+        bottom: `${row.y}%`,
+        size: row.sz, opacity: row.op,
+        flower: FLOWERS[(ri * 7 + c * 3) % FLOWERS.length],
+      })
+    }
+  })
+  const flowerCount = Math.min(garden.flowers, spots.length)
+  const beeCount = Math.min(garden.bees, 6)
 
   return (
-    <div className="animate-fade-up">
-      <div className="px-5 pt-5 pb-3">
-        <h1 className="text-xl font-extrabold text-gray-800">{t('beeGarden')}</h1>
-        <p className="text-sm text-gray-400 font-semibold">{t('completeBlocks')}</p>
+    <div className="animate-fade-up bg-brand-bg min-h-screen">
+      <div className="px-5 pt-5 pb-2">
+        <h1 className="text-xl font-extrabold" style={{ color: '#4A8C2A' }}>🌿 {t('myGarden')}</h1>
+        <p className="text-xs font-semibold" style={{ color: '#6BAF4A' }}>{t('gardenGrows')}</p>
       </div>
 
-      <div className="mx-4 bg-gradient-to-b from-green-50 to-emerald-50 border-2 border-green-200 rounded-3xl p-6 min-h-[300px] relative overflow-hidden">
-        <div className="text-center mb-4">
-          {garden.bees > 0
-            ? <div className="text-4xl animate-float">{'🐝 '.repeat(Math.min(garden.bees, 5))}</div>
-            : <div className="text-4xl">☁️</div>}
-        </div>
+      <div className="mx-4 rounded-3xl overflow-hidden relative" style={{
+        height: '440px',
+        background: 'linear-gradient(180deg, #87CEEB 0%, #B8E4FF 28%, #7BC950 28.5%, #6BAF4A 55%, #5A9E3A 100%)',
+        border: '2.5px solid #5A9E3A',
+        boxShadow: '0 8px 32px rgba(90,158,58,0.25)',
+      }}>
+        <div className="absolute text-4xl opacity-50 animate-float select-none" style={{ left: '8%', top: '2%' }}>☁️</div>
+        <div className="absolute text-3xl opacity-40 animate-float select-none" style={{ left: '50%', top: '5%', animationDelay: '1.5s' }}>☁️</div>
+        <div className="absolute text-2xl opacity-35 animate-float select-none" style={{ left: '78%', top: '7%', animationDelay: '3s' }}>☁️</div>
+        <div className="absolute text-3xl animate-sparkle select-none" style={{ right: '6%', top: '2%' }}>☀️</div>
 
-        {garden.flowers > 0 ? (
-          <div className="flex flex-wrap gap-2 justify-center">
-            {gardenRows.map((f, i) => (
-              <span key={i} className="text-3xl" style={{ animationDelay: `${i * 0.1}s` }}>{f}</span>
-            ))}
+        <div className="absolute text-lg animate-float select-none" style={{ left: '28%', top: '12%', animationDelay: '0.5s' }}>🦋</div>
+        <div className="absolute text-lg animate-float select-none" style={{ right: '22%', top: '9%', animationDelay: '2s' }}>🦋</div>
+
+        <div className="absolute text-5xl select-none" style={{ left: '0%', top: '14%' }}>🌳</div>
+        <div className="absolute text-5xl select-none" style={{ right: '0%', top: '16%' }}>🌳</div>
+        <div className="absolute text-4xl select-none" style={{ left: '13%', top: '18%', opacity: 0.5 }}>🌲</div>
+        <div className="absolute text-4xl select-none" style={{ right: '13%', top: '20%', opacity: 0.5 }}>🌲</div>
+
+        {Array.from({ length: beeCount }).map((_, i) => (
+          <div key={`b${i}`} className="absolute animate-float select-none" style={{
+            left: `${18 + i * 14}%`, top: `${14 + (i % 3) * 4}%`,
+            animationDelay: `${i * 0.5}s`, fontSize: '1.4rem',
+          }}>🐝</div>
+        ))}
+
+        {spots.slice(0, flowerCount).map((s, i) => (
+          <div key={`f${i}`} className={`absolute ${s.size} select-none`}
+            style={{ left: s.left, bottom: s.bottom, opacity: s.opacity }}>
+            {s.flower}
           </div>
-        ) : (
-          <div className="text-center text-gray-400 mt-8">
-            <div className="text-5xl mb-3">🌱</div>
-            <p className="font-bold text-sm">{t('gardenEmpty')}</p>
-            <p className="text-xs mt-1">{t('plantFlowers')}</p>
+        ))}
+
+        <div className="absolute text-lg select-none" style={{ left: '6%', bottom: '3%' }}>🍄</div>
+        <div className="absolute text-lg select-none" style={{ right: '8%', bottom: '4%' }}>🍄</div>
+        <div className="absolute text-xs select-none" style={{ left: '22%', bottom: '2%' }}>🐛</div>
+        <div className="absolute text-xs select-none" style={{ right: '24%', bottom: '3%' }}>🐞</div>
+        <div className="absolute text-sm select-none" style={{ left: '42%', bottom: '2%', opacity: 0.5 }}>🌿</div>
+        <div className="absolute text-sm select-none" style={{ right: '38%', bottom: '5%', opacity: 0.5 }}>🌿</div>
+
+        {flowerCount === 0 && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ top: '28%' }}>
+            <div className="text-6xl mb-3 animate-float">🌱</div>
+            <p className="font-extrabold text-white text-base drop-shadow-md">{t('gardenEmpty')}</p>
+            <p className="text-xs text-white/80 font-semibold mt-1 drop-shadow">{t('plantFlowers')}</p>
           </div>
         )}
-
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-green-200/50 to-transparent" />
       </div>
 
-      <div className="mx-4 mt-4 grid grid-cols-3 gap-3">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 text-center">
-          <div className="text-2xl mb-1">⭐</div>
-          <div className="text-2xl font-extrabold text-yellow-600">{stars}</div>
-          <div className="text-xs text-yellow-500 font-bold">{t('totalStars')}</div>
+      <div className="mx-4 mt-4 grid grid-cols-3 gap-2.5 pb-4">
+        <div className="rounded-2xl p-3.5 text-center" style={{ background: '#FFFBEA', border: '2px solid #FFD84D' }}>
+          <div className="text-2xl mb-0.5">⭐</div>
+          <div className="text-2xl font-extrabold" style={{ color: '#A07B00' }}>{stars}</div>
+          <div className="text-[10px] font-bold" style={{ color: '#D4A017' }}>{t('totalStars')}</div>
         </div>
-        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 text-center">
-          <div className="text-2xl mb-1">🌻</div>
-          <div className="text-2xl font-extrabold text-yellow-600">{garden.flowers}</div>
-          <div className="text-xs text-yellow-500 font-bold">{t('flowers')}</div>
+        <div className="rounded-2xl p-3.5 text-center" style={{ background: '#E8F5E0', border: '2px solid #8ED36B' }}>
+          <div className="text-2xl mb-0.5">🌻</div>
+          <div className="text-2xl font-extrabold" style={{ color: '#4A8C2A' }}>{garden.flowers}</div>
+          <div className="text-[10px] font-bold" style={{ color: '#6BAF4A' }}>{t('flowers')}</div>
         </div>
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
-          <div className="text-2xl mb-1">🐝</div>
-          <div className="text-2xl font-extrabold text-amber-600">{garden.bees}</div>
-          <div className="text-xs text-amber-500 font-bold">{t('bees')}</div>
+        <div className="rounded-2xl p-3.5 text-center" style={{ background: '#FFF8E1', border: '2px solid #FFD84D' }}>
+          <div className="text-2xl mb-0.5">🐝</div>
+          <div className="text-2xl font-extrabold" style={{ color: '#D4A017' }}>{garden.bees}</div>
+          <div className="text-[10px] font-bold" style={{ color: '#D4A017' }}>{t('bees')}</div>
         </div>
       </div>
     </div>
