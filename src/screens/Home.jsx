@@ -243,6 +243,74 @@ function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
       </div>
 
       <div className="px-4 space-y-3 pb-4">
+        {allAdventureWords.length > bSize && (
+          <div className="bg-brand-card rounded-2xl shadow-card overflow-hidden" style={{ border: `1.5px solid ${mc.modeBg}` }}>
+            <div className="p-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg" style={{ background: mc.modeBg }}>🎲</div>
+                <div className="flex-1">
+                  <span className="font-extrabold text-sm" style={{ color: mc.accent }}>{t('randomBlock')}</span>
+                  <div className="text-[11px] font-semibold" style={{ color: '#9B6DDF' }}>{t('randomBlockDesc')}</div>
+                </div>
+              </div>
+            </div>
+            <div className="flex" style={{ borderTop: '1px solid #F3F0F8' }}>
+              <button
+                onClick={() => {
+                  const shuffled = [...allAdventureWords].sort(() => Math.random() - 0.5)
+                  onStart(shuffled.slice(0, bSize), -3, false)
+                }}
+                className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
+                style={{ color: mc.accent }}
+              >
+                🧸 {t('practice')}
+              </button>
+              <div className="w-px" style={{ background: '#F3F0F8' }} />
+              <button
+                onClick={() => {
+                  const shuffled = [...allAdventureWords].sort(() => Math.random() - 0.5)
+                  onStart(shuffled.slice(0, bSize), -3, true)
+                }}
+                className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
+                style={{ color: '#F58BB5' }}
+              >
+                🏆 {t('challenge')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {words.length > 0 && (
+          <div className="bg-brand-card rounded-2xl shadow-card overflow-hidden" style={{ border: `1.5px solid ${mc.modeBg}` }}>
+            <div className="p-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg" style={{ background: mc.modeBg }}>📚</div>
+                <div className="flex-1">
+                  <span className="font-extrabold text-sm" style={{ color: mc.accent }}>{t('allWords')}</span>
+                  <div className="text-[11px] font-semibold" style={{ color: '#9B6DDF' }}>{words.length} {t('words')}</div>
+                </div>
+              </div>
+            </div>
+            <div className="flex" style={{ borderTop: '1px solid #F3F0F8' }}>
+              <button
+                onClick={() => onStart(words, -2, false)}
+                className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
+                style={{ color: mc.accent }}
+              >
+                🧸 {t('practice')}
+              </button>
+              <div className="w-px" style={{ background: '#F3F0F8' }} />
+              <button
+                onClick={() => onStart(words, -2, true)}
+                className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
+                style={{ color: '#F58BB5' }}
+              >
+                🏆 {t('challenge')}
+              </button>
+            </div>
+          </div>
+        )}
+
         {blocks.map((block, i) => {
           const allMastered = block.every(w => (masteryMap[w.word] ?? -1) >= 80)
           const anyPracticed = block.some(w => (masteryMap[w.word] ?? -1) >= 0)
@@ -295,57 +363,18 @@ function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
                   })}
                 </div>
               </div>
-              <div className="flex" style={{ borderTop: '1px solid #F3F0F8' }}>
+              <div style={{ borderTop: '1px solid #F3F0F8' }}>
                 <button
                   onClick={() => onStart(block, i, false)}
-                  className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
+                  className="w-full py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
                   style={{ color: mc.accent }}
                 >
                   🧸 {t('practice')}
-                </button>
-                <div className="w-px" style={{ background: '#F3F0F8' }} />
-                <button
-                  onClick={() => onStart(block, i, true)}
-                  className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
-                  style={{ color: '#F58BB5' }}
-                >
-                  🏆 {t('challenge')}
                 </button>
               </div>
             </div>
           )
         })}
-
-        {words.length > 0 && (
-          <div className="bg-brand-card rounded-2xl shadow-card overflow-hidden" style={{ border: `1.5px solid ${mc.modeBg}` }}>
-            <div className="p-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg" style={{ background: mc.modeBg }}>📚</div>
-                <div className="flex-1">
-                  <span className="font-extrabold text-sm" style={{ color: mc.accent }}>{t('allWords')}</span>
-                  <div className="text-[11px] font-semibold" style={{ color: '#9B6DDF' }}>{words.length} {t('words')}</div>
-                </div>
-              </div>
-            </div>
-            <div className="flex" style={{ borderTop: '1px solid #F3F0F8' }}>
-              <button
-                onClick={() => onStart(words, -2, false)}
-                className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
-                style={{ color: mc.accent }}
-              >
-                🧸 {t('practice')}
-              </button>
-              <div className="w-px" style={{ background: '#F3F0F8' }} />
-              <button
-                onClick={() => onStart(words, -2, true)}
-                className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
-                style={{ color: '#F58BB5' }}
-              >
-                🏆 {t('challenge')}
-              </button>
-            </div>
-          </div>
-        )}
 
         {weakWords.length > 0 && (
           <div
@@ -379,58 +408,13 @@ function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
                 )}
               </div>
             </div>
-            <div className="flex" style={{ borderTop: '1px solid #F3F0F8' }}>
+            <div style={{ borderTop: '1px solid #F3F0F8' }}>
               <button
                 onClick={() => onStart(weakWords.slice(0, bSize), -1, false)}
-                className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
+                className="w-full py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
                 style={{ color: '#C0457B' }}
               >
                 🧸 {t('practice')}
-              </button>
-              <div className="w-px" style={{ background: '#F3F0F8' }} />
-              <button
-                onClick={() => onStart(weakWords.slice(0, bSize), -1, true)}
-                className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
-                style={{ color: '#F58BB5' }}
-              >
-                🏆 {t('challenge')}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {allAdventureWords.length > bSize && (
-          <div className="bg-brand-card rounded-2xl shadow-card overflow-hidden" style={{ border: `1.5px solid ${mc.modeBg}` }}>
-            <div className="p-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg" style={{ background: mc.modeBg }}>🎲</div>
-                <div className="flex-1">
-                  <span className="font-extrabold text-sm" style={{ color: mc.accent }}>{t('randomBlock')}</span>
-                  <div className="text-[11px] font-semibold" style={{ color: '#9B6DDF' }}>{t('randomBlockDesc')}</div>
-                </div>
-              </div>
-            </div>
-            <div className="flex" style={{ borderTop: '1px solid #F3F0F8' }}>
-              <button
-                onClick={() => {
-                  const shuffled = [...allAdventureWords].sort(() => Math.random() - 0.5)
-                  onStart(shuffled.slice(0, bSize), -3, false)
-                }}
-                className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
-                style={{ color: mc.accent }}
-              >
-                🧸 {t('practice')}
-              </button>
-              <div className="w-px" style={{ background: '#F3F0F8' }} />
-              <button
-                onClick={() => {
-                  const shuffled = [...allAdventureWords].sort(() => Math.random() - 0.5)
-                  onStart(shuffled.slice(0, bSize), -3, true)
-                }}
-                className="flex-1 py-3 text-center text-xs font-bold active:opacity-70 transition-colors"
-                style={{ color: '#F58BB5' }}
-              >
-                🏆 {t('challenge')}
               </button>
             </div>
           </div>
