@@ -12,7 +12,7 @@
   }
 }
 
-/* Phone-shell on desktop */
+/* Desktop container */
 @media (min-width: 480px) {
   body {
     background: linear-gradient(135deg, #57358F 0%, #9B6DDF 50%, #F2E8FF 100%);
@@ -20,6 +20,8 @@
     justify-content: center;
   }
   .app-shell {
+    max-width: 640px;
+    width: 100%;
     box-shadow: 0 0 60px rgba(87,53,143,0.22);
     background-color: #F7F3FF;
   }

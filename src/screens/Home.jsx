@@ -111,7 +111,7 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
 
       <div className="px-4 mt-5 pb-4">
         <h2 className="text-base font-extrabold text-brand-dark mb-3 px-1">{t('howToLearn')}</h2>
-        <div className="space-y-3">
+        <div className="grid gap-3 md:grid-cols-2">
           {modeDef.subModes.map((sub, i) => (
             <button
               key={sub.id}
@@ -222,7 +222,8 @@ function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
         </div>
       </div>
 
-      <div className="px-4 space-y-3 pb-4">
+      <div className="px-4 pb-4">
+        <div className="grid gap-3 md:grid-cols-2 mb-3">
         {allAdventureWords.length > bSize && (
           <div className="bg-brand-card rounded-2xl shadow-card overflow-hidden" style={{ border: `1.5px solid ${mc.modeBg}` }}>
             <div className="p-4">
@@ -291,6 +292,8 @@ function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
           </div>
         )}
 
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
         {blocks.map((block, i) => {
           const allMastered = block.every(w => (masteryMap[w.word] ?? -1) >= 80)
           const anyPracticed = block.some(w => (masteryMap[w.word] ?? -1) >= 0)
@@ -356,9 +359,10 @@ function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
           )
         })}
 
+        </div>
         {weakWords.length > 0 && (
           <div
-            className="bg-brand-card rounded-2xl shadow-card overflow-hidden"
+            className="bg-brand-card rounded-2xl shadow-card overflow-hidden mt-3"
             style={{ border: '1.5px solid #F58BB5' }}
           >
             <div className="p-4">
