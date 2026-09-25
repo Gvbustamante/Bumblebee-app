@@ -64,8 +64,24 @@ export default function Admin() {
   }
 
   async function loadUsers() {
-    const { data } = await supabase.from('bumblebee_profiles').select('id, name, role, adventure, created_at')
-    setUsers(data || [])
+    const { data: profiles } = await supabase
+      .from('bumblebee_profiles')
+      .select('id, name, role, adventure, created_at, last_active_at')
+      .order('last_active_at', { ascending: false })
+    const { data: timeData } = await supabase
+      .from('bumblebee_attempts')
+      .select('user_id, time_ms')
+    const timeByUser = {}
+    const countByUser = {}
+    for (const a of (timeData || [])) {
+      timeByUser[a.user_id] = (timeByUser[a.user_id] || 0) + (a.time_ms || 0)
+      countByUser[a.user_id] = (countByUser[a.user_id] || 0) + 1
+    }
+    setUsers((profiles || []).map(u => ({
+      ...u,
+      totalTimeMs: timeByUser[u.id] || 0,
+      totalAttempts: countByUser[u.id] || 0,
+    })))
   }
 
   function toggleCollapse(key) {
@@ -91,7 +107,7 @@ export default function Admin() {
     const [adventure, category] = addSection.split('|')
     await adminAddWord(adventure, word, newEmoji || '📝', category)
     if (newImage) {
-      await adminUploadImage(newImage, word)
+      await adminUploadImage(newImage, word, adventure)
     }
     setNewWord('')
     setNewEmoji('')
@@ -116,11 +132,11 @@ export default function Admin() {
     else loadAllWords()
   }
 
-  async function handleUpload(word) {
+  async function handleUpload(word, adventure) {
     const file = fileRef.current?.files?.[0]
     if (!file) return
     setUploading(word)
-    await adminUploadImage(file, word)
+    await adminUploadImage(file, word, adventure)
     fileRef.current.value = ''
     setUploading(null)
     loadAllWords()
@@ -529,12 +545,20 @@ export default function Admin() {
                                 {w.active ? 'ON' : 'OFF'}
                               </button>
                               <button
-                                onClick={() => { fileRef.current.onchange = () => handleUpload(w.word); fileRef.current.click() }}
+                                onClick={() => { fileRef.current.onchange = () => handleUpload(w.word, sec.adventure); fileRef.current.click() }}
                                 className="px-1.5 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold"
                                 disabled={uploading === w.word}
                               >
                                 {uploading === w.word ? '...' : 'Img'}
                               </button>
+                              {(sec.adventure === 'spellingBee' || sec.adventure === 'bumblebee') && (
+                                <button
+                                  onClick={() => handleClone(sec.adventure, w.word)}
+                                  className="px-1.5 py-1 bg-purple-50 text-purple-600 rounded-lg text-[10px] font-bold"
+                                >
+                                  Copy
+                                </button>
+                              )}
                               <button
                                 onClick={() => handleDelete(sec.adventure, w.word)}
                                 className="px-1.5 py-1 bg-red-50 text-red-500 rounded-lg text-[10px] font-bold"
@@ -559,24 +583,58 @@ export default function Admin() {
         <h2 className="text-lg font-extrabold text-gray-800">{t('users')}</h2>
       </div>
       <div className="px-4 space-y-2">
-        {users.map(u => (
-          <div key={u.id} className="bg-white rounded-xl shadow-card border border-gray-100 p-3 flex items-center gap-3">
-            <div className="flex-1">
-              <div className="font-bold text-sm text-gray-700">{u.name || 'Sin nombre'}</div>
-              <div className="text-[10px] text-gray-400">{u.adventure || '—'} · {u.role}</div>
+        {users.map(u => {
+          const lastActive = u.last_active_at ? new Date(u.last_active_at) : null
+          const now = new Date()
+          let agoText = '—'
+          if (lastActive) {
+            const diffMs = now - lastActive
+            const mins = Math.floor(diffMs / 60000)
+            const hrs = Math.floor(mins / 60)
+            const days = Math.floor(hrs / 24)
+            if (mins < 1) agoText = lang === 'es' ? 'Ahora' : 'Now'
+            else if (mins < 60) agoText = `${mins}m`
+            else if (hrs < 24) agoText = `${hrs}h`
+            else agoText = `${days}d`
+          }
+          const totalMins = Math.round(u.totalTimeMs / 60000)
+          const timeText = totalMins < 1 ? (u.totalAttempts > 0 ? '<1 min' : '—') : totalMins < 60 ? `${totalMins} min` : `${Math.floor(totalMins / 60)}h ${totalMins % 60}m`
+
+          return (
+            <div key={u.id} className="bg-white rounded-xl shadow-card border border-gray-100 p-3">
+              <div className="flex items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-sm text-gray-700">{u.name || 'Sin nombre'}</div>
+                  <div className="text-[10px] text-gray-400">{u.adventure || '—'} · {u.role}</div>
+                </div>
+                {u.id !== profile?.id && (
+                  <button
+                    onClick={() => toggleAdmin(u.id, u.role)}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold flex-shrink-0 ${
+                      u.role === 'admin' ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-600'
+                    }`}
+                  >
+                    {u.role === 'admin' ? t('removeAdmin') : t('makeAdmin')}
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-3 mt-2">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-50">
+                  <span className="text-[10px]">🕐</span>
+                  <span className="text-[10px] font-bold text-blue-600">{agoText}</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-purple-50">
+                  <span className="text-[10px]">⏱️</span>
+                  <span className="text-[10px] font-bold text-purple-600">{timeText}</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-green-50">
+                  <span className="text-[10px]">✏️</span>
+                  <span className="text-[10px] font-bold text-green-600">{u.totalAttempts}</span>
+                </div>
+              </div>
             </div>
-            {u.id !== profile?.id && (
-              <button
-                onClick={() => toggleAdmin(u.id, u.role)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold ${
-                  u.role === 'admin' ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-600'
-                }`}
-              >
-                {u.role === 'admin' ? t('removeAdmin') : t('makeAdmin')}
-              </button>
-            )}
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

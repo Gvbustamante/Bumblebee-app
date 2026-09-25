@@ -31,63 +31,63 @@ export default function Login() {
   }
 
   return (
-    <div className="app-shell flex flex-col min-h-screen bg-gradient-to-b from-purple-50 to-white items-center justify-center px-6">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="text-6xl mb-3">🐝</div>
-          <h1 className="text-2xl font-extrabold text-purple-700">Spelling Bee Kids</h1>
-          <p className="text-sm text-gray-400 font-semibold mt-1">
+    <div className="app-shell status-bar-blur flex flex-col min-h-screen relative overflow-hidden">
+      <img src="/images/login-bg.webp" alt="" className="absolute inset-0 w-full h-full object-cover object-top" />
+
+      <div className="relative z-10 flex-1 flex flex-col justify-end" style={{ paddingBottom: 'max(60px, 8vh)' }}>
+        <div className="px-8 max-w-sm mx-auto w-full">
+          <p className="text-center text-sm text-purple-700 font-extrabold mb-3">
             {isRegister ? t('createAccount') : t('welcomeBack')}
           </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-3">
-          {isRegister && (
+          <form onSubmit={handleSubmit} className="space-y-3">
+            {isRegister && (
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder={t('enterName')}
+                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-bold text-gray-700 bg-white/80 backdrop-blur-sm"
+                required
+              />
+            )}
             <input
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder={t('enterName')}
-              className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none font-bold text-gray-700"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder={t('email')}
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-bold text-gray-700 bg-white/80 backdrop-blur-sm"
               required
             />
-          )}
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder={t('email')}
-            className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none font-bold text-gray-700"
-            required
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder={t('password')}
-            className="w-full px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none font-bold text-gray-700"
-            minLength={6}
-            required
-          />
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder={t('password')}
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none font-bold text-gray-700 bg-white/80 backdrop-blur-sm"
+              minLength={6}
+              required
+            />
 
-          {error && <p className="text-red-500 text-xs font-bold text-center">{error}</p>}
-          {success && <p className="text-green-500 text-xs font-bold text-center">{success}</p>}
+            {error && <p className="text-red-500 text-xs font-bold text-center">{error}</p>}
+            {success && <p className="text-green-500 text-xs font-bold text-center">{success}</p>}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 bg-purple-600 text-white font-extrabold rounded-xl shadow-btn active:scale-[0.98] transition-transform disabled:opacity-50 text-base"
+            >
+              {loading ? '...' : isRegister ? t('register') : t('login')}
+            </button>
+          </form>
 
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-purple-600 text-white font-extrabold rounded-xl shadow-btn active:scale-[0.98] transition-transform disabled:opacity-50"
+            onClick={() => { setIsRegister(!isRegister); setError(''); setSuccess('') }}
+            className="w-full mt-3 text-sm text-purple-700 font-bold text-center bg-purple-100 py-2.5 rounded-xl"
+            type="button"
           >
-            {loading ? '...' : isRegister ? t('register') : t('login')}
+            {isRegister ? t('hasAccount') : t('noAccount')}
           </button>
-        </form>
-
-        <button
-          onClick={() => { setIsRegister(!isRegister); setError(''); setSuccess('') }}
-          className="w-full mt-4 text-sm text-purple-500 font-bold text-center"
-        >
-          {isRegister ? t('hasAccount') : t('noAccount')}
-        </button>
+        </div>
       </div>
     </div>
   )

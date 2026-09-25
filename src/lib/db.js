@@ -50,6 +50,7 @@ export async function recordAttempt(userId, adventure, subMode, word, attempt) {
     word,
     word_correct: attempt.wordCorrect ?? null,
     letter_results: attempt.letterResults ?? null,
+    time_ms: attempt.timeMs ?? null,
   })
 }
 
@@ -101,6 +102,71 @@ export async function getWeakWords(userId, adventure, subMode, words) {
   return results
 }
 
+export async function getWeakWordsGlobal(userId, adventure) {
+  const { data } = await supabase
+    .from('bumblebee_attempts')
+    .select('word, word_correct, letter_results, time_ms, created_at')
+    .eq('user_id', userId)
+    .eq('adventure', adventure)
+    .order('created_at', { ascending: false })
+  if (!data?.length) return []
+  const byWord = {}
+  for (const a of data) {
+    if (!byWord[a.word]) byWord[a.word] = []
+    if (byWord[a.word].length < 8) byWord[a.word].push(a)
+  }
+  const result = []
+  for (const [word, attempts] of Object.entries(byWord)) {
+    let t = 0, ok = 0, totalTime = 0, timeCount = 0
+    for (const a of attempts) {
+      if (a.letter_results) for (const r of a.letter_results) { t++; if (r) ok++ }
+      if (a.word_correct !== null) { t++; if (a.word_correct) ok++ }
+      if (a.time_ms) { totalTime += a.time_ms; timeCount++ }
+    }
+    const mastery = t ? Math.round((ok / t) * 100) : -1
+    const avgTime = timeCount ? totalTime / timeCount : 0
+    if (mastery >= 0 && (mastery < 60 || avgTime > 10000)) {
+      result.push({ word, mastery, avgTime })
+    }
+  }
+  result.sort((a, b) => a.mastery - b.mastery)
+  return result
+}
+
+export async function getBulkMastery(userId, adventure, subMode) {
+  const { data } = await supabase
+    .from('bumblebee_attempts')
+    .select('word, word_correct, letter_results, created_at')
+    .eq('user_id', userId)
+    .eq('adventure', adventure)
+    .eq('sub_mode', subMode)
+    .order('created_at', { ascending: false })
+  if (!data?.length) return {}
+  const byWord = {}
+  for (const a of data) {
+    if (!byWord[a.word]) byWord[a.word] = []
+    if (byWord[a.word].length < 5) byWord[a.word].push(a)
+  }
+  const result = {}
+  for (const [word, attempts] of Object.entries(byWord)) {
+    let t = 0, ok = 0
+    for (const a of attempts) {
+      if (a.letter_results) for (const r of a.letter_results) { t++; if (r) ok++ }
+      if (a.word_correct !== null) { t++; if (a.word_correct) ok++ }
+    }
+    const mastery = t ? Math.round((ok / t) * 100) : 0
+    const letterMastery = word.split('').map((_, i) => {
+      let lok = 0, lt = 0
+      for (const a of attempts) {
+        if (a.letter_results?.[i] !== undefined) { lt++; if (a.letter_results[i]) lok++ }
+      }
+      return lt ? Math.round((lok / lt) * 100) : -1
+    })
+    result[word] = { mastery, letterMastery }
+  }
+  return result
+}
+
 export async function getWordStats(userId, adventure, subMode) {
   const { data } = await supabase
     .from('bumblebee_attempts')
@@ -119,26 +185,65 @@ export async function getWordStats(userId, adventure, subMode) {
   return { practiced: wordSet.size, mastered, weak }
 }
 
+export async function getWordMasteryMap(userId, adventure) {
+  const { data } = await supabase
+    .from('bumblebee_attempts')
+    .select('word, sub_mode, word_correct, letter_results')
+    .eq('user_id', userId)
+    .eq('adventure', adventure)
+    .order('created_at', { ascending: false })
+  if (!data?.length) return {}
+  const byKey = {}
+  for (const a of data) {
+    const k = `${a.word}|${a.sub_mode}`
+    if (!byKey[k]) byKey[k] = []
+    if (byKey[k].length < 5) byKey[k].push(a)
+  }
+  const result = {}
+  for (const [k, attempts] of Object.entries(byKey)) {
+    const word = k.split('|')[0]
+    let t = 0, ok = 0
+    for (const a of attempts) {
+      if (a.letter_results) for (const r of a.letter_results) { t++; if (r) ok++ }
+      if (a.word_correct !== null) { t++; if (a.word_correct) ok++ }
+    }
+    const m = t ? Math.round((ok / t) * 100) : 0
+    if (result[word] === undefined || m > result[word]) result[word] = m
+  }
+  return result
+}
+
 export async function getAdventureStats(userId, adventure) {
   const { data } = await supabase
     .from('bumblebee_attempts')
-    .select('word, sub_mode')
+    .select('word, sub_mode, word_correct, letter_results, created_at')
     .eq('user_id', userId)
     .eq('adventure', adventure)
+    .order('created_at', { ascending: false })
   if (!data?.length) return { practiced: 0, mastered: 0, weak: 0 }
-  const wordSet = new Set(data.map(r => r.word))
-  let mastered = 0, weak = 0
-  const subModes = [...new Set(data.map(r => r.sub_mode))]
-  for (const word of wordSet) {
-    let best = -1
-    for (const sm of subModes) {
-      const m = await getMastery(userId, adventure, sm, word)
-      if (m > best) best = m
-    }
-    if (best >= 80) mastered++
-    else if (best >= 0 && best < 60) weak++
+  const byKey = {}
+  for (const a of data) {
+    const k = `${a.word}|${a.sub_mode}`
+    if (!byKey[k]) byKey[k] = []
+    if (byKey[k].length < 5) byKey[k].push(a)
   }
-  return { practiced: wordSet.size, mastered, weak }
+  const bestByWord = {}
+  for (const [k, attempts] of Object.entries(byKey)) {
+    const word = k.split('|')[0]
+    let t = 0, ok = 0
+    for (const a of attempts) {
+      if (a.letter_results) for (const r of a.letter_results) { t++; if (r) ok++ }
+      if (a.word_correct !== null) { t++; if (a.word_correct) ok++ }
+    }
+    const m = t ? Math.round((ok / t) * 100) : 0
+    if (bestByWord[word] === undefined || m > bestByWord[word]) bestByWord[word] = m
+  }
+  let mastered = 0, weak = 0
+  for (const m of Object.values(bestByWord)) {
+    if (m >= 80) mastered++
+    else if (m < 60) weak++
+  }
+  return { practiced: Object.keys(bestByWord).length, mastered, weak }
 }
 
 export async function addFlower(userId, adventure, subMode) {
@@ -256,12 +361,16 @@ export async function adminCloneWord(fromAdventure, word) {
   return { ok: true, to: toAdventure }
 }
 
-export async function adminUploadImage(file, word) {
+export async function adminUploadImage(file, word, adventure) {
   const ext = file.name.split('.').pop()
   const path = `words/${word.toLowerCase()}.${ext}`
   const { error } = await supabase.storage.from('bumblebee-images').upload(path, file, { upsert: true })
   if (error) return { error }
   const { data: { publicUrl } } = supabase.storage.from('bumblebee-images').getPublicUrl(path)
-  await supabase.from('bumblebee_words').update({ image_url: publicUrl }).eq('word', word)
-  return { url: publicUrl }
+  const ts = `?t=${Date.now()}`
+  const url = publicUrl + ts
+  let q = supabase.from('bumblebee_words').update({ image_url: url }).eq('word', word)
+  if (adventure) q = q.eq('adventure', adventure)
+  await q
+  return { url }
 }
