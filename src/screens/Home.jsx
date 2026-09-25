@@ -102,9 +102,10 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
           </p>
           <button
             onClick={() => updateProfile({ adventure: null })}
-            className="mt-3 text-white/60 text-[11px] font-bold underline underline-offset-2 active:opacity-70"
+            className="mt-3 px-5 py-2 rounded-full font-extrabold text-sm active:scale-95 transition-transform"
+            style={{ background: 'rgba(255,255,255,0.25)', color: '#fff', border: '2px solid rgba(255,255,255,0.4)' }}
           >
-            {t('changeAdventure')}
+            🗺️ {t('changeAdventure')}
           </button>
         </div>
       </div>
