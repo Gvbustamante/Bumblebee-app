@@ -415,7 +415,7 @@ export default function Game({ config, onExit, onExitHome }) {
           <span className="text-xl font-extrabold" style={{ color: '#D4A017' }}>+{totalStars}</span>
         </div>
 
-        <div className="bg-brand-card rounded-2xl shadow-card p-4 w-full max-w-sm mt-5 space-y-1.5" style={{ border: '1px solid #E8E0F0' }}>
+        <div className="bg-brand-card rounded-2xl shadow-card p-4 w-full max-w-sm lg:max-w-lg mt-5 space-y-1.5" style={{ border: '1px solid #E8E0F0' }}>
           {blockResults.map((r, i) => (
             <div key={i} className="flex items-center gap-3 py-1.5" style={{ borderBottom: i < blockResults.length - 1 ? '1px solid #F3F0F8' : 'none' }}>
               <span className="text-2xl w-8 text-center">{r.emoji}</span>
@@ -426,7 +426,7 @@ export default function Game({ config, onExit, onExitHome }) {
           ))}
         </div>
 
-        <div className="flex gap-3 w-full max-w-sm mt-6">
+        <div className="flex gap-3 w-full max-w-sm lg:max-w-lg mt-6">
           <button
             onClick={onExitHome}
             className="flex-1 py-3.5 bg-brand-card rounded-2xl font-extrabold active:scale-95 transition-transform text-sm shadow-card"
@@ -496,7 +496,7 @@ export default function Game({ config, onExit, onExitHome }) {
           </div>
         </SwipeCard>
 
-        <div className="flex gap-3 w-full max-w-xs mt-6">
+        <div className="flex gap-3 w-full max-w-xs lg:max-w-sm mt-6">
           <button
             onClick={handleNotYet}
             className="flex-1 py-4 rounded-2xl font-extrabold active:scale-95 transition-transform"

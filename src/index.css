@@ -26,6 +26,11 @@
     background-color: #F7F3FF;
   }
 }
+@media (min-width: 1024px) {
+  .app-shell {
+    max-width: 960px;
+  }
+}
 
 /* Animations */
 @keyframes fadeSlideUp {

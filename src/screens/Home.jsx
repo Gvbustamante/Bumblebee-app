@@ -294,8 +294,11 @@ function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
         )}
 
         </div>
-        <div className="grid gap-3 md:grid-cols-2">
-        {blocks.map((block, i) => {
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        {(() => {
+          const maxBlocks = profile?.max_blocks
+          return maxBlocks ? blocks.slice(0, maxBlocks) : blocks
+        })().map((block, i) => {
           const allMastered = block.every(w => (masteryMap[w.word] ?? -1) >= 80)
           const anyPracticed = block.some(w => (masteryMap[w.word] ?? -1) >= 0)
           const masteredCount = block.filter(w => (masteryMap[w.word] ?? -1) >= 80).length

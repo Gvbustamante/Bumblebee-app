@@ -136,6 +136,8 @@ const S = {
     newWordsLabel: 'New!',
     myGarden: 'My Garden',
     gardenGrows: 'Your garden grows when you learn!',
+    blocksToShow: 'Blocks to show',
+    allBlocks: 'All',
   },
   es: {
     greeting: '¡Hola, Pequeño Aprendiz!',
@@ -272,6 +274,8 @@ const S = {
     newWordsLabel: '¡Nuevas!',
     myGarden: 'Mi Jardín',
     gardenGrows: '¡Tu jardín crece cuando aprendes!',
+    blocksToShow: 'Bloques visibles',
+    allBlocks: 'Todos',
   },
 }
 

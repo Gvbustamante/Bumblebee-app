@@ -70,7 +70,7 @@ function MainApp() {
         {tab === 'admin' && isAdmin && <Admin />}
       </div>
 
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[640px] bg-white/95 backdrop-blur-md border-t border-purple-100 shadow-nav z-50">
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[640px] lg:max-w-[960px] bg-white/95 backdrop-blur-md border-t border-purple-100 shadow-nav z-50">
         <div className="flex pb-safe">
           {TABS.map(tb => {
             const active = tab === tb.id
@@ -137,8 +137,7 @@ function RewardsTab() {
         <p className="text-xs font-semibold" style={{ color: '#6BAF4A' }}>{t('gardenGrows')}</p>
       </div>
 
-      <div className="mx-4 rounded-3xl overflow-hidden relative" style={{
-        height: '440px',
+      <div className="mx-4 rounded-3xl overflow-hidden relative h-[440px] lg:h-[540px]" style={{
         background: 'linear-gradient(180deg, #87CEEB 0%, #B8E4FF 28%, #7BC950 28.5%, #6BAF4A 55%, #5A9E3A 100%)',
         border: '2.5px solid #5A9E3A',
         boxShadow: '0 8px 32px rgba(90,158,58,0.25)',
@@ -334,6 +333,23 @@ function SettingsTab() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
+          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('blocksToShow')}</label>
+          <div className="flex gap-2 mt-2 flex-wrap">
+            {[null, 1, 2, 3, 5, 10].map(v => (
+              <button
+                key={v ?? 'all'}
+                onClick={() => updateProfile({ max_blocks: v })}
+                className={`flex-1 min-w-[40px] py-2.5 rounded-xl font-extrabold text-sm transition-all ${
+                  (profile?.max_blocks ?? null) === v ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
+                }`}
+              >
+                {v === null ? t('allBlocks') : v}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('imageSize')}</label>
           <div className="flex gap-2 mt-2">
             {[{ id: 'small', label: t('imgSmall') }, { id: 'medium', label: t('imgMedium') }, { id: 'large', label: t('imgLarge') }].map(s => (
@@ -429,7 +445,7 @@ function HelpTab() {
       <div className="px-5 pt-5 pb-3">
         <h1 className="text-xl font-extrabold text-gray-800">{t('helpTitle')}</h1>
       </div>
-      <div className="px-4 grid gap-3 md:grid-cols-2">
+      <div className="px-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {steps.map((s, i) => (
           <div key={i} className="bg-white rounded-2xl shadow-card border border-gray-100 p-4 flex gap-4 items-start">
             <div className="text-3xl mt-0.5">{s.icon}</div>
@@ -439,7 +455,7 @@ function HelpTab() {
             </div>
           </div>
         ))}
-        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-4 text-center md:col-span-2">
+        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-4 text-center md:col-span-2 lg:col-span-3">
           <div className="text-2xl mb-1">🐝</div>
           <div className="text-xs font-bold text-yellow-600">{t('helpTip')}</div>
         </div>
