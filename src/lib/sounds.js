@@ -54,8 +54,43 @@ const sounds = {
   },
 
   blockComplete() {
-    const notes = [523, 659, 784, 1047, 784, 1047]
-    notes.forEach((f, i) => setTimeout(() => tone(f, 0.15), i * 120))
+    if (this._muteFx) return
+    try {
+      const c = ctx()
+      const now = c.currentTime
+      const fanfare = [
+        { f: 523, t: 0, d: 0.12 },
+        { f: 659, t: 0.1, d: 0.12 },
+        { f: 784, t: 0.2, d: 0.12 },
+        { f: 1047, t: 0.35, d: 0.3 },
+        { f: 1175, t: 0.55, d: 0.12 },
+        { f: 1319, t: 0.65, d: 0.12 },
+        { f: 1568, t: 0.8, d: 0.5 },
+      ]
+      fanfare.forEach(n => {
+        const o = c.createOscillator()
+        const g = c.createGain()
+        o.type = 'triangle'
+        o.frequency.value = n.f
+        g.gain.setValueAtTime(0.25, now + n.t)
+        g.gain.exponentialRampToValueAtTime(0.01, now + n.t + n.d)
+        o.connect(g).connect(c.destination)
+        o.start(now + n.t)
+        o.stop(now + n.t + n.d + 0.05)
+      })
+      const chord = [1047, 1319, 1568]
+      chord.forEach(f => {
+        const o = c.createOscillator()
+        const g = c.createGain()
+        o.type = 'sine'
+        o.frequency.value = f
+        g.gain.setValueAtTime(0.15, now + 0.9)
+        g.gain.exponentialRampToValueAtTime(0.01, now + 1.8)
+        o.connect(g).connect(c.destination)
+        o.start(now + 0.9)
+        o.stop(now + 1.85)
+      })
+    } catch {}
   },
 
   kidsCheer() {
