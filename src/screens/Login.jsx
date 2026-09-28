@@ -31,8 +31,8 @@ export default function Login() {
   }
 
   return (
-    <div className="app-shell status-bar-blur flex flex-col lg:flex-row min-h-screen relative overflow-hidden">
-      <div className="absolute inset-0 lg:hidden" style={{
+    <div className="app-shell status-bar-blur flex flex-col lg:flex-row ls:flex-row min-h-screen relative overflow-hidden">
+      <div className="absolute inset-0 lg:hidden ls:hidden" style={{
         background: 'linear-gradient(180deg, #87CEEB 0%, #B8E4FF 30%, #90D468 30%, #6BAF4A 60%, #5A9E3A 100%)',
       }}>
         <div className="absolute text-4xl opacity-40 select-none" style={{ left: '8%', top: '3%' }}>☁️</div>
@@ -44,7 +44,7 @@ export default function Login() {
         <div className="absolute text-xl select-none" style={{ right: '22%', bottom: '39%' }}>🌷</div>
       </div>
 
-      <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center relative" style={{
+      <div className="hidden lg:flex ls:flex lg:w-1/2 ls:w-1/2 flex-col items-center justify-center relative" style={{
         background: 'linear-gradient(180deg, #87CEEB 0%, #B8E4FF 35%, #90D468 35%, #6BAF4A 65%, #5A9E3A 100%)',
       }}>
         <div className="absolute text-5xl opacity-40 select-none" style={{ left: '10%', top: '5%' }}>☁️</div>
@@ -58,13 +58,13 @@ export default function Login() {
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col">
-        <div className="flex-1 flex flex-col items-center justify-center pt-10 lg:pt-0 lg:hidden">
+        <div className="flex-1 flex flex-col items-center justify-center pt-10 lg:pt-0 ls:pt-0 lg:hidden ls:hidden">
           <img src="/images/login-hero.webp" alt="Bumblebee Kids" className="w-40 drop-shadow-2xl mb-3" />
           <h1 className="text-3xl font-extrabold text-white drop-shadow-lg">Bumblebee Kids</h1>
         </div>
 
-        <div className="mt-auto lg:mt-0 lg:flex lg:flex-1 lg:items-center lg:justify-center">
-          <div className="bg-white rounded-t-[32px] lg:rounded-2xl px-8 pt-8 pb-12 lg:pb-8 lg:shadow-2xl lg:max-w-md lg:w-full lg:mx-8">
+        <div className="mt-auto lg:mt-0 ls:mt-0 lg:flex ls:flex lg:flex-1 ls:flex-1 lg:items-center ls:items-center lg:justify-center ls:justify-center">
+          <div className="bg-white rounded-t-[32px] lg:rounded-2xl ls:rounded-2xl px-8 pt-8 pb-12 lg:pb-8 ls:pb-8 lg:shadow-2xl ls:shadow-2xl lg:max-w-md ls:max-w-md lg:w-full ls:w-full lg:mx-8 ls:mx-8">
             <h2 className="text-center text-xl font-extrabold mb-1" style={{ color: '#57358F' }}>
               {isRegister
                 ? (lang === 'es' ? '¡Crea tu cuenta!' : 'Create your account!')
