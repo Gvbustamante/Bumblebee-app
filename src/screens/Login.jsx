@@ -4,7 +4,7 @@ import { useAuth } from '../data/AuthContext'
 
 export default function Login() {
   const { t, lang } = useLang()
-  const { signIn, signUp } = useAuth()
+  const { signIn, signUp, resetPassword } = useAuth()
   const [isRegister, setIsRegister] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -116,9 +116,27 @@ export default function Login() {
               </button>
             </form>
 
+            {!isRegister && (
+              <button
+                onClick={async () => {
+                  if (!email) { setError(lang === 'es' ? 'Escribe tu correo primero' : 'Enter your email first'); return }
+                  setError(''); setLoading(true)
+                  const { error: err } = await resetPassword(email)
+                  if (err) setError(err.message)
+                  else setSuccess(t('resetEmailSent'))
+                  setLoading(false)
+                }}
+                className="w-full mt-2 text-xs font-bold text-center py-2"
+                style={{ color: '#9B6DDF' }}
+                type="button"
+              >
+                {t('forgotPassword')}
+              </button>
+            )}
+
             <button
               onClick={() => { setIsRegister(!isRegister); setError(''); setSuccess('') }}
-              className="w-full mt-3 text-sm font-bold text-center py-3.5 rounded-2xl border-2 transition-colors"
+              className="w-full mt-1 text-sm font-bold text-center py-3.5 rounded-2xl border-2 transition-colors"
               style={{ color: '#7B4FBF', borderColor: '#E0D0F0', background: '#FAFAFF' }}
               type="button"
             >

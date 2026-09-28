@@ -139,6 +139,8 @@ const S = {
     gardenGrows: 'Your garden grows when you learn!',
     blocksToShow: 'Blocks to show',
     allBlocks: 'All',
+    forgotPassword: 'Forgot your password?',
+    resetEmailSent: 'Reset link sent! Check your email.',
   },
   es: {
     greeting: '¡Hola, Pequeño Aprendiz!',
@@ -278,6 +280,8 @@ const S = {
     gardenGrows: '¡Tu jardín crece cuando aprendes!',
     blocksToShow: 'Bloques visibles',
     allBlocks: 'Todos',
+    forgotPassword: '¿Olvidaste tu contraseña?',
+    resetEmailSent: '¡Link de recuperación enviado! Revisa tu correo.',
   },
 }
 
