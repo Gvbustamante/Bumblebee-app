@@ -31,11 +31,17 @@ export default function Login() {
   }
 
   return (
-    <div className="app-shell status-bar-blur flex flex-col min-h-screen relative overflow-hidden">
-      <img src="/images/login-bg.webp" alt="" className="absolute inset-0 w-full h-full object-cover object-top" />
+    <div className="app-shell status-bar-blur flex flex-col lg:flex-row min-h-screen relative overflow-hidden">
+      <img src="/images/login-bg.webp" alt="" className="absolute inset-0 w-full h-full object-cover object-top lg:hidden" />
 
-      <div className="relative z-10 flex-1 flex flex-col justify-end" style={{ paddingBottom: 'max(60px, 8vh)' }}>
-        <div className="px-8 max-w-sm mx-auto w-full">
+      <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center" style={{ background: 'linear-gradient(135deg, #7B4FBF 0%, #57358F 50%, #9B6DDF 100%)' }}>
+        <img src="/images/login-hero.webp" alt="Bumblebee Kids" className="w-64 mb-6 drop-shadow-2xl" />
+        <h1 className="text-3xl font-extrabold text-white">Bumblebee Kids</h1>
+        <p className="text-white/70 font-semibold mt-2">Aprende palabras en inglés de una forma divertida</p>
+      </div>
+
+      <div className="relative z-10 flex-1 flex flex-col justify-end pb-16 lg:justify-center lg:pb-0 lg:bg-white">
+        <div className="px-8 max-w-sm mx-auto w-full lg:max-w-md">
           <p className="text-center text-sm text-purple-700 font-extrabold mb-3">
             {isRegister ? t('createAccount') : t('welcomeBack')}
           </p>

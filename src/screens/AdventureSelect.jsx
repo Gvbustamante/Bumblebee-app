@@ -23,7 +23,7 @@ export default function AdventureSelect() {
 
   return (
     <div className="app-shell status-bar-blur flex flex-col min-h-screen items-center px-5 py-8" style={{ background: 'linear-gradient(180deg, #F2E8FF 0%, #F7F3FF 40%, #F2E8FF80 100%)' }}>
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-sm lg:max-w-3xl">
         <img src="/images/adventure-banner.webp" alt="Mis Aventuras" className="w-full rounded-2xl mb-5 shadow-soft" />
         <h1 className="text-lg font-extrabold text-center mb-1" style={{ color: '#57358F' }}>
           {lang === 'es' ? 'Elige tu aventura' : 'Choose your adventure'}
@@ -32,7 +32,7 @@ export default function AdventureSelect() {
           {lang === 'es' ? 'Cada aventura tiene su propio progreso' : 'Each adventure has its own progress'}
         </p>
 
-        <div className="space-y-3">
+        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
           {Object.values(MODES).map((mode, i) => {
             const c = MODE_COLORS[mode.color] || MODE_COLORS.purple
             return (
@@ -69,7 +69,7 @@ export default function AdventureSelect() {
             </p>
             <div className="flex-1 h-px" style={{ background: '#E0D0F0' }} />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 lg:grid lg:grid-cols-3 lg:gap-3 lg:space-y-0">
             {COMING_SOON.map(m => {
               const c = MODE_COLORS[m.color] || MODE_COLORS.purple
               return (

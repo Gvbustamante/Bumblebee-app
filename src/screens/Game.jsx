@@ -405,6 +405,9 @@ export default function Game({ config, onExit, onExitHome }) {
 
   if (blockDone) {
     const totalStars = blockResults.reduce((s, r) => s + r.starsEarned, 0)
+    const totalTimeMs = blockResults.reduce((s, r) => s + r.time, 0)
+    const perfectCount = blockResults.filter(r => r.perfect).length
+    const totalTimeFmt = `${Math.floor(totalTimeMs / 60000)}:${String(Math.floor(totalTimeMs / 1000) % 60).padStart(2, '0')}`
     return (
       <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-6 animate-pop relative">
         <div className="absolute top-4 right-4 z-10"><MuteBtn mc={mc} /></div>
@@ -413,6 +416,24 @@ export default function Game({ config, onExit, onExitHome }) {
         <div className="flex items-center gap-1.5 mt-2">
           <span className="text-2xl animate-sparkle">⭐</span>
           <span className="text-xl font-extrabold" style={{ color: '#D4A017' }}>+{totalStars}</span>
+        </div>
+
+        <div className="hidden lg:grid grid-cols-3 gap-3 w-full max-w-lg mt-4">
+          <div className="rounded-2xl p-3 text-center" style={{ background: '#FFFBEA', border: '2px solid #FFD84D' }}>
+            <div className="text-xl mb-0.5">⏱️</div>
+            <div className="text-lg font-extrabold" style={{ color: '#A07B00' }}>{totalTimeFmt}</div>
+            <div className="text-[10px] font-bold" style={{ color: '#D4A017' }}>{t('time')}</div>
+          </div>
+          <div className="rounded-2xl p-3 text-center" style={{ background: '#E8F5E0', border: '2px solid #8ED36B' }}>
+            <div className="text-xl mb-0.5">💯</div>
+            <div className="text-lg font-extrabold" style={{ color: '#4A8C2A' }}>{perfectCount}/{total}</div>
+            <div className="text-[10px] font-bold" style={{ color: '#6BAF4A' }}>{t('perfect')}</div>
+          </div>
+          <div className="rounded-2xl p-3 text-center" style={{ background: '#F2E8FF', border: '2px solid #D0B8F0' }}>
+            <div className="text-xl mb-0.5">⭐</div>
+            <div className="text-lg font-extrabold" style={{ color: '#57358F' }}>{totalStars}</div>
+            <div className="text-[10px] font-bold" style={{ color: '#9B6DDF' }}>{t('totalStars')}</div>
+          </div>
         </div>
 
         <div className="bg-brand-card rounded-2xl shadow-card p-4 w-full max-w-sm lg:max-w-lg mt-5 space-y-1.5" style={{ border: '1px solid #E8E0F0' }}>
@@ -525,7 +546,22 @@ export default function Game({ config, onExit, onExitHome }) {
   const isLetterSort = phase === 'letterSort'
 
   return (
-    <div className="min-h-screen bg-brand-bg flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-brand-bg flex flex-col overflow-hidden relative">
+      <div className="hidden lg:block fixed right-6 top-20 w-52 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-purple-100 p-4 max-h-[calc(100vh-120px)] overflow-y-auto z-40">
+        <h3 className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#9B6DDF' }}>{t('words')}</h3>
+        {block.map((w, i) => {
+          const isDone = i < done
+          const isCurrent = i === done
+          return (
+            <div key={i} className={`flex items-center gap-2 py-1.5 text-sm ${isCurrent ? 'font-extrabold' : 'font-medium'}`}
+              style={{ color: isDone ? '#8ED36B' : isCurrent ? mc.accent : '#B0A0C0', borderBottom: i < block.length - 1 ? '1px solid #F3F0F8' : 'none' }}>
+              <span className="w-5 text-center">{isDone ? '✓' : isCurrent ? '▶' : `${i + 1}`}</span>
+              <span>{w.emoji}</span>
+              <span>{w.word}</span>
+            </div>
+          )
+        })}
+      </div>
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <button
           onClick={onExit}

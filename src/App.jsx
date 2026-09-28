@@ -33,7 +33,7 @@ function MainApp() {
   const [gameConfig, setGameConfig] = useState(null)
   const [selectedSubMode, setSelectedSubMode] = useState(null)
   const { t } = useLang()
-  const { isAdmin } = useAuth()
+  const { isAdmin, signOut } = useAuth()
   const scrollRef = useRef()
 
   function switchTab(id) {
@@ -60,8 +60,9 @@ function MainApp() {
   }
 
   return (
-    <div className="app-shell flex flex-col min-h-screen bg-white">
-      <div ref={scrollRef} className="flex-1 overflow-y-auto pb-20">
+    <div className="app-shell flex flex-col lg:flex-row min-h-screen bg-white">
+      <Sidebar tab={tab} switchTab={switchTab} isAdmin={isAdmin} signOut={signOut} t={t} />
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pb-20 lg:pb-6">
         {tab === 'home' && <Home onStartGame={setGameConfig} selectedSubMode={selectedSubMode} setSelectedSubMode={setSelectedSubMode} />}
         {tab === 'progress' && <Progress />}
         {tab === 'rewards' && <RewardsTab />}
@@ -70,7 +71,7 @@ function MainApp() {
         {tab === 'admin' && isAdmin && <Admin />}
       </div>
 
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[640px] lg:max-w-[960px] bg-white/95 backdrop-blur-md border-t border-purple-100 shadow-nav z-50">
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[640px] bg-white/95 backdrop-blur-md border-t border-purple-100 shadow-nav z-50 lg:hidden">
         <div className="flex pb-safe">
           {TABS.map(tb => {
             const active = tab === tb.id
@@ -225,7 +226,7 @@ function SettingsTab() {
         <p className="text-sm text-gray-400 font-semibold">{t('settingsDesc')}</p>
       </div>
 
-      <div className="px-4 grid gap-4 md:grid-cols-2">
+      <div className="px-4 grid gap-4 md:grid-cols-2 lg:max-w-3xl lg:mx-auto">
         <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('soundEffects')}</label>
           <div className="flex gap-2 mt-2">
@@ -401,12 +402,51 @@ function SettingsTab() {
 
         <button
           onClick={signOut}
-          className="w-full bg-red-50 border-2 border-red-200 rounded-2xl p-4 text-center md:col-span-2"
+          className="w-full bg-red-50 border-2 border-red-200 rounded-2xl p-4 text-center md:col-span-2 lg:hidden"
         >
           <span className="text-red-500 font-bold text-sm">{t('logout')}</span>
         </button>
       </div>
     </div>
+  )
+}
+
+function Sidebar({ tab, switchTab, isAdmin, signOut, t }) {
+  const ITEMS = [
+    { id: 'home', label: t('navHome'), icon: 'home' },
+    { id: 'progress', label: t('navProgress'), icon: 'progress' },
+    { id: 'rewards', label: t('navRewards'), icon: 'rewards' },
+    { id: 'help', label: t('navHelp'), icon: 'help' },
+    { id: 'settings', label: t('navParents'), icon: 'settings' },
+    ...(isAdmin ? [{ id: 'admin', label: t('navAdmin'), icon: 'admin' }] : []),
+  ]
+  return (
+    <aside className="hidden lg:flex flex-col w-56 shrink-0 bg-white border-r border-purple-100">
+      <div className="px-5 pt-6 pb-5 flex items-center gap-3">
+        <img src="/images/icon-192.webp" alt="" className="w-10 h-10 rounded-xl" />
+        <div className="font-extrabold text-sm leading-tight" style={{ color: '#57358F' }}>Bumblebee<br/>Kids</div>
+      </div>
+      <nav className="flex-1 px-3">
+        {ITEMS.map(item => (
+          <button key={item.id} onClick={() => switchTab(item.id)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-1 text-sm font-bold transition-all text-left ${
+              tab === item.id ? 'bg-purple-100 text-purple-700' : 'text-gray-400 hover:bg-purple-50 hover:text-purple-500'
+            }`}>
+            <NavIcon name={item.icon} active={tab === item.id} />
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </nav>
+      <div className="px-3 pb-5">
+        <button onClick={signOut}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all text-left">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+          </svg>
+          <span>{t('logout')}</span>
+        </button>
+      </div>
+    </aside>
   )
 }
 

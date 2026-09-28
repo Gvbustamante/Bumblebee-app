@@ -27,8 +27,12 @@
   }
 }
 @media (min-width: 1024px) {
+  body {
+    background: #F7F3FF;
+  }
   .app-shell {
-    max-width: 960px;
+    max-width: 100%;
+    box-shadow: none;
   }
 }
 
