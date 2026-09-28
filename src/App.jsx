@@ -144,13 +144,13 @@ function RewardsTab() {
   return (
     <div className="animate-fade-up min-h-screen" style={{ background: '#F8F5FF' }}>
       <div className="px-5 pt-5 pb-3">
-        <h1 className="text-xl font-extrabold" style={{ color: '#2D1B4E' }}>{t('myGarden')}</h1>
+        <h1 className="text-xl font-extrabold" style={{ color: '#57358F' }}>{t('myGarden')}</h1>
         <p className="text-xs font-semibold" style={{ color: '#9B6DDF' }}>{t('gardenGrows')}</p>
       </div>
 
       <div className="mx-4 rounded-3xl overflow-hidden relative h-[420px] lg:h-[520px]" style={{
         background: 'linear-gradient(180deg, #9FE0FF 0%, #9FE0FF 48%, #8BCF61 48%)',
-        border: '5px solid white',
+        border: '5px solid #D9C4F0',
         boxShadow: '0 12px 34px rgba(53,37,100,0.10)',
       }}>
         <div className="absolute text-4xl select-none" style={{ right: '8%', top: '6%' }}>☀️</div>
