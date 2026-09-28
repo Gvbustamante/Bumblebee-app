@@ -70,9 +70,9 @@ function MainApp() {
   }
 
   return (
-    <div className="app-shell flex flex-col lg:flex-row min-h-screen bg-white">
+    <div className="app-shell flex flex-col lg:flex-row ls:flex-row min-h-screen bg-white">
       <Sidebar tab={tab} switchTab={switchTab} isAdmin={isAdmin} signOut={signOut} t={t} />
-      <div ref={scrollRef} className="flex-1 overflow-y-auto pb-20 lg:pb-6">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pb-20 lg:pb-6 ls:pb-6">
         {tab === 'home' && <Home onStartGame={setGameConfig} selectedSubMode={selectedSubMode} setSelectedSubMode={setSelectedSubMode} />}
         {tab === 'progress' && <Progress />}
         {tab === 'rewards' && <RewardsTab />}
@@ -81,7 +81,7 @@ function MainApp() {
         {tab === 'admin' && isAdmin && <Admin />}
       </div>
 
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[640px] bg-white/95 backdrop-blur-md border-t border-purple-100 shadow-nav z-50 lg:hidden">
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[640px] bg-white/95 backdrop-blur-md border-t border-purple-100 shadow-nav z-50 lg:hidden ls:hidden">
         <div className="flex pb-safe">
           {TABS.map(tb => {
             const active = tab === tb.id
@@ -148,7 +148,7 @@ function RewardsTab() {
         <p className="text-xs font-semibold" style={{ color: '#9B6DDF' }}>{t('gardenGrows')}</p>
       </div>
 
-      <div className="mx-4 rounded-3xl overflow-hidden relative h-[420px] lg:h-[520px]" style={{
+      <div className="mx-4 rounded-3xl overflow-hidden relative h-[420px] lg:h-[520px] ls:h-[280px]" style={{
         background: 'linear-gradient(180deg, #9FE0FF 0%, #9FE0FF 48%, #8BCF61 48%)',
         border: '5px solid #D9C4F0',
         boxShadow: '0 12px 34px rgba(53,37,100,0.10)',
@@ -382,7 +382,7 @@ function SettingsTab() {
           </button>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-card border border-gray-100 overflow-hidden lg:hidden">
+        <div className="bg-white rounded-2xl shadow-card border border-gray-100 overflow-hidden lg:hidden ls:hidden">
           <button
             onClick={signOut}
             className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-red-50 transition-colors"
@@ -408,7 +408,7 @@ function Sidebar({ tab, switchTab, isAdmin, signOut, t }) {
     ...(isAdmin ? [{ id: 'admin', label: t('navAdmin'), icon: 'admin' }] : []),
   ]
   return (
-    <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r" style={{ background: '#FAFAFF', borderColor: '#EDE5F5' }}>
+    <aside className="hidden lg:flex ls:flex flex-col w-60 shrink-0 border-r" style={{ background: '#FAFAFF', borderColor: '#EDE5F5' }}>
       <div className="px-5 pt-6 pb-6 flex items-center gap-3">
         <img src="/images/icon-192.webp" alt="" className="w-11 h-11 rounded-2xl shadow-sm" />
         <div className="font-extrabold text-base leading-tight" style={{ color: '#57358F' }}>Bumblebee<br/>Kids</div>
