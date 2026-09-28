@@ -177,42 +177,6 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
           </div>
         </div>
 
-        {modeDef.subModes.length > 1 && (() => {
-          const others = modeDef.subModes.filter(sub => {
-            const hiddenSubs = profile?.hidden_submodes || []
-            return !hiddenSubs.includes(`${adventure}:${sub.id}`)
-          }).slice(1)
-          if (!others.length) return null
-          return (
-            <div className="mt-3 lg:mt-0 lg:w-64 flex flex-col gap-3">
-              {others.map(sub => (
-                <button
-                  key={sub.id}
-                  onClick={() => onSelect(sub.id)}
-                  className="w-full bg-white rounded-2xl text-left active:scale-[0.97] transition-all shadow-card hover:shadow-card-hover relative overflow-hidden"
-                  style={{ border: '2px solid #EDE5F5' }}
-                >
-                  {sub.img && (
-                    <img src={sub.img} alt="" className="absolute right-2 bottom-1 w-14 h-14 object-contain opacity-80 select-none pointer-events-none" />
-                  )}
-                  <div className="p-4 pr-16">
-                    <div className="font-extrabold text-sm" style={{ color: mc.accent }}>
-                      {lang === 'es' ? sub.labelEs : sub.label}
-                    </div>
-                    <div className="text-[11px] font-semibold mt-0.5 leading-snug" style={{ color: '#9B6DDF' }}>
-                      {lang === 'es' ? sub.descriptionEs : sub.description}
-                    </div>
-                  </div>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: mc.modeBg }}>
-                      <span className="text-sm font-bold" style={{ color: mc.accent }}>→</span>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )
-        })()}
       </div>
 
       <div className="px-4 mt-5 pb-4">
@@ -237,15 +201,15 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
               className={`animate-fade-up animate-stagger-${Math.min(i + 1, 4)} bg-white rounded-2xl active:scale-[0.97] transition-all duration-200 shadow-card hover:shadow-card-hover overflow-hidden`}
               style={{ border: '2px solid #EDE5F5' }}
             >
-              <div className="flex flex-col items-center p-4 gap-2">
+              <div className="flex flex-col items-center px-3 pt-5 pb-3 gap-1">
                 {sub.img ? (
-                  <img src={sub.img} alt="" className="w-14 h-14 object-contain" />
+                  <img src={sub.img} alt="" className="w-24 h-24 object-contain drop-shadow-md" />
                 ) : (
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl" style={{ background: mc.modeBg }}>
+                  <div className="w-24 h-24 rounded-2xl flex items-center justify-center text-4xl" style={{ background: mc.modeBg }}>
                     {modeDef.emoji}
                   </div>
                 )}
-                <div className="text-center">
+                <div className="text-center mt-1">
                   <div className="font-extrabold text-xs" style={{ color: mc.accent }}>
                     {lang === 'es' ? sub.labelEs : sub.label}
                   </div>
