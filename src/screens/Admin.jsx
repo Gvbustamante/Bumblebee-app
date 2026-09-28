@@ -3,6 +3,7 @@ import { useLang } from '../data/i18n'
 import { useAuth } from '../data/AuthContext'
 import { fetchWords, adminAddWord, adminDeleteWord, adminUploadImage, adminToggleWord, adminCloneWord, adminUpdateWord, adminBulkToggle, adminSaveOrder } from '../lib/db'
 import { supabase } from '../lib/supabase'
+import { MODES } from '../data/modes'
 
 const SECTIONS = [
   { adventure: 'spellingBee', category: 'words', label: '🐝 Spelling Bee', color: 'purple' },
@@ -45,6 +46,7 @@ export default function Admin() {
   const [reorderList, setReorderList] = useState([])
   const [dragIdx, setDragIdx] = useState(null)
   const [overIdx, setOverIdx] = useState(null)
+  const [expandedUser, setExpandedUser] = useState(null)
   const fileRef = useRef()
   const addFileRef = useRef()
   const listRef = useRef()
@@ -66,7 +68,7 @@ export default function Admin() {
   async function loadUsers() {
     const { data: profiles } = await supabase
       .from('bumblebee_profiles')
-      .select('id, name, role, adventure, created_at, last_active_at')
+      .select('id, name, role, adventure, created_at, last_active_at, hidden_modes, hidden_submodes, hidden_blocks')
       .order('last_active_at', { ascending: false })
     const { data: timeData } = await supabase
       .from('bumblebee_attempts')
@@ -268,6 +270,17 @@ export default function Admin() {
     const newRole = currentRole === 'admin' ? 'user' : 'admin'
     await supabase.from('bumblebee_profiles').update({ role: newRole }).eq('id', userId)
     loadUsers()
+  }
+
+  async function toggleVisibility(userId, field, value) {
+    const user = users.find(u => u.id === userId)
+    if (!user) return
+    const current = user[field] || []
+    const next = current.includes(value)
+      ? current.filter(v => v !== value)
+      : [...current, value]
+    await supabase.from('bumblebee_profiles').update({ [field]: next }).eq('id', userId)
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, [field]: next } : u))
   }
 
   return (
@@ -600,6 +613,11 @@ export default function Admin() {
           const totalMins = Math.round(u.totalTimeMs / 60000)
           const timeText = totalMins < 1 ? (u.totalAttempts > 0 ? '<1 min' : '—') : totalMins < 60 ? `${totalMins} min` : `${Math.floor(totalMins / 60)}h ${totalMins % 60}m`
 
+          const isExpanded = expandedUser === u.id
+          const hiddenModes = u.hidden_modes || []
+          const hiddenSubs = u.hidden_submodes || []
+          const hiddenBlocks = u.hidden_blocks || []
+
           return (
             <div key={u.id} className="bg-white rounded-xl shadow-card border border-gray-100 p-3">
               <div className="flex items-center gap-3">
@@ -632,6 +650,82 @@ export default function Admin() {
                   <span className="text-[10px] font-bold text-green-600">{u.totalAttempts}</span>
                 </div>
               </div>
+              <button
+                onClick={() => setExpandedUser(isExpanded ? null : u.id)}
+                className="w-full mt-2 py-1.5 text-[10px] font-bold rounded-lg transition-colors"
+                style={{ background: isExpanded ? '#F2E8FF' : '#F8F6FC', color: '#57358F' }}
+              >
+                {isExpanded ? '▲' : '▼'} {lang === 'es' ? 'Visibilidad' : 'Visibility'}
+              </button>
+              {isExpanded && (
+                <div className="mt-2 space-y-2">
+                  {Object.values(MODES).map(mode => {
+                    const modeHidden = hiddenModes.includes(mode.id)
+                    return (
+                      <div key={mode.id} className="rounded-lg border border-gray-100 overflow-hidden">
+                        <button
+                          onClick={() => toggleVisibility(u.id, 'hidden_modes', mode.id)}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-left"
+                          style={{ background: modeHidden ? '#FEF2F2' : '#F0FDF4' }}
+                        >
+                          <span className="text-sm">{mode.emoji}</span>
+                          <span className={`text-xs font-bold flex-1 ${modeHidden ? 'text-red-400 line-through' : 'text-green-700'}`}>
+                            {mode.label}
+                          </span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${modeHidden ? 'bg-red-100 text-red-500' : 'bg-green-100 text-green-600'}`}>
+                            {modeHidden ? 'OFF' : 'ON'}
+                          </span>
+                        </button>
+                        {!modeHidden && mode.subModes.length > 1 && (
+                          <div className="px-3 py-1.5 space-y-1 bg-gray-50 border-t border-gray-100">
+                            <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{lang === 'es' ? 'Sub-modos' : 'Sub-modes'}</div>
+                            {mode.subModes.map(sub => {
+                              const subKey = `${mode.id}:${sub.id}`
+                              const subHidden = hiddenSubs.includes(subKey)
+                              return (
+                                <button
+                                  key={sub.id}
+                                  onClick={() => toggleVisibility(u.id, 'hidden_submodes', subKey)}
+                                  className="w-full flex items-center gap-2 px-2 py-1 rounded-md text-left"
+                                  style={{ background: subHidden ? '#FEF2F2' : 'transparent' }}
+                                >
+                                  <span className="text-xs">{sub.emoji}</span>
+                                  <span className={`text-[11px] font-semibold flex-1 ${subHidden ? 'text-red-400 line-through' : 'text-gray-600'}`}>
+                                    {lang === 'es' ? sub.labelEs : sub.label}
+                                  </span>
+                                  <span className={`text-[9px] font-bold ${subHidden ? 'text-red-400' : 'text-green-500'}`}>
+                                    {subHidden ? 'OFF' : 'ON'}
+                                  </span>
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                  <div className="rounded-lg border border-gray-100 p-3 bg-gray-50">
+                    <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">{lang === 'es' ? 'Bloques ocultos' : 'Hidden blocks'}</div>
+                    <div className="flex flex-wrap gap-1">
+                      {[1,2,3,4,5,6,7,8,9,10].map(n => {
+                        const bHidden = hiddenBlocks.includes(n)
+                        return (
+                          <button
+                            key={n}
+                            onClick={() => toggleVisibility(u.id, 'hidden_blocks', n)}
+                            className={`w-8 h-8 rounded-lg text-[11px] font-bold transition-colors ${
+                              bHidden ? 'bg-red-100 text-red-400 line-through' : 'bg-white text-gray-600 border border-gray-200'
+                            }`}
+                          >
+                            {n}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <p className="text-[9px] text-gray-400 mt-1">{lang === 'es' ? 'Toca un número para ocultar/mostrar ese bloque' : 'Tap to hide/show that block'}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )
         })}

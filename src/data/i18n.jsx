@@ -73,7 +73,7 @@ const S = {
     reset: 'Reset',
     navHome: 'Home',
     navProgress: 'Progress',
-    navRewards: 'Rewards',
+    navRewards: 'Garden',
     navParents: 'Parents',
     sbDesc: 'Spell + Read',
     bbDesc: 'Read the word',
@@ -139,6 +139,8 @@ const S = {
     gardenGrows: 'Your garden grows when you learn!',
     blocksToShow: 'Blocks to show',
     allBlocks: 'All',
+    forgotPassword: 'Forgot your password?',
+    resetEmailSent: 'Reset link sent! Check your email.',
   },
   es: {
     greeting: '¡Hola, Pequeño Aprendiz!',
@@ -212,7 +214,7 @@ const S = {
     reset: 'Borrar',
     navHome: 'Inicio',
     navProgress: 'Progreso',
-    navRewards: 'Premios',
+    navRewards: 'Jardín',
     navParents: 'Padres',
     sbDesc: 'Deletrea + Lee',
     bbDesc: 'Lee la palabra',
@@ -278,6 +280,8 @@ const S = {
     gardenGrows: '¡Tu jardín crece cuando aprendes!',
     blocksToShow: 'Bloques visibles',
     allBlocks: 'Todos',
+    forgotPassword: '¿Olvidaste tu contraseña?',
+    resetEmailSent: '¡Link de recuperación enviado! Revisa tu correo.',
   },
 }
 

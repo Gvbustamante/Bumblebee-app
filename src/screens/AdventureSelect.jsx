@@ -15,46 +15,48 @@ const MODE_COLORS = {
 
 export default function AdventureSelect() {
   const { t, lang } = useLang()
-  const { updateProfile } = useAuth()
+  const { profile, updateProfile } = useAuth()
 
   async function pick(adventure) {
     await updateProfile({ adventure })
   }
 
   return (
-    <div className="app-shell status-bar-blur flex flex-col min-h-screen items-center px-5 py-8" style={{ background: 'linear-gradient(180deg, #F2E8FF 0%, #F7F3FF 40%, #F2E8FF80 100%)' }}>
-      <div className="w-full max-w-sm lg:max-w-3xl">
-        <img src="/images/adventure-banner.webp" alt="Mis Aventuras" className="w-full rounded-2xl mb-5 shadow-soft" />
-        <h1 className="text-lg font-extrabold text-center mb-1" style={{ color: '#57358F' }}>
+    <div className="app-shell status-bar-blur flex flex-col min-h-screen px-5 py-6" style={{ background: '#F8F5FF' }}>
+      <div className="w-full max-w-sm mx-auto lg:max-w-3xl">
+        <h1 className="text-xl font-extrabold mb-1" style={{ color: '#2D1B4E' }}>
           {lang === 'es' ? 'Elige tu aventura' : 'Choose your adventure'}
         </h1>
-        <p className="text-xs font-semibold text-center mb-5" style={{ color: '#9B6DDF' }}>
+        <p className="text-xs font-semibold mb-5" style={{ color: '#9B6DDF' }}>
           {lang === 'es' ? 'Cada aventura tiene su propio progreso' : 'Each adventure has its own progress'}
         </p>
 
         <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
-          {Object.values(MODES).map((mode, i) => {
+          {Object.values(MODES).filter(mode => {
+            const hiddenModes = profile?.hidden_modes || []
+            return !hiddenModes.includes(mode.id)
+          }).map((mode) => {
             const c = MODE_COLORS[mode.color] || MODE_COLORS.purple
             return (
               <button
                 key={mode.id}
                 onClick={() => pick(mode.id)}
-                className={`animate-fade-up animate-stagger-${Math.min(i + 1, 4)} w-full bg-brand-card rounded-2xl text-left active:scale-[0.97] transition-all duration-200 shadow-card hover:shadow-card-hover relative overflow-hidden min-h-[80px]`}
-                style={{ border: `1.5px solid ${c.border}` }}
+                className="w-full rounded-2xl text-left active:scale-[0.97] transition-all duration-200 relative overflow-hidden"
+                style={{ background: '#FFFFFF', border: `1.5px solid ${c.border}`, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
               >
-                {mode.img && (
-                  <img src={mode.img} alt={mode.label} className="absolute -left-1 -bottom-1 w-[72px] h-[72px] object-contain select-none pointer-events-none opacity-90" />
-                )}
-                <div className="flex items-center gap-2 p-4 pl-[76px]">
-                  <div className="flex-1">
+                <div className="flex items-center gap-3 p-4">
+                  {mode.img && (
+                    <img src={mode.img} alt={mode.label} className="w-14 h-14 object-contain shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-base" style={{ color: c.accent }}>{mode.label}</div>
                     <div className="text-[11px] font-medium mt-0.5 leading-snug" style={{ color: '#9B6DDF' }}>
                       {lang === 'es' ? mode.subtitleEs : mode.subtitle}
                     </div>
                   </div>
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: c.modeBg }}>
-                    <span className="text-sm font-bold" style={{ color: c.accent }}>→</span>
-                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke={c.accent} className="w-5 h-5 shrink-0 opacity-60">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                  </svg>
                 </div>
               </button>
             )
@@ -70,26 +72,23 @@ export default function AdventureSelect() {
             <div className="flex-1 h-px" style={{ background: '#E0D0F0' }} />
           </div>
           <div className="space-y-2 lg:grid lg:grid-cols-3 lg:gap-3 lg:space-y-0">
-            {COMING_SOON.map(m => {
-              const c = MODE_COLORS[m.color] || MODE_COLORS.purple
-              return (
-                <div
-                  key={m.id}
-                  className="w-full rounded-2xl p-4 opacity-60"
-                  style={{ background: '#F3F0F8', border: '1px solid #E8E0F0' }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl grayscale">{m.emoji}</span>
-                    <div>
-                      <div className="font-extrabold text-sm" style={{ color: '#B0A0C0' }}>{m.label}</div>
-                      <div className="text-[11px] font-medium mt-0.5" style={{ color: '#C8B8D8' }}>
-                        {lang === 'es' ? m.subtitleEs : m.subtitle}
-                      </div>
+            {COMING_SOON.map(m => (
+              <div
+                key={m.id}
+                className="w-full rounded-2xl p-4 opacity-50"
+                style={{ background: '#F3F0F8', border: '1px solid #E8E0F0' }}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl grayscale">{m.emoji}</span>
+                  <div>
+                    <div className="font-extrabold text-sm" style={{ color: '#B0A0C0' }}>{m.label}</div>
+                    <div className="text-[11px] font-medium mt-0.5" style={{ color: '#C8B8D8' }}>
+                      {lang === 'es' ? m.subtitleEs : m.subtitle}
                     </div>
                   </div>
                 </div>
-              )
-            })}
+              </div>
+            ))}
           </div>
         </div>
       </div>
