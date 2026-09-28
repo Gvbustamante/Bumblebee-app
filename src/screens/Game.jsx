@@ -379,20 +379,11 @@ export default function Game({ config, onExit, onExitHome }) {
     return <span className={className}>{w.emoji}</span>
   }
 
-  function ProgressDots() {
+  function ProgressBar() {
+    const pct = total > 0 ? (done / total) * 100 : 0
     return (
-      <div className="flex gap-1 items-center justify-center">
-        {block.map((_, i) => (
-          <div
-            key={i}
-            className="rounded-full transition-all duration-300"
-            style={{
-              width: i === done ? 10 : 6,
-              height: i === done ? 10 : 6,
-              background: i < done ? '#8ED36B' : i === done ? mc.accent : '#E8E0F0',
-            }}
-          />
-        ))}
+      <div className="flex-1 mx-3 h-2.5 rounded-full overflow-hidden" style={{ background: '#E8E0F0' }}>
+        <div className="h-full rounded-full transition-all duration-500 ease-out" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #8ED36B, #6BBF4A)' }} />
       </div>
     )
   }
@@ -479,56 +470,41 @@ export default function Game({ config, onExit, onExitHome }) {
     return (
       <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-6 animate-pop overflow-hidden">
         <div className="absolute top-4 right-4 z-10"><MuteBtn mc={mc} /></div>
-        <SwipeCard enabled onSwipeRight={handleLearned} onSwipeLeft={handleNotYet}>
-          <div className="flex flex-col items-center">
-            {sub.showImage && <Img w={word} className="text-[80px]" />}
-            <h2 className="text-3xl font-extrabold mt-4" style={{ color: '#57358F' }}>{word.word}</h2>
+        <div className="flex flex-col items-center">
+          <h2 className="text-3xl font-extrabold mb-3" style={{ color: '#57358F' }}>{word.word}</h2>
+          {sub.showImage && <Img w={word} className="text-[80px]" />}
 
-            {lr && (
-              <div className="flex gap-2 mt-4">
-                {letters.map((l, i) => (
-                  <div
-                    key={i}
-                    className="w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-lg"
-                    style={{
-                      background: lr[i] ? '#E8F5E0' : '#FFF1F5',
-                      color: lr[i] ? '#4A8C2A' : '#C0457B',
-                    }}
-                  >
-                    {l}
-                  </div>
-                ))}
-              </div>
+          {lr && (
+            <div className="flex gap-2 mt-4">
+              {letters.map((l, i) => (
+                <div
+                  key={i}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-lg"
+                  style={{
+                    background: lr[i] ? '#E8F5E0' : '#FFF1F5',
+                    color: lr[i] ? '#4A8C2A' : '#C0457B',
+                  }}
+                >
+                  {l}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-4 text-3xl font-extrabold" style={{ color: allPerfect ? '#D4A017' : '#9B6DDF' }}>
+            {allPerfect ? (
+              <span className="animate-sparkle inline-block">⭐ {t('perfect')}</span>
+            ) : (
+              <span>💪 {t('goodTry')}</span>
             )}
-
-            <div className="mt-4 text-3xl font-extrabold" style={{ color: allPerfect ? '#D4A017' : '#9B6DDF' }}>
-              {allPerfect ? (
-                <span className="animate-sparkle inline-block">⭐ {t('perfect')}</span>
-              ) : (
-                <span>💪 {t('goodTry')}</span>
-              )}
-            </div>
-            <div className="text-sm mt-1 font-mono" style={{ color: '#B0A0C0' }}>{fmt(elapsed)}</div>
-
-            <div className="flex items-center justify-center gap-6 mt-4 text-xs font-bold" style={{ color: '#B0A0C0' }}>
-              <span>← {t('notYet')}</span>
-              <span>{t('learned')} →</span>
-            </div>
           </div>
-        </SwipeCard>
+        </div>
 
-        <div className="flex gap-3 w-full max-w-xs lg:max-w-sm mt-6">
-          <button
-            onClick={handleNotYet}
-            className="flex-1 py-4 rounded-2xl font-extrabold active:scale-95 transition-transform"
-            style={{ background: '#FFFBEA', border: '2px solid #FFD84D', color: '#A07B00' }}
-          >
-            🔄 {t('notYet')}
-          </button>
+        <div className="w-full max-w-xs lg:max-w-sm mt-6 px-6">
           <button
             onClick={handleLearned}
-            className="flex-1 py-4 text-white rounded-2xl font-extrabold active:scale-95 transition-transform"
-            style={{ background: 'linear-gradient(135deg, #8ED36B, #6BBF4A)', boxShadow: '0 4px 14px rgba(142,211,107,0.4)' }}
+            className="w-full py-4 text-white rounded-2xl font-extrabold active:scale-95 transition-transform text-base"
+            style={{ background: 'linear-gradient(135deg, #5B9FE8, #4A8BD4)', boxShadow: '0 4px 14px rgba(91,159,232,0.4)' }}
           >
             ✓ {t('learned')}
           </button>
@@ -562,15 +538,15 @@ export default function Game({ config, onExit, onExitHome }) {
           )
         })}
       </div>
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+      <div className="flex items-center px-4 pt-4 pb-2">
         <button
           onClick={onExit}
-          className="w-10 h-10 flex items-center justify-center rounded-xl font-bold active:scale-90 transition-transform shadow-sm"
-          style={{ background: mc.modeBg, color: mc.accent }}
+          className="w-9 h-9 flex items-center justify-center rounded-full font-bold active:scale-90 transition-transform"
+          style={{ background: '#F3F0F8', color: '#9B6DDF' }}
         >
-          ←
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
-        <ProgressDots />
+        <ProgressBar />
         <div className="flex items-center gap-2">
           <MuteBtn mc={mc} />
           {isChallenge && (
@@ -679,43 +655,49 @@ export default function Game({ config, onExit, onExitHome }) {
             <p className="text-center mt-5 font-semibold text-sm" style={{ color: '#9B6DDF' }}>{t('tapInOrder')}</p>
           </div>
         ) : isFamiliarize ? (
-          <SwipeCard enabled onSwipeRight={handleFamiliarizeLearned} onSwipeLeft={handleFamiliarizeNotYet}>
-            <div className="flex flex-col items-center">
-              {sub.showImage && (
-                <div className="animate-float">
-                  <Img w={word} className="text-[100px]" />
-                </div>
-              )}
-
-              <div className="mt-6 mb-2">
-                <div className="bg-brand-card rounded-2xl shadow-card px-8 py-5 relative" style={{ border: `1.5px solid ${mc.modeBg}` }}>
-                  <p className="text-4xl font-extrabold text-center tracking-wider" style={{ color: mc.accent }}>{word.word}</p>
-                  <button onClick={() => sounds.speak(word.word, voiceLang)} className="absolute right-3 top-3 active:scale-90 transition-transform" style={{ color: '#9B6DDF' }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
-                  </button>
-                </div>
-                <p className="text-center mt-3 font-semibold text-sm" style={{ color: '#9B6DDF' }}>{t('lookAtWord')}</p>
-              </div>
-
-              <div className="flex items-center justify-center gap-6 mt-2 text-xs font-bold" style={{ color: '#B0A0C0' }}>
-                <span>← {t('notYet')}</span>
-                <span>{t('learned')} →</span>
-              </div>
+          <div className="flex flex-col items-center">
+            <div className="flex items-center gap-2 mb-4">
+              <p className="text-4xl font-extrabold text-center tracking-wider" style={{ color: mc.accent }}>{word.word}</p>
+              <button onClick={() => sounds.speak(word.word, voiceLang)} className="active:scale-90 transition-transform" style={{ color: '#9B6DDF' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7"><path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
+              </button>
             </div>
-          </SwipeCard>
-        ) : (
-          <>
+
             {sub.showImage && (
               <div className="animate-float">
                 <Img w={word} className="text-[100px]" />
               </div>
             )}
 
+            <p className="text-center mt-4 font-semibold text-sm" style={{ color: '#9B6DDF' }}>{t('lookAtWord')}</p>
+          </div>
+        ) : (
+          <>
             {isSpellingPhase && sub.showWord && (
-              <div className="mt-4 mb-1">
-                <div className="rounded-xl px-6 py-2 inline-block" style={{ background: `${mc.modeBg}80`, border: `1px solid ${mc.modeBg}` }}>
-                  <p className="text-2xl font-extrabold tracking-wider" style={{ color: '#9B6DDF' }}>{word.word}</p>
-                </div>
+              <div className="mb-3">
+                <p className="text-3xl font-extrabold tracking-wider text-center" style={{ color: mc.accent }}>{word.word}</p>
+              </div>
+            )}
+
+            {phase === 'reading' && sub.showWord && (
+              <div className="mb-3 flex items-center gap-2">
+                <p className="text-4xl font-extrabold text-center tracking-wider" style={{ color: mc.accent }}>{word.word}</p>
+                <button onClick={() => sounds.speak(word.word, voiceLang)} className="active:scale-90 transition-transform" style={{ color: '#9B6DDF' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7"><path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
+                </button>
+              </div>
+            )}
+
+            {phase === 'reading' && !sub.showWord && (
+              <div className="mb-3">
+                <p className="text-center font-bold text-lg" style={{ color: '#57358F' }}>{t('whatDoYouSee')}</p>
+                <p className="text-center font-semibold text-sm mt-1" style={{ color: '#9B6DDF' }}>{t('sayTheWord')}</p>
+              </div>
+            )}
+
+            {sub.showImage && (
+              <div className="animate-float">
+                <Img w={word} className="text-[100px]" />
               </div>
             )}
 
@@ -745,25 +727,6 @@ export default function Game({ config, onExit, onExitHome }) {
                 <p className="text-center mt-4 font-semibold text-sm" style={{ color: '#9B6DDF' }}>
                   {t('sayLetter')} <span className="font-extrabold text-xl" style={{ color: mc.accent }}>{letters[letterIdx]}</span>
                 </p>
-              </div>
-            )}
-
-            {phase === 'reading' && sub.showWord && (
-              <div className="mt-6 mb-2">
-                <div className="bg-brand-card rounded-2xl shadow-card px-8 py-5 relative" style={{ border: `1.5px solid ${mc.modeBg}` }}>
-                  <p className="text-4xl font-extrabold text-center tracking-wider" style={{ color: mc.accent }}>{word.word}</p>
-                  <button onClick={() => sounds.speak(word.word, voiceLang)} className="absolute right-3 top-3 active:scale-90 transition-transform" style={{ color: '#9B6DDF' }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>
-                  </button>
-                </div>
-                <p className="text-center mt-3 font-semibold text-sm" style={{ color: '#9B6DDF' }}>{t('readAloud')}</p>
-              </div>
-            )}
-
-            {phase === 'reading' && !sub.showWord && (
-              <div className="mt-8 mb-2">
-                <p className="text-center font-bold text-lg" style={{ color: '#57358F' }}>{t('whatDoYouSee')}</p>
-                <p className="text-center font-semibold text-sm mt-1" style={{ color: '#9B6DDF' }}>{t('sayTheWord')}</p>
               </div>
             )}
 
@@ -820,18 +783,11 @@ export default function Game({ config, onExit, onExitHome }) {
       </div>
 
       {isFamiliarize && (
-        <div className="flex gap-3 px-6 pb-3">
-          <button
-            onClick={handleFamiliarizeNotYet}
-            className="flex-1 py-3 rounded-2xl font-extrabold active:scale-95 transition-transform text-sm"
-            style={{ background: '#FFFBEA', border: '2px solid #FFD84D', color: '#A07B00' }}
-          >
-            🔄 {t('notYet')}
-          </button>
+        <div className="px-6 pb-3">
           <button
             onClick={handleFamiliarizeLearned}
-            className="flex-1 py-3 text-white rounded-2xl font-extrabold active:scale-95 transition-transform text-sm"
-            style={{ background: 'linear-gradient(135deg, #8ED36B, #6BBF4A)', boxShadow: '0 4px 14px rgba(142,211,107,0.4)' }}
+            className="w-full py-4 text-white rounded-2xl font-extrabold active:scale-95 transition-transform text-base"
+            style={{ background: 'linear-gradient(135deg, #5B9FE8, #4A8BD4)', boxShadow: '0 4px 14px rgba(91,159,232,0.4)' }}
           >
             ✓ {t('learned')}
           </button>

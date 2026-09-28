@@ -221,6 +221,7 @@ function SettingsTab() {
   const { t, lang, setLang } = useLang()
   const { session, profile, updateProfile, signOut } = useAuth()
   const [name, setName] = useState(profile?.name || '')
+  const [expanded, setExpanded] = useState(null)
   const muteFx = !!profile?.mute_fx
   const muteVoice = !!profile?.mute_voice
 
@@ -229,193 +230,178 @@ function SettingsTab() {
     updateProfile({ name: v })
   }
 
+  function toggle(id) { setExpanded(expanded === id ? null : id) }
+
+  function Row({ icon, label, value, onClick, danger, last }) {
+    return (
+      <button
+        onClick={onClick}
+        className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-purple-50 transition-colors"
+        style={!last ? { borderBottom: '1px solid #F0ECF5' } : {}}
+      >
+        <span className="text-lg w-6 text-center flex-shrink-0">{icon}</span>
+        <span className={`flex-1 text-sm font-bold ${danger ? 'text-red-500' : 'text-gray-700'}`}>{label}</span>
+        {value && <span className="text-xs font-semibold text-purple-400 mr-1">{value}</span>}
+        <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+      </button>
+    )
+  }
+
+  function ExpandRow({ id, icon, label, value, children, last }) {
+    const open = expanded === id
+    return (
+      <div style={!last ? { borderBottom: '1px solid #F0ECF5' } : {}}>
+        <button
+          onClick={() => toggle(id)}
+          className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-purple-50 transition-colors"
+        >
+          <span className="text-lg w-6 text-center flex-shrink-0">{icon}</span>
+          <span className="flex-1 text-sm font-bold text-gray-700">{label}</span>
+          {value && <span className="text-xs font-semibold text-purple-400 mr-1">{value}</span>}
+          <svg className={`w-4 h-4 text-gray-300 flex-shrink-0 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+        </button>
+        {open && <div className="px-4 pb-3">{children}</div>}
+      </div>
+    )
+  }
+
   return (
     <div className="animate-fade-up">
-      <div className="px-5 pt-5 pb-3">
+      <div className="px-5 pt-5 pb-4">
         <h1 className="text-xl font-extrabold text-gray-800">{t('parents')}</h1>
         <p className="text-sm text-gray-400 font-semibold">{t('settingsDesc')}</p>
       </div>
 
-      <div className="px-4 grid gap-4 md:grid-cols-2 lg:max-w-3xl lg:mx-auto">
-        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('soundEffects')}</label>
-          <div className="flex gap-2 mt-2">
-            <button
-              onClick={() => { sounds.muteFx = false; updateProfile({ mute_fx: false }) }}
-              className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-1 ${
-                !muteFx ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
-              }`}
-            >
-              🔔 ON
-            </button>
-            <button
-              onClick={() => { sounds.muteFx = true; updateProfile({ mute_fx: true }) }}
-              className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-1 ${
-                muteFx ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
-              }`}
-            >
-              🔇 OFF
-            </button>
+      <div className="px-4 lg:max-w-xl lg:mx-auto space-y-4 pb-6">
+        <div className="bg-white rounded-2xl shadow-card border border-gray-100 overflow-hidden">
+          <div className="px-4 pt-3 pb-1">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{lang === 'es' ? 'Estudiante' : 'Student'}</span>
           </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('voice')}</label>
-          <div className="flex gap-2 mt-2">
-            <button
-              onClick={() => { sounds.muteVoice = false; updateProfile({ mute_voice: false }) }}
-              className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-1 ${
-                !muteVoice ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
-              }`}
-            >
-              🗣️ ON
-            </button>
-            <button
-              onClick={() => { sounds.muteVoice = true; updateProfile({ mute_voice: true }) }}
-              className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all flex items-center justify-center gap-1 ${
-                muteVoice ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
-              }`}
-            >
-              🤐 OFF
-            </button>
+          <div className="px-4 py-3" style={{ borderBottom: '1px solid #F0ECF5' }}>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t('studentName')}</label>
+            <input
+              type="text"
+              value={name}
+              onChange={e => handleNameChange(e.target.value)}
+              placeholder={t('enterName')}
+              className="w-full mt-1.5 text-sm font-bold px-3 py-2.5 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-colors"
+            />
           </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('language')}</label>
-          <div className="flex gap-2 mt-2">
-            {['es', 'en'].map(l => (
-              <button
-                key={l}
-                onClick={() => { setLang(l); updateProfile({ lang: l }) }}
-                className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all ${
-                  lang === l ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
-                }`}
-              >
-                {l === 'es' ? '🇪🇸 ES' : '🇺🇸 EN'}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('voiceLanguage')}</label>
-          <div className="flex gap-2 mt-2">
-            {['es', 'en'].map(l => (
-              <button
-                key={l}
-                onClick={() => updateProfile({ voice_lang: l })}
-                className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all ${
-                  (profile?.voice_lang || 'en') === l ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
-                }`}
-              >
-                {l === 'es' ? '🇪🇸 ES' : '🇺🇸 EN'}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4 md:col-span-2">
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('studentName')}</label>
-          <input
-            type="text"
-            value={name}
-            onChange={e => handleNameChange(e.target.value)}
-            placeholder={t('enterName')}
-            className="w-full mt-2 text-lg font-bold px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 focus:outline-none transition-colors"
+          <Row
+            icon={MODES[profile?.adventure]?.emoji || '🗺️'}
+            label={t('changeAdventure')}
+            value={MODES[profile?.adventure]?.label}
+            onClick={() => updateProfile({ adventure: null })}
+            last
           />
         </div>
 
-        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('wordsPerBlock')}</label>
-          <div className="flex gap-2 mt-2">
-            {[3, 5, 7, 10, 14].map(s => (
-              <button
-                key={s}
-                onClick={() => updateProfile({ block_size: s })}
-                className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all ${
-                  s === (profile?.block_size || 5) ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
-                }`}
-              >
-                {s}
-              </button>
-            ))}
+        <div className="bg-white rounded-2xl shadow-card border border-gray-100 overflow-hidden">
+          <div className="px-4 pt-3 pb-1">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{lang === 'es' ? 'Sonido' : 'Sound'}</span>
           </div>
+          <ExpandRow id="fx" icon="🔔" label={t('soundEffects')} value={muteFx ? 'OFF' : 'ON'}>
+            <div className="flex gap-2">
+              <button onClick={() => { sounds.muteFx = false; updateProfile({ mute_fx: false }) }} className={`flex-1 py-2 rounded-xl font-extrabold text-sm transition-all ${!muteFx ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'}`}>ON</button>
+              <button onClick={() => { sounds.muteFx = true; updateProfile({ mute_fx: true }) }} className={`flex-1 py-2 rounded-xl font-extrabold text-sm transition-all ${muteFx ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'}`}>OFF</button>
+            </div>
+          </ExpandRow>
+          <ExpandRow id="voice" icon="🗣️" label={t('voice')} value={muteVoice ? 'OFF' : 'ON'}>
+            <div className="flex gap-2">
+              <button onClick={() => { sounds.muteVoice = false; updateProfile({ mute_voice: false }) }} className={`flex-1 py-2 rounded-xl font-extrabold text-sm transition-all ${!muteVoice ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'}`}>ON</button>
+              <button onClick={() => { sounds.muteVoice = true; updateProfile({ mute_voice: true }) }} className={`flex-1 py-2 rounded-xl font-extrabold text-sm transition-all ${muteVoice ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'}`}>OFF</button>
+            </div>
+          </ExpandRow>
+          <ExpandRow id="voiceLang" icon="🎤" label={t('voiceLanguage')} value={(profile?.voice_lang || 'en').toUpperCase()} last>
+            <div className="flex gap-2">
+              {['es', 'en'].map(l => (
+                <button key={l} onClick={() => updateProfile({ voice_lang: l })} className={`flex-1 py-2 rounded-xl font-extrabold text-sm transition-all ${(profile?.voice_lang || 'en') === l ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'}`}>
+                  {l === 'es' ? '🇪🇸 ES' : '🇺🇸 EN'}
+                </button>
+              ))}
+            </div>
+          </ExpandRow>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('blocksToShow')}</label>
-          <div className="flex gap-2 mt-2 flex-wrap">
-            {[null, 1, 2, 3, 5, 10].map(v => (
-              <button
-                key={v ?? 'all'}
-                onClick={() => updateProfile({ max_blocks: v })}
-                className={`flex-1 min-w-[40px] py-2.5 rounded-xl font-extrabold text-sm transition-all ${
-                  (profile?.max_blocks ?? null) === v ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
-                }`}
-              >
-                {v === null ? t('allBlocks') : v}
-              </button>
-            ))}
+        <div className="bg-white rounded-2xl shadow-card border border-gray-100 overflow-hidden">
+          <div className="px-4 pt-3 pb-1">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{lang === 'es' ? 'Aprendizaje' : 'Learning'}</span>
           </div>
+          <ExpandRow id="lang" icon="🌐" label={t('language')} value={lang.toUpperCase()}>
+            <div className="flex gap-2">
+              {['es', 'en'].map(l => (
+                <button key={l} onClick={() => { setLang(l); updateProfile({ lang: l }) }} className={`flex-1 py-2 rounded-xl font-extrabold text-sm transition-all ${lang === l ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'}`}>
+                  {l === 'es' ? '🇪🇸 ES' : '🇺🇸 EN'}
+                </button>
+              ))}
+            </div>
+          </ExpandRow>
+          <ExpandRow id="bsize" icon="📦" label={t('wordsPerBlock')} value={profile?.block_size || 5}>
+            <div className="flex gap-2">
+              {[3, 5, 7, 10, 14].map(s => (
+                <button key={s} onClick={() => updateProfile({ block_size: s })} className={`flex-1 py-2 rounded-xl font-extrabold text-sm transition-all ${s === (profile?.block_size || 5) ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'}`}>{s}</button>
+              ))}
+            </div>
+          </ExpandRow>
+          <ExpandRow id="maxblk" icon="🧱" label={t('blocksToShow')} value={profile?.max_blocks ?? t('allBlocks')}>
+            <div className="flex gap-2 flex-wrap">
+              {[null, 1, 2, 3, 5, 10].map(v => (
+                <button key={v ?? 'all'} onClick={() => updateProfile({ max_blocks: v })} className={`flex-1 min-w-[36px] py-2 rounded-xl font-extrabold text-sm transition-all ${(profile?.max_blocks ?? null) === v ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'}`}>
+                  {v === null ? t('allBlocks') : v}
+                </button>
+              ))}
+            </div>
+          </ExpandRow>
+          <ExpandRow id="imgsize" icon="🖼️" label={t('imageSize')} value={t('img' + (profile?.image_size || 'medium').charAt(0).toUpperCase() + (profile?.image_size || 'medium').slice(1))} last>
+            <div className="flex gap-2">
+              {[{ id: 'small', label: t('imgSmall') }, { id: 'medium', label: t('imgMedium') }, { id: 'large', label: t('imgLarge') }].map(s => (
+                <button key={s.id} onClick={() => updateProfile({ image_size: s.id })} className={`flex-1 py-2 rounded-xl font-extrabold text-sm transition-all ${s.id === (profile?.image_size || 'medium') ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'}`}>{s.label}</button>
+              ))}
+            </div>
+          </ExpandRow>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-card border border-gray-100 p-4">
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('imageSize')}</label>
-          <div className="flex gap-2 mt-2">
-            {[{ id: 'small', label: t('imgSmall') }, { id: 'medium', label: t('imgMedium') }, { id: 'large', label: t('imgLarge') }].map(s => (
-              <button
-                key={s.id}
-                onClick={() => updateProfile({ image_size: s.id })}
-                className={`flex-1 py-2.5 rounded-xl font-extrabold text-sm transition-all ${
-                  s.id === (profile?.image_size || 'medium') ? 'bg-purple-600 text-white shadow-btn' : 'bg-purple-50 text-purple-400'
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
+        <div className="bg-white rounded-2xl shadow-card border border-gray-100 overflow-hidden">
+          <div className="px-4 pt-3 pb-1">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{lang === 'es' ? 'Info' : 'Info'}</span>
           </div>
+          <ExpandRow id="howit" icon="❓" label={t('howItWorks')} last>
+            <ul className="text-xs text-purple-600 space-y-1.5 font-semibold">
+              <li>🐝 {t('howSpelling')}</li>
+              <li>🌸 {t('howBumblebee')}</li>
+              <li>🧸 {t('howPractice')}</li>
+              <li>🏆 {t('howChallenge')}</li>
+              <li>⭐ {t('howStars')}</li>
+              <li>🔄 {t('howQueue')}</li>
+            </ul>
+          </ExpandRow>
         </div>
 
-        <button
-          onClick={() => updateProfile({ adventure: null })}
-          className="w-full bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 text-left md:col-span-2"
-        >
-          <div className="font-extrabold text-purple-600 text-sm">{t('changeAdventure')}</div>
-          <div className="text-xs text-purple-400 font-semibold mt-0.5">
-            {MODES[profile?.adventure]?.emoji} {MODES[profile?.adventure]?.label}
-          </div>
-        </button>
-
-        <div className="bg-purple-50 rounded-2xl border border-purple-200 p-4 md:col-span-2">
-          <h3 className="font-extrabold text-purple-700 text-sm mb-2">{t('howItWorks')}</h3>
-          <ul className="text-xs text-purple-600 space-y-1.5 font-semibold">
-            <li>🐝 {t('howSpelling')}</li>
-            <li>🌸 {t('howBumblebee')}</li>
-            <li>🧸 {t('howPractice')}</li>
-            <li>🏆 {t('howChallenge')}</li>
-            <li>⭐ {t('howStars')}</li>
-            <li>🔄 {t('howQueue')}</li>
-          </ul>
+        <div className="bg-white rounded-2xl shadow-card border border-gray-100 overflow-hidden">
+          <button
+            onClick={async () => {
+              if (!confirm(t('resetConfirm'))) return
+              await resetProgress(session.user.id)
+              alert(t('resetDone'))
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-orange-50 transition-colors"
+          >
+            <span className="text-lg w-6 text-center flex-shrink-0">🔄</span>
+            <span className="flex-1 text-sm font-bold text-orange-500">{t('resetProgress')}</span>
+            <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+          </button>
         </div>
 
-        <button
-          onClick={async () => {
-            if (!confirm(t('resetConfirm'))) return
-            await resetProgress(session.user.id)
-            alert(t('resetDone'))
-          }}
-          className="w-full bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 text-center md:col-span-2"
-        >
-          <span className="text-orange-500 font-bold text-sm">{t('resetProgress')}</span>
-        </button>
-
-        <button
-          onClick={signOut}
-          className="w-full bg-red-50 border-2 border-red-200 rounded-2xl p-4 text-center md:col-span-2 lg:hidden"
-        >
-          <span className="text-red-500 font-bold text-sm">{t('logout')}</span>
-        </button>
+        <div className="bg-white rounded-2xl shadow-card border border-gray-100 overflow-hidden lg:hidden">
+          <button
+            onClick={signOut}
+            className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-red-50 transition-colors"
+          >
+            <span className="text-lg w-6 text-center flex-shrink-0">🚪</span>
+            <span className="flex-1 text-sm font-bold text-red-500">{t('logout')}</span>
+            <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+          </button>
+        </div>
       </div>
     </div>
   )

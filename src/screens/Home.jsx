@@ -60,6 +60,64 @@ export default function Home({ onStartGame, selectedSubMode, setSelectedSubMode 
   )
 }
 
+function WeekStreak() {
+  const { profile } = useAuth()
+  const { lang } = useLang()
+  const activeDates = profile?.active_dates || []
+
+  const today = new Date()
+  const dow = today.getDay()
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - ((dow + 6) % 7))
+
+  const days = lang === 'es'
+    ? ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do']
+    : ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+
+  const weekDates = days.map((_, i) => {
+    const d = new Date(monday)
+    d.setDate(monday.getDate() + i)
+    return d.toISOString().slice(0, 10)
+  })
+
+  const streak = activeDates.filter(d => weekDates.includes(d)).length
+
+  return (
+    <div className="mx-4 mt-4 rounded-2xl p-4" style={{ background: '#FFF8E1', border: '1.5px solid #FFD84D' }}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🔥</span>
+          <span className="font-extrabold text-sm" style={{ color: '#D4A017' }}>
+            {lang === 'es' ? 'Racha semanal' : 'Weekly streak'}
+          </span>
+        </div>
+        <span className="font-extrabold text-sm px-2.5 py-1 rounded-full" style={{ background: '#FFD84D', color: '#8B6914' }}>
+          {streak}/7
+        </span>
+      </div>
+      <div className="flex justify-between gap-1">
+        {days.map((label, i) => {
+          const active = activeDates.includes(weekDates[i])
+          const isToday = weekDates[i] === today.toISOString().slice(0, 10)
+          return (
+            <div key={i} className="flex flex-col items-center gap-1.5 flex-1">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-extrabold transition-all"
+                style={active
+                  ? { background: 'linear-gradient(135deg, #FFD84D, #F5C518)', color: '#8B6914', boxShadow: '0 2px 8px rgba(245,197,24,0.4)' }
+                  : { background: '#F5EDD0', color: '#C8B060' }}
+              >
+                {active ? '✓' : '·'}
+              </div>
+              <span className={`text-[10px] font-bold ${isToday ? 'text-amber-700' : 'text-amber-400'}`}>{label}</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
   const modeDef = MODES[adventure]
   const mc = MODE_THEME[modeDef.color]
@@ -84,6 +142,8 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
           <span className="font-extrabold text-sm tabular-nums" style={{ color: '#D4A017' }}>{stars}</span>
         </div>
       </div>
+
+      <WeekStreak />
 
       <div
         className="mx-4 mt-4 rounded-3xl p-5 text-white relative overflow-hidden"
