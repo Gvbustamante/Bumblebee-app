@@ -750,7 +750,7 @@ export default function Game({ config, onExit, onExitHome }) {
               )}
             </div>
 
-            <div className="flex items-center gap-3 mt-2 w-full max-w-xs">
+            <div className="flex items-center gap-3 mt-2 w-full px-6">
               <button
                 onClick={handleCorrect}
                 disabled={!!feedback}
@@ -783,7 +783,7 @@ export default function Game({ config, onExit, onExitHome }) {
       </div>
 
       {isFamiliarize && (
-        <div className="px-6 pb-3 flex gap-3 max-w-xs mx-auto w-full">
+        <div className="px-6 pb-3 flex gap-3 w-full">
           <button
             onClick={handleFamiliarizeLearned}
             className="flex-1 py-3.5 text-white rounded-2xl font-extrabold active:scale-95 transition-transform flex items-center justify-center gap-2"
