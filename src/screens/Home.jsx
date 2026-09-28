@@ -113,7 +113,10 @@ function SubModeSelect({ adventure, stars, stats, words, onSelect }) {
       <div className="px-4 mt-5 pb-4">
         <h2 className="text-base font-extrabold text-brand-dark mb-3 px-1">{t('howToLearn')}</h2>
         <div className="grid gap-3 md:grid-cols-2">
-          {modeDef.subModes.map((sub, i) => (
+          {modeDef.subModes.filter(sub => {
+            const hiddenSubs = profile?.hidden_submodes || []
+            return !hiddenSubs.includes(`${adventure}:${sub.id}`)
+          }).map((sub, i) => (
             <button
               key={sub.id}
               onClick={() => onSelect(sub.id)}
@@ -297,7 +300,9 @@ function BlockSelect({ adventure, subMode, words, onBack, onStart }) {
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {(() => {
           const maxBlocks = profile?.max_blocks
-          return maxBlocks ? blocks.slice(0, maxBlocks) : blocks
+          const hiddenBlocks = profile?.hidden_blocks || []
+          const limited = maxBlocks ? blocks.slice(0, maxBlocks) : blocks
+          return limited.filter((_, i) => !hiddenBlocks.includes(i + 1))
         })().map((block, i) => {
           const allMastered = block.every(w => (masteryMap[w.word] ?? -1) >= 80)
           const anyPracticed = block.some(w => (masteryMap[w.word] ?? -1) >= 0)

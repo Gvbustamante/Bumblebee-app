@@ -15,7 +15,7 @@ const MODE_COLORS = {
 
 export default function AdventureSelect() {
   const { t, lang } = useLang()
-  const { updateProfile } = useAuth()
+  const { profile, updateProfile } = useAuth()
 
   async function pick(adventure) {
     await updateProfile({ adventure })
@@ -24,8 +24,8 @@ export default function AdventureSelect() {
   return (
     <div className="app-shell status-bar-blur flex flex-col min-h-screen items-center px-5 py-8" style={{ background: 'linear-gradient(180deg, #F2E8FF 0%, #F7F3FF 40%, #F2E8FF80 100%)' }}>
       <div className="w-full max-w-sm lg:max-w-3xl">
-        <img src="/images/adventure-banner.webp" alt="Mis Aventuras" className="w-full rounded-2xl mb-5 shadow-soft" />
-        <h1 className="text-lg font-extrabold text-center mb-1" style={{ color: '#57358F' }}>
+        <img src="/images/adventure-banner.webp" alt="Mis Aventuras" className="w-full rounded-2xl mb-5 shadow-soft lg:hidden" />
+        <h1 className="text-lg lg:text-base font-extrabold text-center mb-1" style={{ color: '#57358F' }}>
           {lang === 'es' ? 'Elige tu aventura' : 'Choose your adventure'}
         </h1>
         <p className="text-xs font-semibold text-center mb-5" style={{ color: '#9B6DDF' }}>
@@ -33,7 +33,10 @@ export default function AdventureSelect() {
         </p>
 
         <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
-          {Object.values(MODES).map((mode, i) => {
+          {Object.values(MODES).filter(mode => {
+            const hiddenModes = profile?.hidden_modes || []
+            return !hiddenModes.includes(mode.id)
+          }).map((mode, i) => {
             const c = MODE_COLORS[mode.color] || MODE_COLORS.purple
             return (
               <button

@@ -12,11 +12,21 @@ import { getStars, getGarden, resetProgress } from './lib/db'
 import sounds from './lib/sounds'
 
 export default function App() {
-  const { session, profile, loading, isAdmin } = useAuth()
+  const { session, profile, loading, isAdmin, updateProfile } = useAuth()
 
   useEffect(() => {
     if (!loading && window.__dismissSplash) window.__dismissSplash()
   }, [loading])
+
+  useEffect(() => {
+    if (!profile?.adventure || !profile?.last_active_at) return
+    const last = new Date(profile.last_active_at).getTime()
+    const now = Date.now()
+    const oneDay = 24 * 60 * 60 * 1000
+    if (now - last > oneDay) {
+      updateProfile({ adventure: null })
+    }
+  }, [profile?.id])
 
   if (loading) return null
 
