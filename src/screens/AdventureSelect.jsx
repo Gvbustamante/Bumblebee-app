@@ -31,7 +31,7 @@ export default function AdventureSelect() {
           {lang === 'es' ? 'Cada aventura tiene su propio progreso' : 'Each adventure has its own progress'}
         </p>
 
-        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-4">
           {Object.values(MODES).filter(mode => {
             const hiddenModes = profile?.hidden_modes || []
             return !hiddenModes.includes(mode.id)
@@ -41,22 +41,15 @@ export default function AdventureSelect() {
               <button
                 key={mode.id}
                 onClick={() => pick(mode.id)}
-                className="w-full rounded-2xl text-left active:scale-[0.97] transition-all duration-200 relative overflow-hidden"
-                style={{ background: '#FFFFFF', border: `1.5px solid ${c.border}`, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
+                className="rounded-2xl text-center active:scale-[0.95] transition-all duration-200 p-4"
+                style={{ background: c.modeBg, border: `2px solid ${c.border}`, boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
               >
-                <div className="flex items-center gap-3 p-4">
-                  {mode.img && (
-                    <img src={mode.img} alt={mode.label} className="w-14 h-14 object-contain shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-base" style={{ color: c.accent }}>{mode.label}</div>
-                    <div className="text-[11px] font-medium mt-0.5 leading-snug" style={{ color: '#9B6DDF' }}>
-                      {lang === 'es' ? mode.subtitleEs : mode.subtitle}
-                    </div>
-                  </div>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke={c.accent} className="w-5 h-5 shrink-0 opacity-60">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                  </svg>
+                {mode.img && (
+                  <img src={mode.img} alt={mode.label} className="w-20 h-20 object-contain mx-auto mb-2" />
+                )}
+                <div className="font-extrabold text-sm" style={{ color: c.accent }}>{mode.label}</div>
+                <div className="text-[10px] font-semibold mt-0.5 leading-snug" style={{ color: '#9B6DDF' }}>
+                  {lang === 'es' ? mode.subtitleEs : mode.subtitle}
                 </div>
               </button>
             )
