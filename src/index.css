@@ -29,10 +29,12 @@
 @media (min-width: 1024px) {
   body {
     background: #F7F3FF;
+    display: block;
   }
   .app-shell {
     max-width: 100%;
     box-shadow: none;
+    background-color: #F7F3FF;
   }
 }
 
