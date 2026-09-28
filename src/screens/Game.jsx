@@ -783,7 +783,7 @@ export default function Game({ config, onExit, onExitHome }) {
       </div>
 
       {isFamiliarize && (
-        <div className="px-6 pb-3 flex gap-3 w-full">
+        <div className="px-6 pb-8 flex gap-3 w-full">
           <button
             onClick={handleFamiliarizeNotYet}
             className="flex-1 py-3.5 text-white rounded-2xl font-extrabold active:scale-95 transition-transform flex items-center justify-center gap-2"
