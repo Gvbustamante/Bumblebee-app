@@ -34,7 +34,7 @@ export default function Progress() {
   const fresh = words.filter(w => (masteryMap[w.word] ?? -1) < 0)
 
   return (
-    <div className="animate-fade-up bg-brand-bg min-h-screen pb-4">
+    <div className="animate-fade-up min-h-screen pb-4" style={{ background: '#F8F5FF' }}>
       <div className="px-5 pt-5 pb-2">
         <h1 className="text-xl font-extrabold" style={{ color: accent }}>
           🌟 {t('myWords')}

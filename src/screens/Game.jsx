@@ -382,14 +382,17 @@ export default function Game({ config, onExit, onExitHome }) {
   function ProgressBar() {
     const pct = total > 0 ? (done / total) * 100 : 0
     return (
-      <div className="flex-1 mx-3 h-2.5 rounded-full overflow-hidden" style={{ background: '#E8E0F0' }}>
-        <div className="h-full rounded-full transition-all duration-500 ease-out" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #8ED36B, #6BBF4A)' }} />
+      <div className="flex items-center gap-2 flex-1 mx-3">
+        <div className="flex-1 h-2.5 rounded-full overflow-hidden" style={{ background: '#E8E0F0' }}>
+          <div className="h-full rounded-full transition-all duration-500 ease-out" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #8ED36B, #6BBF4A)' }} />
+        </div>
+        <span className="text-xs font-bold whitespace-nowrap" style={{ color: '#9B6DDF' }}>{done}/{total}</span>
       </div>
     )
   }
 
   if (!sub) return (
-    <div className="min-h-screen bg-brand-bg flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#F8F5FF' }}>
       <button onClick={onExit} className="font-bold" style={{ color: mc.accent }}>← {t('home')}</button>
     </div>
   )
@@ -400,7 +403,7 @@ export default function Game({ config, onExit, onExitHome }) {
     const perfectCount = blockResults.filter(r => r.perfect).length
     const totalTimeFmt = `${Math.floor(totalTimeMs / 60000)}:${String(Math.floor(totalTimeMs / 1000) % 60).padStart(2, '0')}`
     return (
-      <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-6 animate-pop relative">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 animate-pop relative" style={{ background: '#F8F5FF' }}>
         <div className="absolute top-4 right-4 z-10"><MuteBtn mc={mc} /></div>
         <img src="/images/block-complete.webp" alt="" className="w-72 mb-3 animate-float" style={{ filter: 'drop-shadow(0 8px 20px rgba(155,109,223,0.2))' }} />
         <h1 className="text-2xl font-extrabold" style={{ color: '#57358F' }}>{t('blockComplete')}</h1>
@@ -466,47 +469,51 @@ export default function Game({ config, onExit, onExitHome }) {
   }
 
   if (showResult && currentResult) {
-    const { lr, allPerfect } = currentResult
+    const { lr, allPerfect, time: wordTime } = currentResult
+    const earned = allPerfect ? 3 : 1
+    const attempts = lr ? lr.filter(x => !x).length + 1 : wordReadErrors + 1
     return (
-      <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-6 animate-pop overflow-hidden">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 animate-pop overflow-hidden" style={{ background: '#F8F5FF' }}>
         <div className="absolute top-4 right-4 z-10"><MuteBtn mc={mc} /></div>
-        <div className="flex flex-col items-center">
-          <h2 className="text-3xl font-extrabold mb-3" style={{ color: '#57358F' }}>{word.word}</h2>
-          {sub.showImage && <Img w={word} className="text-[80px]" />}
 
-          {lr && (
-            <div className="flex gap-2 mt-4">
-              {letters.map((l, i) => (
-                <div
-                  key={i}
-                  className="w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-lg"
-                  style={{
-                    background: lr[i] ? '#E8F5E0' : '#FFF1F5',
-                    color: lr[i] ? '#4A8C2A' : '#C0457B',
-                  }}
-                >
-                  {l}
-                </div>
-              ))}
-            </div>
-          )}
+        <div className="flex items-center gap-1 mb-2">
+          {[...Array(3)].map((_, i) => (
+            <span key={i} className={`text-3xl ${i < earned ? 'animate-sparkle' : 'opacity-30'}`}>⭐</span>
+          ))}
+        </div>
 
-          <div className="mt-4 text-3xl font-extrabold" style={{ color: allPerfect ? '#D4A017' : '#9B6DDF' }}>
-            {allPerfect ? (
-              <span className="animate-sparkle inline-block">⭐ {t('perfect')}</span>
-            ) : (
-              <span>💪 {t('goodTry')}</span>
-            )}
+        <h2 className="text-2xl font-extrabold mb-4" style={{ color: '#57358F' }}>
+          {allPerfect ? (lang === 'es' ? '¡Muy bien!' : 'Great job!') : (lang === 'es' ? '¡Buen intento!' : 'Good try!')}
+        </h2>
+
+        {sub.showImage && <Img w={word} className="text-[80px] mb-3" />}
+
+        <h3 className="text-3xl font-extrabold tracking-wider mb-5" style={{ color: mc.accent }}>{word.word}</h3>
+
+        <div className="flex items-center gap-4 mb-6">
+          <div className="text-center px-4">
+            <div className="text-xs font-bold mb-1" style={{ color: '#B0A0C0' }}>{lang === 'es' ? 'Tiempo' : 'Time'}</div>
+            <div className="text-lg font-extrabold" style={{ color: '#57358F' }}>{fmt(wordTime)}</div>
+          </div>
+          <div className="w-px h-8" style={{ background: '#E8E0F0' }} />
+          <div className="text-center px-4">
+            <div className="text-xs font-bold mb-1" style={{ color: '#B0A0C0' }}>{lang === 'es' ? 'Intentos' : 'Attempts'}</div>
+            <div className="text-lg font-extrabold" style={{ color: '#57358F' }}>{attempts}</div>
+          </div>
+          <div className="w-px h-8" style={{ background: '#E8E0F0' }} />
+          <div className="text-center px-4">
+            <div className="text-xs font-bold mb-1" style={{ color: '#B0A0C0' }}>{lang === 'es' ? 'Estrellas' : 'Stars'}</div>
+            <div className="text-lg font-extrabold" style={{ color: '#D4A017' }}>+{earned}</div>
           </div>
         </div>
 
-        <div className="w-full max-w-xs lg:max-w-sm mt-6 px-6">
+        <div className="w-full max-w-xs lg:max-w-sm">
           <button
             onClick={handleLearned}
             className="w-full py-4 text-white rounded-2xl font-extrabold active:scale-95 transition-transform text-base"
-            style={{ background: 'linear-gradient(135deg, #5B9FE8, #4A8BD4)', boxShadow: '0 4px 14px rgba(91,159,232,0.4)' }}
+            style={{ background: 'linear-gradient(135deg, #7B4FBF, #57358F)', boxShadow: '0 4px 14px rgba(123,79,191,0.4)' }}
           >
-            ✓ {t('learned')}
+            {lang === 'es' ? 'Siguiente palabra' : 'Next word'} →
           </button>
         </div>
 
@@ -522,7 +529,7 @@ export default function Game({ config, onExit, onExitHome }) {
   const isLetterSort = phase === 'letterSort'
 
   return (
-    <div className="min-h-screen bg-brand-bg flex flex-col overflow-hidden relative">
+    <div className="min-h-screen flex flex-col overflow-hidden relative" style={{ background: '#F8F5FF' }}>
       <div className="hidden lg:block fixed right-6 top-20 w-52 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-purple-100 p-4 max-h-[calc(100vh-120px)] overflow-y-auto z-40">
         <h3 className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#9B6DDF' }}>{t('words')}</h3>
         {block.map((w, i) => {
@@ -538,16 +545,20 @@ export default function Game({ config, onExit, onExitHome }) {
           )
         })}
       </div>
-      <div className="flex items-center px-4 pt-4 pb-2">
+      <div className="flex items-center px-4 pt-4 pb-2 gap-2">
         <button
           onClick={onExit}
-          className="w-9 h-9 flex items-center justify-center rounded-full font-bold active:scale-90 transition-transform"
+          className="w-9 h-9 flex items-center justify-center rounded-full font-bold active:scale-90 transition-transform shrink-0"
           style={{ background: '#F3F0F8', color: '#9B6DDF' }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
         </button>
         <ProgressBar />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full" style={{ background: '#FFFBEA' }}>
+            <span className="text-sm">⭐</span>
+            <span className="text-xs font-bold" style={{ color: '#D4A017' }}>{blockResults.reduce((s, r) => s + r.starsEarned, 0)}</span>
+          </div>
           <MuteBtn mc={mc} />
           {isChallenge && (
             <div className="px-3 py-1 rounded-full font-mono font-bold text-sm" style={{ background: mc.modeBg, color: mc.accent }}>
@@ -594,16 +605,16 @@ export default function Game({ config, onExit, onExitHome }) {
               </div>
             )}
 
-            <div className="flex gap-2 justify-center mt-4 min-h-[56px]">
+            <div className="flex gap-2.5 justify-center mt-4 min-h-[56px]">
               {letters.map((l, i) => (
                 <div
                   key={i}
-                  className="w-12 h-12 rounded-xl flex items-center justify-center font-extrabold text-xl transition-all duration-200"
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center font-extrabold text-2xl transition-all duration-200"
                   style={{
-                    background: i < placed.length ? '#E8F5E0' : i === placed.length && dragLetter ? `${mc.modeBg}` : '#F3F0F8',
-                    border: i < placed.length ? '2px solid #8ED36B' : i === placed.length && dragLetter ? `2px solid ${mc.accent}` : '2px dashed #D0C8E0',
-                    color: i < placed.length ? '#4A8C2A' : '#D0C8E0',
-                    transform: i < placed.length ? 'scale(0.95)' : i === placed.length && dragLetter ? 'scale(1.05)' : 'none',
+                    background: i < placed.length ? 'linear-gradient(135deg, #5B9FE8, #4A8BD4)' : '#EDE5F5',
+                    border: i < placed.length ? 'none' : i === placed.length && dragLetter ? '2px solid #9B6DDF' : '2px dashed #D0C8E0',
+                    color: i < placed.length ? '#FFFFFF' : '#D0C8E0',
+                    boxShadow: i < placed.length ? '0 3px 10px rgba(91,159,232,0.3)' : 'none',
                   }}
                 >
                   {i < placed.length ? placed[i].letter : ''}
@@ -620,13 +631,13 @@ export default function Game({ config, onExit, onExitHome }) {
                     const touch = e.touches[0]
                     setDragLetter({ item, idx: i, x: touch.clientX, y: touch.clientY })
                   }}
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center font-extrabold text-2xl shadow-md transition-all duration-200 ${
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center font-extrabold text-2xl transition-all duration-200 ${
                     shakeIdx === i ? 'animate-shake' : ''
                   }`}
                   style={{
-                    background: shakeIdx === i ? '#FFF1F5' : '#FFFFFF',
-                    border: shakeIdx === i ? '2px solid #F58BB5' : `2px solid ${mc.modeBg}`,
-                    color: shakeIdx === i ? '#C0457B' : mc.accent,
+                    background: shakeIdx === i ? '#FFF1F5' : '#F3F0F8',
+                    border: shakeIdx === i ? '2px solid #F58BB5' : '2px solid #E8E0F0',
+                    color: shakeIdx === i ? '#C0457B' : '#57358F',
                     opacity: dragLetter?.idx === i ? 0.3 : 1,
                     touchAction: 'none',
                   }}
@@ -703,25 +714,21 @@ export default function Game({ config, onExit, onExitHome }) {
 
             {isSpellingPhase && sub.showLetters && (
               <div className="mt-6 mb-2">
-                <div className="flex gap-3 justify-center">
+                <div className="flex gap-2.5 justify-center">
                   {letters.map((letter, i) => (
-                    <div key={i} className="flex flex-col items-center">
-                      <div className="h-8 flex items-center justify-center">
-                        {i === letterIdx && <span className="text-xl animate-float">🐝</span>}
-                      </div>
-                      <button
-                        onClick={() => sounds.speakLetter(letter, voiceLang)}
-                        className="w-14 h-14 rounded-2xl flex items-center justify-center font-extrabold text-2xl transition-all duration-200 active:scale-90"
-                        style={{
-                          background: i < letterIdx ? '#E8F5E0' : i === letterIdx ? mc.accent : '#F3F0F8',
-                          color: i < letterIdx ? '#4A8C2A' : i === letterIdx ? '#FFFFFF' : '#B0A0C0',
-                          transform: i < letterIdx ? 'scale(0.95)' : i === letterIdx ? 'scale(1.1)' : 'none',
-                          boxShadow: i === letterIdx ? `0 4px 14px ${mc.accent}40` : 'none',
-                        }}
-                      >
-                        {letter}
-                      </button>
-                    </div>
+                    <button
+                      key={i}
+                      onClick={() => sounds.speakLetter(letter, voiceLang)}
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center font-extrabold text-2xl transition-all duration-200 active:scale-90"
+                      style={{
+                        background: i < letterIdx ? 'linear-gradient(135deg, #8ED36B, #6BBF4A)' : i === letterIdx ? 'linear-gradient(135deg, #5B9FE8, #4A8BD4)' : '#EDE5F5',
+                        color: i <= letterIdx ? '#FFFFFF' : '#B0A0C0',
+                        boxShadow: i === letterIdx ? '0 4px 14px rgba(91,159,232,0.4)' : 'none',
+                        transform: i === letterIdx ? 'scale(1.08)' : 'none',
+                      }}
+                    >
+                      {letter}
+                    </button>
                   ))}
                 </div>
                 <p className="text-center mt-4 font-semibold text-sm" style={{ color: '#9B6DDF' }}>
@@ -743,31 +750,24 @@ export default function Game({ config, onExit, onExitHome }) {
               )}
             </div>
 
-            <div className="flex items-center gap-4 mt-2">
-              <button
-                onClick={handleIncorrect}
-                disabled={!!feedback}
-                className="w-16 h-16 rounded-full flex items-center justify-center text-sm font-extrabold active:scale-90 transition-transform disabled:opacity-40"
-                style={{
-                  background: '#FFF1F5',
-                  border: '2.5px solid #F58BB5',
-                  color: '#C0457B',
-                }}
-              >
-                🔄
-              </button>
+            <div className="flex items-center gap-3 mt-2 w-full max-w-xs">
               <button
                 onClick={handleCorrect}
                 disabled={!!feedback}
-                className="w-24 h-24 rounded-full flex flex-col items-center justify-center font-extrabold active:scale-90 transition-transform disabled:opacity-40 text-white"
-                style={{
-                  background: 'linear-gradient(135deg, #8ED36B, #6BBF4A)',
-                  border: '3px solid #6BBF4A',
-                  boxShadow: '0 6px 20px rgba(142,211,107,0.4)',
-                }}
+                className="flex-1 py-3.5 rounded-2xl font-extrabold active:scale-95 transition-transform disabled:opacity-40 text-white flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #8ED36B, #6BBF4A)', boxShadow: '0 4px 14px rgba(142,211,107,0.3)' }}
               >
-                <span className="text-3xl">✓</span>
-                <span className="text-[10px] -mt-0.5">{t('yes')}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                {lang === 'es' ? 'La conozco' : 'I know it'}
+              </button>
+              <button
+                onClick={handleIncorrect}
+                disabled={!!feedback}
+                className="flex-1 py-3.5 rounded-2xl font-extrabold active:scale-95 transition-transform disabled:opacity-40 text-white flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #9B6DDF, #7B4FBF)', boxShadow: '0 4px 14px rgba(123,79,191,0.3)' }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" /></svg>
+                {t('repeat')}
               </button>
             </div>
 
@@ -783,13 +783,22 @@ export default function Game({ config, onExit, onExitHome }) {
       </div>
 
       {isFamiliarize && (
-        <div className="px-6 pb-3">
+        <div className="px-6 pb-3 flex gap-3 max-w-xs mx-auto w-full">
           <button
             onClick={handleFamiliarizeLearned}
-            className="w-full py-4 text-white rounded-2xl font-extrabold active:scale-95 transition-transform text-base"
-            style={{ background: 'linear-gradient(135deg, #5B9FE8, #4A8BD4)', boxShadow: '0 4px 14px rgba(91,159,232,0.4)' }}
+            className="flex-1 py-3.5 text-white rounded-2xl font-extrabold active:scale-95 transition-transform flex items-center justify-center gap-2"
+            style={{ background: 'linear-gradient(135deg, #8ED36B, #6BBF4A)', boxShadow: '0 4px 14px rgba(142,211,107,0.3)' }}
           >
-            ✓ {t('learned')}
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+            {lang === 'es' ? 'La conozco' : 'I know it'}
+          </button>
+          <button
+            onClick={handleFamiliarizeNotYet}
+            className="flex-1 py-3.5 text-white rounded-2xl font-extrabold active:scale-95 transition-transform flex items-center justify-center gap-2"
+            style={{ background: 'linear-gradient(135deg, #9B6DDF, #7B4FBF)', boxShadow: '0 4px 14px rgba(123,79,191,0.3)' }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" /></svg>
+            {t('repeat')}
           </button>
         </div>
       )}
