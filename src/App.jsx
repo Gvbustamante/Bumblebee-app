@@ -120,24 +120,36 @@ function RewardsTab() {
   }, [session, profile?.adventure])
 
   const FLOWERS = ['🌻', '🌷', '🌼', '🌸', '🌺', '🌹', '💐', '🪻']
-  const spots = []
-  const rows = [
-    { y: 55, cols: 6, x0: 4, dx: 16, sz: 'text-lg', op: 0.7 },
-    { y: 44, cols: 5, x0: 11, dx: 17, sz: 'text-xl', op: 0.8 },
-    { y: 33, cols: 6, x0: 4, dx: 16, sz: 'text-2xl', op: 0.9 },
-    { y: 22, cols: 5, x0: 11, dx: 17, sz: 'text-2xl', op: 0.95 },
-    { y: 10, cols: 6, x0: 4, dx: 16, sz: 'text-3xl', op: 1 },
+  const spots = [
+    { left: '8%', bottom: '6%', size: 'text-2xl', flower: '🌻' },
+    { left: '28%', bottom: '4%', size: 'text-xl', flower: '🌷' },
+    { left: '50%', bottom: '7%', size: 'text-2xl', flower: '🌼' },
+    { left: '72%', bottom: '5%', size: 'text-xl', flower: '🌸' },
+    { left: '88%', bottom: '8%', size: 'text-lg', flower: '🌺' },
+    { left: '18%', bottom: '16%', size: 'text-xl', flower: '🌹' },
+    { left: '40%', bottom: '14%', size: 'text-2xl', flower: '💐' },
+    { left: '62%', bottom: '17%', size: 'text-xl', flower: '🪻' },
+    { left: '82%', bottom: '15%', size: 'text-2xl', flower: '🌻' },
+    { left: '5%', bottom: '25%', size: 'text-2xl', flower: '🌷' },
+    { left: '25%', bottom: '27%', size: 'text-xl', flower: '🌼' },
+    { left: '48%', bottom: '24%', size: 'text-2xl', flower: '🌸' },
+    { left: '68%', bottom: '26%', size: 'text-xl', flower: '🌺' },
+    { left: '85%', bottom: '28%', size: 'text-lg', flower: '🌹' },
+    { left: '15%', bottom: '35%', size: 'text-xl', flower: '💐' },
+    { left: '35%', bottom: '37%', size: 'text-2xl', flower: '🪻' },
+    { left: '55%', bottom: '34%', size: 'text-xl', flower: '🌻' },
+    { left: '75%', bottom: '36%', size: 'text-2xl', flower: '🌷' },
+    { left: '10%', bottom: '44%', size: 'text-lg', flower: '🌼' },
+    { left: '30%', bottom: '46%', size: 'text-xl', flower: '🌸' },
+    { left: '52%', bottom: '43%', size: 'text-lg', flower: '🌺' },
+    { left: '70%', bottom: '45%', size: 'text-xl', flower: '🌹' },
+    { left: '90%', bottom: '42%', size: 'text-lg', flower: '💐' },
+    { left: '42%', bottom: '48%', size: 'text-lg', flower: '🪻' },
+    { left: '20%', bottom: '50%', size: 'text-lg', flower: '🌻' },
+    { left: '60%', bottom: '49%', size: 'text-lg', flower: '🌷' },
+    { left: '80%', bottom: '51%', size: 'text-lg', flower: '🌼' },
+    { left: '3%', bottom: '52%', size: 'text-lg', flower: '🌸' },
   ]
-  rows.forEach((row, ri) => {
-    for (let c = 0; c < row.cols; c++) {
-      spots.push({
-        left: `${row.x0 + c * row.dx}%`,
-        bottom: `${row.y}%`,
-        size: row.sz, opacity: row.op,
-        flower: FLOWERS[(ri * 7 + c * 3) % FLOWERS.length],
-      })
-    }
-  })
   const flowerCount = Math.min(garden.flowers, spots.length)
   const beeCount = Math.min(garden.bees, 6)
 
@@ -171,11 +183,9 @@ function RewardsTab() {
           <div className="absolute animate-float select-none" style={{ left: '48%', top: '32%', fontSize: '4.5rem', animationDelay: '0.3s' }}>🐝</div>
         )}
 
-        <div className="absolute flex items-end justify-around" style={{ inset: '48% 4% 8%', fontSize: 'clamp(28px, 4vw, 55px)', zIndex: 2 }}>
-          {spots.slice(0, flowerCount).map((s, i) => (
-            <span key={`f${i}`} className="select-none">{s.flower}</span>
-          ))}
-        </div>
+        {spots.slice(0, flowerCount).map((s, i) => (
+          <span key={`f${i}`} className={`absolute select-none ${s.size}`} style={{ left: s.left, bottom: s.bottom, zIndex: 2 }}>{s.flower}</span>
+        ))}
 
         {flowerCount === 0 && (
           <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ top: '20%', zIndex: 3 }}>
