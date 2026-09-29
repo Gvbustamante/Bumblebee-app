@@ -60,7 +60,7 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } },
+      options: { data: { name }, emailRedirectTo: 'https://bumblebe.vercel.app' },
     })
     return { data, error }
   }
@@ -71,7 +71,9 @@ export function AuthProvider({ children }) {
   }
 
   async function resetPassword(email) {
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email)
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://bumblebe.vercel.app',
+    })
     return { data, error }
   }
 
